@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+import '../../../core/app_export.dart';
+
+class AddRouteThreeWidget extends StatelessWidget{
+  const AddRouteThreeWidget({Key? key})
+    : super(key: key,);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100.h,
+      padding: EdgeInsets.symmetric(
+        horizontal: 30.h,
+        vertical: 2.h,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onPrimary.withOpacity(1),
+        borderRadius: BorderRadiusStyle.roundedBorder8,
+        border: Border.all(
+          color: appTheme.blueGray10002,
+          width: 1.h,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CustomImageView(
+            imagePath: ImageConstant.imgWalkingMan,
+            height: 54.h,
+            width: double.maxFinite,
+          ),
+          Text(
+            "Public",
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium,
+          )
+        ],
+      ),
+    );
+  }
+}
