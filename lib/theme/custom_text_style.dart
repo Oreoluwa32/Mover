@@ -351,6 +351,9 @@ class CustomTextStyles {
     color: appTheme.gray80001,
     fontWeight: FontWeight.w500,
   );
+  static get titleSmallInter => theme.textTheme.titleSmall!.inter.copyWith(
+    fontWeight: FontWeight.w500,
+  );
   static get titleSmallInterBlack900 => theme.textTheme.titleSmall!.inter.copyWith(
     color: appTheme.black900,
     fontWeight: FontWeight.w500,

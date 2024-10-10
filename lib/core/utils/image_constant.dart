@@ -163,4 +163,7 @@ class ImageConstant {
 
   // Error icon
   static String imgError = '$imagePath/img_error.svg';
+
+  // Package icon
+  static String imgPackage = '$imagePath/img_package.svg';
 }
