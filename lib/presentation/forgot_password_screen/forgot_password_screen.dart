@@ -1,87 +1,135 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'notifier/forgot_password_notifier.dart';
 
 // Class must be immutable
-class ForgotPasswordScreen extends StatelessWidget{
-  ForgotPasswordScreen({Key? key})
-    : super(key: key,
-  );
+class ForgotPasswordScreen extends ConsumerStatefulWidget{
+  const ForgotPasswordScreen({Key? key})
+    : super(key: key,);
 
-  TextEditingController emailController = TextEditingController();
+  @override
+  ForgotPasswordScreenState createState() => ForgotPasswordScreenState();
+}
+
+// ignore for file, class must be immutable
+class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // API call function to reset password
+  Future<void> resetPassword(BuildContext context, ForgotPasswordNotifier forgotPasswordNotifier) async {
+    final email = forgotPasswordNotifier.state.emailController?.text.trim() ?? '';
+
+    if (email.isEmpty) {
+      Fluttertoast.showToast(msg: "Please enter your email address.");
+      return;
+    }
+
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/forgot-password/');
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"email": email}),
+      );
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "Reset instructions sent to your email.",
+          backgroundColor: appTheme.green50,
+          textColor: Colors.white,
+        );
+        Navigator.pushNamed(context, AppRoutes.passwordCheckMailScreen);
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['error'] ?? "Failed to send reset instructions.";
+        Fluttertoast.showToast(msg: errorMessage);
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "An error occurred. Please try again.");
+    }
+  }
 
   @override
   Widget build(BuildContext context){
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            children: [
-              Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 48.h,
-                ),
-                child: Column(
-                  children: [
-                    CustomIconButton(
-                      height: 56.h,
-                      width: 56.h,
-                      padding: EdgeInsets.all(14.h),
-                      decoration: IconButtonStyleHelper.outlineGray,
-                      child: CustomImageView(
-                        imagePath: ImageConstant.imgKey,
-                      ),
-                    ),
-                    SizedBox(height: 24.h),
-                    Text(
-                      "Forgot password?",
-                      style: theme.textTheme.headlineSmall,
-                    ),
-                    Text(
-                      "No worries, we'll send you reset instructions.",
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    SizedBox(height: 24.h),
-                    _buildColumnemailaddr(context),
-                    SizedBox(height: 24.h),
-                    CustomElevatedButton(
-                      text: "Reset password",
-                      buttonStyle: CustomButtonStyles.fillBlueGray,
-                      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                      onPressed: () {},
-                    ),
-                    SizedBox(height: 32.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomImageView(
-                          imagePath: ImageConstant.imgLeftArrow,
-                          height: 20.h,
-                          width: 20.h,
+        body: Form(
+          key: _formKey,
+          child: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              children: [
+                Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.only(
+                    left: 16.h,
+                    top: 48.h,
+                    right: 16.h,
+                  ),
+                  child: Column(
+                    children: [
+                      CustomIconButton(
+                        height: 56.h,
+                        width: 56.h,
+                        padding: EdgeInsets.all(14.h),
+                        decoration: IconButtonStyleHelper.outlineGray,
+                        child: CustomImageView(
+                          imagePath: ImageConstant.imgKey,
                         ),
-                        SizedBox(width: 8.h),
-                        GestureDetector(
-                          onTap: () {onTapBack(context);},
-                          child: Text(
-                            "Back to log in",
-                            style: theme.textTheme.titleSmall,
+                      ),
+                      SizedBox(height: 24.h),
+                      Text(
+                        "Forgot password?",
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                      Text(
+                        "No worries, we'll send you reset instructions.",
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                      SizedBox(height: 24.h),
+                      _buildColumnemailaddr(context),
+                      SizedBox(height: 24.h),
+                      CustomElevatedButton(
+                        text: "Reset password",
+                        buttonStyle: CustomButtonStyles.fillBlueGray,
+                        buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+                        onPressed: () {},
+                      ),
+                      SizedBox(height: 32.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomImageView(
+                            imagePath: ImageConstant.imgLeftArrow,
+                            height: 20.h,
+                            width: 20.h,
                           ),
-                        )
-                      ],
-                    ),
-                    SizedBox(height: 4.h)
-                  ],
-                ),
-              )
-            ],
+                          SizedBox(width: 8.h),
+                          GestureDetector(
+                            onTap: () {onTapBack(context);},
+                            child: Text(
+                              "Back to log in",
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          )
+                        ],
+                      ),
+                      SizedBox(height: 4.h)
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -100,12 +148,22 @@ class ForgotPasswordScreen extends StatelessWidget{
             style: CustomTextStyles.titleSmallGray600,
           ),
           SizedBox(height: 6.h),
-          CustomTextFormField(
-            controller: emailController,
-            hintText: "Enter your email address",
-            textInputAction: TextInputAction.done,
-            textInputType: TextInputType.emailAddress,
-            contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+          Consumer(
+            builder: (context, ref, _) {
+              return CustomTextFormField(
+                controller: ref.watch(forgotPasswordNotifier).emailController,
+                hintText: "Enter your email address",
+                textInputAction: TextInputAction.done,
+                textInputType: TextInputType.emailAddress,
+                contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                validator: (value) {
+                  if(value == null || (!isValidEmail(value, isRequired: true))) {
+                    return "Please enter a valid email";
+                  }
+                  return null;
+                },
+              );
+            }
           )
         ],
       ),

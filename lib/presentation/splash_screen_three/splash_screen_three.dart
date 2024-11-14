@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import 'notifier/splash_screen_three_notifier.dart';
 
-class SplashScreenThree extends StatelessWidget{
+class SplashScreenThree extends ConsumerStatefulWidget{
   const SplashScreenThree({Key? key})
   : super(key: key,);
-  
+
+  @override
+  SplashScreenThreeState createState() => SplashScreenThreeState();
+}
+
+class SplashScreenThreeState extends ConsumerState<SplashScreenThree>{
   @override
   Widget build(BuildContext context){
     return SafeArea(
@@ -20,7 +27,7 @@ class SplashScreenThree extends StatelessWidget{
               image: AssetImage(
                 ImageConstant.imgSplashScreenThree,
               ),
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
             ),
           ),
           child: Container(
@@ -29,18 +36,19 @@ class SplashScreenThree extends StatelessWidget{
               vertical: 40.h,
             ),
             child: Column(children: [
-              _buildRowprogressflow(context),
+              _buildRowline(context),
               Spacer(flex: 78,),
               _buildColumnyouarein(context),
               Spacer(flex: 21,)
             ],),
           ),
         ),
-      ),);
+      ),
+    );
   }
 
   // Section Widget
-  Widget _buildRowprogressflow(BuildContext context){
+  Widget _buildRowline(BuildContext context){
     return SizedBox(
       width: double.maxFinite,
       child: Row(children: [

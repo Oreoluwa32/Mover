@@ -47,6 +47,9 @@ class CustomTextStyles {
   static get bodyMediumMulishGray800 => theme.textTheme.bodyMedium!.mulish.copyWith(
     color: appTheme.gray800,
   );
+  static get bodyMediumMulishBlack900 => theme.textTheme.bodyMedium!.mulish.copyWith(
+    color: appTheme.black900,
+  );
   static get bodySmall110 => theme.textTheme.bodySmall!.copyWith(
     fontSize: 10.fSize,
   );

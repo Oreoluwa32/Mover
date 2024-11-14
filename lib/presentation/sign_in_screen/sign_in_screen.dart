@@ -1,106 +1,161 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/validation_functions.dart';
+import '../../domain/googleauth/google_auth_helper.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'notifier/sign_in_notifier.dart';
+
+// Secure storage instance
+final storage = FlutterSecureStorage();
+
+// Function to handle user sign-in
+Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) async {
+  final email = signInNotifier.state.emailController?.text ?? '';
+  final password = signInNotifier.state.passwordController?.text ?? '';
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/login/'); // Login endpoint
+
+  if (email.isEmpty || password.isEmpty) {
+    Fluttertoast.showToast(msg: "Email and password cannot be empty.");
+    return;
+  }
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({'email': email, 'password': password}),
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      String token = responseData['token']['key'];
+      // Store token securely
+      await storage.write(key: 'auth_token', value: token);
+      Fluttertoast.showToast(msg: "Sign-in successful");
+      // Store token securely and navigate to the next screen
+      Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+    } 
+    else {
+      final errorData = json.decode(response.body);
+      final errorMessage = errorData['error'] ?? 'Sign-in failed. Please try again.';
+      Fluttertoast.showToast(msg: errorMessage);
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+  }
+}
 
 // Class must be immutable
-class SignInScreen extends StatelessWidget{
-  SignInScreen({Key? key})
+class SignInScreen extends ConsumerStatefulWidget{
+  const SignInScreen({Key? key})
     : super(key: key,);
 
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  @override SignInScreenState createState() => SignInScreenState();
+}
 
+class SignInScreenState extends ConsumerState<SignInScreen> {
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            children: [
-              Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 48.h,
-                ),
-                child: Column(
-                  children: [
-                    CustomImageView(
-                      imagePath: ImageConstant.imgLogoWithoutText,
-                      height: 32.h,
-                      width: 50.h,
-                      alignment: Alignment.centerLeft,
-                    ),
-                    SizedBox(height: 16.h),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Welcome back",
-                        style: theme.textTheme.headlineSmall,
+        body: Form(
+          key: _formKey,
+          child: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              children: [
+                Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.only(
+                    left: 16.h,
+                    top: 48.h,
+                    right: 16.h,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomImageView(
+                        imagePath: ImageConstant.imgLogoWithoutText,
+                        height: 32.h,
+                        width: 50.h,
+                        alignment: Alignment.centerLeft,
                       ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Welcome back! Please enter your details.",
-                        style: CustomTextStyles.titleMediumGray600,
-                      ),
-                    ),
-                    SizedBox(height: 26.h),
-                    _buildColumnemailaddr(context),
-                    SizedBox(height: 22.h),
-                    _buildColumnpassword(context),
-                    SizedBox(height: 22.h),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {onTapForgotPassword(context);},
+                      SizedBox(height: 16.h),
+                      Align(
+                        alignment: Alignment.centerLeft,
                         child: Text(
-                          "Forgot password",
-                          style: CustomTextStyles.titleSmallPrimary,
+                          "Welcome back",
+                          style: theme.textTheme.headlineSmall,
                         ),
                       ),
-                    ),
-                    SizedBox(height: 20.h),
-                    _buildSignin(context),
-                    SizedBox(height: 16.h),
-                    _buildSigninwith(context),
-                    SizedBox(height: 30.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.only(
-                        left: 64.h,
-                        right: 68.h,
+                      SizedBox(height: 4.h),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Welcome back! Please enter your details.",
+                          style: CustomTextStyles.titleMediumGray600,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Don't have an account?",
-                            style: CustomTextStyles.bodyMediumGray600,
+                      SizedBox(height: 26.h),
+                      _buildColumnemailaddr(context),
+                      SizedBox(height: 22.h),
+                      _buildColumnpassword(context),
+                      SizedBox(height: 22.h),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () {onTapForgotPassword(context);},
+                          child: Text(
+                            "Forgot password",
+                            style: CustomTextStyles.titleSmallPrimary,
                           ),
-                          SizedBox(width: 8.h),
-                          GestureDetector(
-                            onTap: () {onTapSignUp(context);},
-                            child: Text(
-                              "Sign up",
-                              style: CustomTextStyles.titleSmallPrimary_1,
-                            ),
-                          )
-                        ],
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 142.h)
-                  ],
-                ),
-              )
-            ],
+                      SizedBox(height: 20.h),
+                      _buildSignin(context),
+                      SizedBox(height: 16.h),
+                      _buildSigninwith(context),
+                      SizedBox(height: 30.h),
+                      Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.only(
+                          left: 64.h,
+                          right: 68.h,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account?",
+                              style: CustomTextStyles.bodyMediumGray600,
+                            ),
+                            SizedBox(width: 8.h),
+                            GestureDetector(
+                              onTap: () {onTapSignUp(context);},
+                              child: Text(
+                                "Sign up",
+                                style: CustomTextStyles.titleSmallPrimary_1,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 142.h)
+                    ],
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -109,11 +164,21 @@ class SignInScreen extends StatelessWidget{
 
   // Section Widget 
   Widget _buildEmail(BuildContext context){
-    return CustomTextFormField(
-      controller: emailController,
-      hintText: "Enter your email address",
-      textInputType: TextInputType.emailAddress,
-      contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomTextFormField(
+          controller: ref.watch(signInNotifier).emailController,
+          hintText: "Enter your email address",
+          textInputType: TextInputType.emailAddress,
+          contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+          validator: (value) {
+            if(value == null || (!isValidEmail(value, isRequired: true))) {
+              return "Please enter a valid email";
+            }
+            return null;
+          },
+        );
+      },
     );
   }
 
@@ -137,13 +202,23 @@ class SignInScreen extends StatelessWidget{
 
   // Section Widget 
   Widget _buildPassword(BuildContext context){
-    return CustomTextFormField(
-      controller: passwordController,
-      hintText: "Enter your password",
-      textInputAction: TextInputAction.done,
-      textInputType: TextInputType.visiblePassword,
-      obscureText: true,
-      contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomTextFormField(
+          controller: ref.watch(signInNotifier).passwordController,
+          hintText: "Enter your password",
+          textInputAction: TextInputAction.done,
+          textInputType: TextInputType.visiblePassword,
+          obscureText: true,
+          contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+          validator: (value) {
+            if(value == null || (!isValidPassword(value, isRequired: true))) {
+              return "Please enter a valid password";
+            }
+            return null;
+          },
+        );
+      }
     );
   }
 
@@ -172,11 +247,19 @@ class SignInScreen extends StatelessWidget{
 
   // Section Widget 
   Widget _buildSignin(BuildContext context){
-    return CustomElevatedButton(
-      text: "Sign in",
-      buttonStyle: CustomButtonStyles.fillBlueGray,
-      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-      onPressed: () {onTapSignIn(context);},
+    return Consumer(
+      builder: (context, ref, _){
+        return CustomElevatedButton(
+          text: "Sign in",
+          buttonStyle: CustomButtonStyles.fillBlueGray,
+          buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+          onPressed: () {
+            if(_formKey.currentState?.validate() ?? false) {
+              signInUser(context, ref.read(signInNotifier.notifier));
+            }
+          },
+        );
+      }
     );
   }
 
@@ -190,8 +273,12 @@ class SignInScreen extends StatelessWidget{
           imagePath: ImageConstant.imgGoogleLogo,
           height: 24.h,
           width: 24.h,
+          fit: BoxFit.contain,
         ),
       ),
+      onPresssed: () {
+        onTapSigninwithGoogle(context);
+      },
     );
   }
 
@@ -208,5 +295,16 @@ class SignInScreen extends StatelessWidget{
   // Navigates to the check mail screen when the action is triggered
   onTapSignIn(BuildContext context){
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+  }
+
+  onTapSigninwithGoogle(BuildContext context) async {
+    await GoogleAuthHelper().googleSignInProcess().then((googleUser) {
+      if(googleUser != null) {}
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User data is empty')));
+      }
+    }).catchError((onError) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(onError.toString())));
+    });
   }
 }

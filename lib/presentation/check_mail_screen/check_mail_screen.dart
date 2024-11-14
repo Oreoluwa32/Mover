@@ -1,14 +1,58 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:new_project/presentation/check_mail_screen/notifier/check_mail_notifier.dart';
+import 'package:new_project/theme/custom_button_style.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_pin_code_text_field.dart';
 
-class CheckMailScreen extends StatelessWidget{
-  const CheckMailScreen({Key? key})
-    : super(key: key,
-  );
+  // Function to verify OTP with backend
+  Future<void> verifyOtp(BuildContext context, CheckMailNotifier checkMailNotifier, String email) async {
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp/'); // API endpoint
 
+    // Send POST request with email and OTP
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "email": email.trim(), // Use the passed email directly
+        "code": checkMailNotifier.state.otpController?.text.trim(),    // OTP code from user input
+      }),
+    );
+
+    // Handle response
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(
+        msg: "Email verified successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: appTheme.green50,
+        textColor: Colors.white,
+      );
+      Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
+    } else {
+      Fluttertoast.showToast(
+        msg: "OTP verification failed: ${response.body}",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: appTheme.red50,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+class CheckMailScreen extends ConsumerStatefulWidget{
+  final String email;
+  const CheckMailScreen({Key? key, required this.email}) : super(key: key);
+
+  @override
+  CheckMailScreenState createState() => CheckMailScreenState();
+}
+
+class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -20,9 +64,10 @@ class CheckMailScreen extends StatelessWidget{
             children: [
               Container(
                 width: double.maxFinite,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 48.h,
+                padding: EdgeInsets.only(
+                  left: 16.h,
+                  top: 48.h,
+                  right: 16.h,
                 ),
                 child: Column(
                   children: [
@@ -50,7 +95,7 @@ class CheckMailScreen extends StatelessWidget{
                               style: theme.textTheme.bodyLarge,
                             ),
                             TextSpan(
-                              text: "johndoe@gmail.com",
+                              text: widget.email,
                               style: CustomTextStyles.titleMediumGray600_1,
                             )
                           ],
@@ -64,16 +109,27 @@ class CheckMailScreen extends StatelessWidget{
                     Container(
                       width: double.maxFinite,
                       margin: EdgeInsets.symmetric(horizontal: 30.h),
-                      child: CustomPinCodeTextField(
-                        context: context,
-                        onChanged: (value) {},
+                      child: Consumer(
+                        builder: (context, ref, _) {
+                          return CustomPinCodeTextField(
+                            context: context,
+                            controller: ref.watch(checkMailNotifier).otpController, 
+                            onChanged: (value) {
+                              ref.read(checkMailNotifier.notifier).state = 
+                                ref.read(checkMailNotifier.notifier).state.copyWith(
+                                  otpController: TextEditingController(text: value),);
+                            },
+                          );
+                        },
                       ),
                     ),
                     SizedBox(height: 32.h),
                     CustomElevatedButton(
                       text: "Verify email",
                       buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                      onPressed: () {onTapVerifyEmail(context);},
+                      onPressed: () {
+                        verifyOtp(context, ref.read(checkMailNotifier.notifier), widget.email);
+                      }, // Call verifyOtp
                     ),
                     SizedBox(height: 30.h),
                     Container(
@@ -109,7 +165,7 @@ class CheckMailScreen extends StatelessWidget{
                         ),
                         SizedBox(width: 8.h),
                         GestureDetector(
-                          onTap: () {onTapBack(context);},
+                          onTap: () => Navigator.pushNamed(context, AppRoutes.signInScreen),
                           child: Text(
                             "Back to log in",
                             style: CustomTextStyles.bodyMediumGray600,

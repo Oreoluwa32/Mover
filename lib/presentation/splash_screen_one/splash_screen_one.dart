@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import 'notifier/splash_screen_one_notifier.dart';
 
-class SplashScreenOne extends StatelessWidget{
+class SplashScreenOne extends ConsumerStatefulWidget{
   const SplashScreenOne({super.key});
 
+  @override
+  SplashScreenOneState createState() => SplashScreenOneState();
+}
+
+class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
   @override
   Widget build(BuildContext context){
     return SafeArea(
@@ -20,8 +26,8 @@ class SplashScreenOne extends StatelessWidget{
               colors: [
                 theme.colorScheme.primary,
                 theme.colorScheme.secondaryContainer
-                ],
-              ), //Linear gradient
+              ],
+            ), //Linear gradient
           ), //Box decoration
           child: Container(
             padding: EdgeInsets.all(16.h),

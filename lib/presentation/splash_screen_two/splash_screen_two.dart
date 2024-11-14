@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import 'notifier/splash_screen_two_notifier.dart';
 
-class SplashScreenTwo extends StatelessWidget{
+class SplashScreenTwo extends ConsumerStatefulWidget{
   const SplashScreenTwo({Key? key})
   : super(key: key,);
-  
+
+  @override
+  SplashScreenTwoState createState() => SplashScreenTwoState();
+}
+
+class SplashScreenTwoState extends ConsumerState<SplashScreenTwo>{
   @override
   Widget build(BuildContext context){
     return SafeArea(
@@ -20,7 +27,7 @@ class SplashScreenTwo extends StatelessWidget{
               image: AssetImage(
                 ImageConstant.imgSplashScreenTwo,
               ),
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
             ),
           ),
           child: Container(
@@ -29,18 +36,19 @@ class SplashScreenTwo extends StatelessWidget{
               vertical: 40.h,
             ),
             child: Column(children: [
-              _buildRowemptyone(context),
+              _buildRowline(context),
               Spacer(flex: 72,),
               _buildColumnnoone(context),
               Spacer(flex: 27,)
             ],),
           ),
         ),
-      ),);
+      ),
+    );
   }
 
   // Section Widget
-  Widget _buildRowemptyone(BuildContext context){
+  Widget _buildRowline(BuildContext context){
     return SizedBox(
       width: double.maxFinite,
       child: Row(children: [

@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
+import 'notifier/email_verified_notifier.dart';
 
-class EmailVerifiedScreen extends StatelessWidget{
+class EmailVerifiedScreen extends ConsumerStatefulWidget{
   const EmailVerifiedScreen({Key? key})
   : super(key: key,
   );
 
+  @override
+  EmailVerifiedScreenState createState() => EmailVerifiedScreenState();
+}
+
+class EmailVerifiedScreenState extends ConsumerState<EmailVerifiedScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -18,9 +25,10 @@ class EmailVerifiedScreen extends StatelessWidget{
             children: [
               Container(
                 width: double.maxFinite,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.h,
-                  vertical: 48.h,
+                padding: EdgeInsets.only(
+                  left: 16.h,
+                  top: 140.h,
+                  right: 16.h
                 ),
                 child: Column(
                   children: [

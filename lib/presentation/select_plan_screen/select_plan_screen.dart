@@ -1,30 +1,88 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
+import 'notifier/select_plan_notifier.dart';
 
-class SelectPlanScreen extends StatelessWidget{
+class SelectPlanScreen extends ConsumerStatefulWidget{
   const SelectPlanScreen({Key? key})
     : super(key: key,);
+
+  @override
+  SelectPlanScreenState createState() => SelectPlanScreenState();
+}
+
+class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
+
+  final storage = FlutterSecureStorage();
+
+  Future<String?> getToken() async {
+    return await storage.read(key: 'auth_token');
+  }
+
+  Future<void> updateSubscriptionPlan(BuildContext context, String planName) async {
+  final token = await getToken();
+  if (token == null) {
+    Fluttertoast.showToast(msg: "No token found. Please log in first.");
+    return;
+  }
+
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-subscription/');
+  final requestBody = {
+    "plan_name": planName,
+  };
+
+  try {
+    final response = await http.put(
+      url,
+      headers: {
+        'Authorization': 'Token $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      final message = jsonDecode(response.body)['message'] ?? 'Subscription updated successfully';
+      Fluttertoast.showToast(msg: message);
+    } else {
+      final error = jsonDecode(response.body)['error'] ?? 'Failed to update subscription plan';
+      Fluttertoast.showToast(msg: error);
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: _buildAppbar(context),
-        body: Container(
+        body: SizedBox(
           width: double.maxFinite,
-          padding: EdgeInsets.only(top: 32.h),
           child: Column(
             children: [
-              _buildColumnselectapl(context),
-              SizedBox(height: 24.h),
-              _buildHorizontalscroll(context),
-              SizedBox(height: 24.h),
-              _buildColumnfeatures(context),
-              SizedBox(height: 4.h)
+              Container(
+                width: double.maxFinite,
+                padding: EdgeInsets.only(top: 32.h),
+                child: Column(
+                  children: [
+                    _buildColumnselectapl(context),
+                    SizedBox(height: 24.h),
+                    _buildHorizontalscroll(context),
+                    SizedBox(height: 24.h),
+                    _buildColumnfeatures(context),
+                    SizedBox(height: 4.h)
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -102,7 +160,7 @@ class SelectPlanScreen extends StatelessWidget{
                   text: '"',
                   style: CustomTextStyles.bodySmallBlack900,
                 )
-              ]
+              ],
             ),
             textAlign: TextAlign.left,
             maxLines: 2,
@@ -121,7 +179,7 @@ class SelectPlanScreen extends StatelessWidget{
         scrollDirection: Axis.horizontal,
         child: IntrinsicWidth(
           child: SizedBox(
-            width: 1200.h,
+            width: 1398.h,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -190,7 +248,6 @@ class SelectPlanScreen extends StatelessWidget{
                       margin: EdgeInsets.only(left: 8.h),
                       padding: EdgeInsets.symmetric(vertical: 10.h),
                       decoration: BoxDecoration(
-
                         borderRadius: BorderRadiusStyle.roundedBorder8,
                         border: Border.all(
                           color: appTheme.gray400,
@@ -318,7 +375,10 @@ class SelectPlanScreen extends StatelessWidget{
             text: "Try for free",
             margin: EdgeInsets.only(bottom: 12.h),
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-            onPressed: () {onTapTryForFree(context);},
+            onPressed: () {
+              // updateSubscriptionPlan(context, "Premium");
+              onTapTryForFree(context);
+            },
           )
         ],
       ),
@@ -437,6 +497,4 @@ class SelectPlanScreen extends StatelessWidget{
   onTapTryForFree(BuildContext context){
     Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
   }
-
-  // Navigates to the 
 }

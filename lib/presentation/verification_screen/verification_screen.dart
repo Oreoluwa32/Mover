@@ -3,11 +3,17 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import 'notifier/verification_notifier.dart';
 
-class VerficationScreen extends StatelessWidget{
-  const VerficationScreen({Key? key})
+class VerificationScreen extends ConsumerStatefulWidget{
+  const VerificationScreen({Key? key})
     : super(key: key,);
 
+  @override
+  VerificationScreenState createState() => VerificationScreenState();
+}
+
+class VerificationScreenState extends ConsumerState<VerificationScreen> {
   @override
   Widget build(BuildContext context){
     return SafeArea(

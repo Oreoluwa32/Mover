@@ -1,5 +1,11 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import '../../core/utils/validation_functions.dart';
+import '../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -8,209 +14,279 @@ import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'models/vehicle_info_model.dart';
+import 'notifier/vehicle_info_notifier.dart';
 
 // ignore for file, class must be immutable
-class VehicleInformationScreen extends StatelessWidget{
-  VehicleInformationScreen({Key? key})
+class VehicleInformationScreen extends ConsumerStatefulWidget{
+  const VehicleInformationScreen({Key? key})
     : super(key: key,);
 
-  List<String> dropdownItemList = ["Item One", "Item Two", "Item Three"];
-  List<String> dropdownItemList1 = ["Item One", "Item Two", "Item Three"];
-  List<String> dropdownItemList2 = ["Item One", "Item Two", "Item Three"];
+  @override
+  VehicleInformationScreenState createState() => VehicleInformationScreenState();
+}
 
-  TextEditingController plateNumberController = TextEditingController();
+// ignore for file, class must be immutable
+class VehicleInformationScreenState extends ConsumerState<VehicleInformationScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final storage = FlutterSecureStorage();
+
+  Future<String?> getToken() async {
+    return await storage.read(key: 'auth_token');
+  }
+
+  Future<void> updateVehicleInfo(BuildContext context) async {
+  final token = await getToken();
+  if (token == null) {
+    Fluttertoast.showToast(msg: "No token found. Please log in first.");
+    return;
+  }
+
+  final notifierState = ref.watch(vehicleInfoNotifier);
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-vehicle/');
+  final requestBody = {
+    "vehicle_plate_number": notifierState.firstNameController?.text,
+    "vehicle_type": notifierState.selectedDropDownValue?.title,
+    "vehicle_brand": notifierState.selectedDropDownValue1?.title,
+    "vehicle_color": notifierState.selectedDropDownValue2?.title,
+    "vehicle_photo": "base64_encoded_image_data",
+    "driver_license": "base64_encoded_image_data",
+    "vehicle_inspector_report": "base64_encoded_image_data",
+    "vehicle_insurance": "base64_encoded_image_data",
+  };
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Token $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      final message = jsonDecode(response.body)['message'] ?? 'Update successful';
+      Fluttertoast.showToast(msg: message);
+      Navigator.pushNamed(context, AppRoutes.verificationScreen);
+    } 
+    else {
+      final error = jsonDecode(response.body)['error'] ?? 'Failed to update vehicle information';
+      Fluttertoast.showToast(msg: error);
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: _buildAppbar(context),
-        body: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.only(
-                left: 14.h,
-                top: 32.h,
-                right: 14.h,
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 292.h,
-                          child: Text(
-                            "Complete the necessary field to validate your vehicle",
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyles.titleSmallGray600Medium.copyWith(height: 1.20,),
-                          ),
-                        ),
-                        SizedBox(height: 28.h),
-                        Text(
-                          "Vehicle Type",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 4.h),
-                        CustomDropDown(
-                          icon: Container(
-                            margin: EdgeInsets.only(left: 16.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgBlueGrayDownArrow,
-                              height: 16.h,
-                              width: 18.h,
-                              fit: BoxFit.contain,
+        body: Form(
+          key: _formKey,
+          child: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Container(
+                width: double.maxFinite,
+                padding: EdgeInsets.only(
+                  left: 14.h,
+                  top: 32.h,
+                  right: 14.h,
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.maxFinite,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 292.h,
+                            child: Text(
+                              "Complete the necessary field to validate your vehicle",
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: CustomTextStyles.titleSmallGray600Medium.copyWith(height: 1.20,),
                             ),
                           ),
-                          iconSize: 16.h,
-                          hintText: "Type of Vehicle",
-                          hintStyle: CustomTextStyles.bodyMediumMulishBluegray400,
-                          items: dropdownItemList,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 14.h,
-                            vertical: 16.h,
+                          SizedBox(height: 28.h),
+                          Text(
+                            "Vehicle Type",
+                            style: CustomTextStyles.titleSmallGray600,
                           ),
-                        ),
-                        SizedBox(height: 22.h),
-                        Text(
-                          "Vehicle Brand",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 6.h),
-                        CustomDropDown(
-                          icon: Container(
-                            margin: EdgeInsets.only(left: 16.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgBlueGrayDownArrow,
-                              height: 16.h,
-                              width: 18.h,
-                              fit: BoxFit.contain,
+                          SizedBox(height: 4.h),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              return CustomDropDown(
+                                icon: _dropdownIcon(),
+                                hintText: "Type of Vehicle",
+                                hintStyle: CustomTextStyles.bodyMediumMulishBluegray400,
+                                items: ref.watch(vehicleInfoNotifier).vehicleInfoModelObj?.dropdownItemList.map((item) => item.title).toList() ?? [],
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 14.h,
+                                  vertical: 16.h,
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 22.h),
+                          Text(
+                            "Vehicle Brand",
+                            style: CustomTextStyles.titleSmallGray600,
+                          ),
+                          SizedBox(height: 6.h),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              return CustomDropDown(
+                                icon: _dropdownIcon(),
+                                hintText: "Brand of Vehicle",
+                                hintStyle: CustomTextStyles.bodyMediumMulishBluegray400,
+                                items: ref.watch(vehicleInfoNotifier).vehicleInfoModelObj?.dropdownItemList1.map((item) => item.title).toList() ?? [],
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 14.h,
+                                  vertical: 16.h,
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 22.h),
+                          Text(
+                            "Vehicle Color",
+                            style: CustomTextStyles.titleSmallGray600,
+                          ),
+                          SizedBox(height: 6.h),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              return CustomDropDown(
+                                icon: _dropdownIcon(),
+                                hintText: "Color of Vehicle",
+                                hintStyle: CustomTextStyles.bodyMediumBluegray400,
+                                items: ref.watch(vehicleInfoNotifier).vehicleInfoModelObj?.dropdownItemList2.map((item) => item.title).toList() ?? [],
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 14.h,
+                                  vertical: 16.h,
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: 22.h),
+                          Text(
+                            "Vehicle Plate Number",
+                            style: CustomTextStyles.titleSmallGray600,
+                          ),
+                          SizedBox(height: 6.h),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              return CustomTextFormField(
+                                controller: ref.watch(vehicleInfoNotifier).firstNameController,
+                                hintText: "Enter your plate number",
+                                textInputAction: TextInputAction.done,
+                                contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                                validator: (value) {
+                                  if(!isText(value)) {
+                                    return "Please enter a valid text";
+                                  }
+                                  return null;
+                                },
+                              );
+                            },
+                          ),
+                          SizedBox(height: 22.h),
+                          Text(
+                            "Vehicle Photo",
+                            style: CustomTextStyles.titleSmallGray600,
+                          ),
+                          SizedBox(height: 2.h),
+                          SizedBox(
+                            width: double.maxFinite,
+                            child: _buildFileuploadOne(
+                              context,
+                              clickToUpload: "Click to upload",
+                              uploadSize: "PNG or JPG (max. 800x400px)",
                             ),
                           ),
-                          iconSize: 16.h,
-                          hintText: "Brand of Vehicle",
-                          hintStyle: CustomTextStyles.bodyMediumMulishBluegray400,
-                          items: dropdownItemList1,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 14.h,
-                            vertical: 16.h,
+                          SizedBox(height: 22.h),
+                          Text(
+                            "Driver's License",
+                            style: CustomTextStyles.titleSmallGray600,
                           ),
-                        ),
-                        SizedBox(height: 22.h),
-                        Text(
-                          "Vehicle Color",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 6.h),
-                        CustomDropDown(
-                          icon: Container(
-                            margin: EdgeInsets.only(left: 16.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgBlueGrayDownArrow,
-                              height: 16.h,
-                              width: 18.h,
-                              fit: BoxFit.contain,
+                          SizedBox(height: 2.h),
+                          SizedBox(
+                            width: double.maxFinite,
+                            child: _buildFileuploadOne(
+                              context,
+                              clickToUpload: "Click to upload",
+                              uploadSize: "PNG or JPG (max. 800x400px)",
                             ),
                           ),
-                          iconSize: 16.h,
-                          hintText: "Color of Vehicle",
-                          hintStyle: CustomTextStyles.bodyMediumBluegray400,
-                          items: dropdownItemList2,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 14.h,
-                            vertical: 16.h,
+                          SizedBox(height: 24.h),
+                          Text(
+                            "Vehicle Inspector Report",
+                            style: CustomTextStyles.titleSmallGray600,
                           ),
-                        ),
-                        SizedBox(height: 22.h),
-                        Text(
-                          "Vehicle Plate Number",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 6.h),
-                        CustomTextFormField(
-                          controller: plateNumberController,
-                          hintText: "Enter your plate number",
-                          textInputAction: TextInputAction.done,
-                          contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                        ),
-                        SizedBox(height: 22.h),
-                        Text(
-                          "Vehicle Photo",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 2.h),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: _buildFileuploadOne(
-                            context,
-                            clickToUpload: "Click to upload",
-                            uploadSize: "PNG or JPG (max. 800x400px)",
+                          SizedBox(
+                            width: double.maxFinite,
+                            child: _buildFileuploadOne(
+                              context,
+                              clickToUpload: "Click to upload",
+                              uploadSize: "PNG or JPG (max. 800x400px)",
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 22.h),
-                        Text(
-                          "Driver's License",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 2.h),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: _buildFileuploadOne(
-                            context,
-                            clickToUpload: "Click to upload",
-                            uploadSize: "PNG or JPG (max. 800x400px)",
+                          SizedBox(height: 22.h),
+                          Text(
+                            "Vehicle Insurance",
+                            style: CustomTextStyles.titleSmallGray600,
                           ),
-                        ),
-                        SizedBox(height: 24.h),
-                        Text(
-                          "Vehicle Inspector Report",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: _buildFileuploadOne(
-                            context,
-                            clickToUpload: "Click to upload",
-                            uploadSize: "PNG or JPG (max. 800x400px)",
+                          SizedBox(height: 2.h),
+                          SizedBox(
+                            width: double.maxFinite,
+                            child: _buildFileuploadOne(
+                              context,
+                              clickToUpload: "Click to upload",
+                              uploadSize: "PNG or JPG (max. 800x400px)",
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 22.h),
-                        Text(
-                          "Vehicle Insurance",
-                          style: CustomTextStyles.titleSmallGray600,
-                        ),
-                        SizedBox(height: 2.h),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: _buildFileuploadOne(
-                            context,
-                            clickToUpload: "Click to upload",
-                            uploadSize: "PNG or JPG (max. 800x400px)",
-                          ),
-                        ),
-                        SizedBox(height: 24.h),
-                        _buildColumnuploadacl(context)
-                      ],
+                          SizedBox(height: 24.h),
+                          _buildColumnuploadacl(context)
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 78.h),
-                  CustomElevatedButton(
-                    text: "Submit",
-                    buttonStyle: CustomButtonStyles.fillBlueGray,
-                    buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                  ),
-                  SizedBox(height: 4.h)
-                ],
+                    SizedBox(height: 78.h),
+                    CustomElevatedButton(
+                      text: "Submit",
+                      buttonStyle: CustomButtonStyles.fillBlueGray,
+                      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+                      onPressed: () {
+                        // Call the register function 
+                        if (_formKey.currentState?.validate() ?? false) {
+                              updateVehicleInfo(context);
+                            }
+                      },
+                    ),
+                    SizedBox(height: 4.h)
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+        )
       )
+    );
+  }
+
+  Widget _dropdownIcon() {
+    return Container(
+      margin: EdgeInsets.only(left: 16.h),
+      child: CustomImageView(
+        imagePath: ImageConstant.imgBlueGrayDownArrow,
+        height: 16.h,
+        width: 18.h,
+        fit: BoxFit.contain,
+      ),
     );
   }
 
@@ -226,7 +302,7 @@ class VehicleInformationScreen extends StatelessWidget{
           top: 44.h,
           bottom: 22.h,
         ),
-        onTap: () {onTapLeftArrow(context);},
+        onTap: () => Navigator.pushNamed(context, AppRoutes.verificationScreen),
       ),
       centerTitle: true,
       title: AppbarSubtitle(

@@ -42,8 +42,8 @@ class CustomBottomBarState extends State<CustomBottomBar>{
       type: BottomBarEnum.Activity,
     ),
     BottomMenuMode1(
-      icon: ImageConstant.imgNavProfile,
-      activeIcon: ImageConstant.imgNavProfile,
+      icon: ImageConstant.imgProfile,
+      activeIcon: ImageConstant.imgProfile,
       title: "Profile",
       type: BottomBarEnum.Profile,
     ),
@@ -92,7 +92,7 @@ class CustomBottomBarState extends State<CustomBottomBar>{
                               offset: Offset(
                                 0, 
                                 3.833333730697632,
-                                ),
+                              ),
                             )
                           ],
                         ),

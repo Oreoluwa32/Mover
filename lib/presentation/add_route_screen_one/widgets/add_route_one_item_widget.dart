@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../models/add_route_one_item_model.dart';
 
 class AddRouteOneItemWidget extends StatelessWidget{
-  const AddRouteOneItemWidget({Key? key})
+  AddRouteOneItemWidget(this.addRouteOneItemModelObj, {Key? key})
     : super(key: key,);
+
+  AddRouteOneItemModel addRouteOneItemModelObj;
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +29,12 @@ class AddRouteOneItemWidget extends StatelessWidget{
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgWalkingMan,
+            imagePath: addRouteOneItemModelObj.meansImage!,
             height: 54.h,
             width: double.maxFinite,
           ),
           Text(
-            "Public",
+            addRouteOneItemModelObj.meansTitle!,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelMedium,
           )

@@ -78,7 +78,7 @@ class ImageConstant {
   static String imgNavCardinalSelected= '$imagePath/img_cardinal_selected.svg';
 
   // Navugation profile image 
-  static String imgNavProfile = '$imagePath/img_profile.jpeg';
+  static String imgProfile = '$imagePath/img_profile.jpeg';
 
   // Clock icon
   static String imgClock = '$imagePath/img_clock.svg';
@@ -96,10 +96,10 @@ class ImageConstant {
   static String imgLeftArrow1 = '$imagePath/img_left_arrow1.svg';
 
   // Right arrow icon
-  static String imgRightArrow ='$imagePath/img_right_arrow.svg';
+  static String imgRightArrow = '$imagePath/img_right_arrow.svg';
 
   // Green check icon
-  static String imgGreenCheck ='$imagePath/img_green_check.svg';
+  static String imgGreenCheck = '$imagePath/img_green_check.svg';
 
   // Blue gray down arrow
   static String imgBlueGrayDownArrow = '$imagePath/img_bluegray_down_arrow.svg';
@@ -166,4 +166,64 @@ class ImageConstant {
 
   // Package icon
   static String imgPackage = '$imagePath/img_package.svg';
+
+  // Users icon
+  static String imgUsers = '$imagePath/img_users.svg';
+
+  // Chat icon
+  static String imgChat = '$imagePath/img_chat.svg';
+
+  // Phone call icon
+  static String imgPhoneCall = '$imagePath/img_phonecall.svg';
+
+  // Alert icon
+  static String imgAlert = '$imagePath/img_alert.svg';
+
+  // Shoes image
+  static String imgShoes = '$imagePath/img_shoes.jpeg';
+
+  // QR Code image
+  static String imgQRCode = '$imagePath/img_qr_code.png';
+
+  // Promotional ad 1 image
+  static String imgAds1 = '$imagePath/img_promotional_ad1.jpg';
+
+  // Delivery bike image
+  static String imgDeliveryBike = '$imagePath/img_delivery_bike.png';
+
+  // Delivery car image
+  static String imgDeliveryCar = '$imagePath/img_delivery_car.png';
+
+  // Schedule route image
+  static String imgScheduleRoute = '$imagePath/img_calendar_man.png';
+
+  // Right purple arrow icon
+  static String imgPurpleRightArrow = '$imagePath/img_purple_right_arrrow.svg';
+
+  // Home icon
+  static String imgHomeIcon = '$imagePath/img_home_icon.png';
+
+  // Away icon
+  static String imgAway = '$imagePath/img_away.png';
+
+  // Sort icon
+  static String imgSort = '$imagePath/img_sort.svg';
+
+  // No mover image
+  static String imgNoMover = '$imagePath/img_no_mover.png';
+
+  // 3d bike image
+  static String img3DBike = '$imagePath/img_3d_bike.png';
+
+  // 3d bus image
+  static String img3DBus = '$imagePath/img_3d_bus.png';
+
+  // 3d plane image
+  static String img3DPlane = '$imagePath/img_3d_plane.png';
+
+  // 3d train image
+  static String img3DTrain = '$imagePath/img_3d_train.png';
+
+  // 3d truck image
+  static String img3DTruck = '$imagePath/image 71.jpg';
 }

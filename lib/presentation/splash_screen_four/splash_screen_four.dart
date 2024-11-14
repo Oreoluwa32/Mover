@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/custom_outlined_button.dart';
+import 'notifier/splash_screen_four_notifier.dart';
 
-class SplashScreenFour extends StatelessWidget{
+class SplashScreenFour extends ConsumerStatefulWidget{
   const SplashScreenFour({Key? key})
   : super(key: key,);
-  
+
+  @override
+  SplashScreenFourState createState() => SplashScreenFourState();
+}
+
+class SplashScreenFourState extends ConsumerState<SplashScreenFour>{
   @override
   Widget build(BuildContext context){
     return SafeArea(
@@ -16,16 +24,15 @@ class SplashScreenFour extends StatelessWidget{
           width: double.maxFinite,
           height: SizeUtils.height,
           decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary,
+            color: theme.colorScheme.onPrimary.withOpacity(1),
             image: DecorationImage(
               image: AssetImage(
                 ImageConstant.imgSplashScreenFour,
               ),
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
             ),
           ),
           child: SizedBox(
-            width: double.maxFinite,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -47,13 +54,15 @@ class SplashScreenFour extends StatelessWidget{
                         horizontal: 16.h,
                         vertical: 40.h,
                       ),
-                      decoration: AppDecoration.fillBlack,
+                      decoration: BoxDecoration(
+                        color: appTheme.black900.withOpacity(0.75),
+                      ),
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
-                          _buildRowprogressflow(context),
+                          _buildRowline(context),
                           Spacer(
-                            flex: 75,
+                            flex: 72,
                           ),
                           _buildColumnreallive(context),
                           Spacer(
@@ -72,30 +81,28 @@ class SplashScreenFour extends StatelessWidget{
   }
 
   // Section Widget
-  Widget _buildRowprogressflow(BuildContext context){
+  Widget _buildRowline(BuildContext context){
     return SizedBox(
       width: double.maxFinite,
       child: Row(
         children: [
           Expanded(
-            child: SizedBox(
-              height: 6.h,
-              width: 106.h,
-            ),
+            child: Divider(
+              color: theme.colorScheme.onPrimary.withOpacity(1),
+            )
           ),
           SizedBox(width: 12.h),
-        Expanded(
-          child: SizedBox(
-            height: 6.h,
-            width: 106.h,
+          Expanded(
+            child: Divider(
+              color: theme.colorScheme.onPrimary.withOpacity(1),
+            )
           ),
-        ),
-        SizedBox(width: 12.h),
-        Expanded(
-          child: Divider(
-            color: appTheme.gray700,
-          ),
-        )
+          SizedBox(width: 12.h),
+          Expanded(
+            child: Divider(
+              color: theme.colorScheme.onPrimary.withOpacity(1),
+            ),
+          )
       ],),
     );
   }
@@ -107,14 +114,14 @@ class SplashScreenFour extends StatelessWidget{
       child: Column(
         children: [
           Text(
-            "Real-Live Tracking",
+            "Bridge of Connectivity",
             style: theme.textTheme.titleLarge,
           ),
           SizedBox(height: 12.h),
           SizedBox(
             width: double.maxFinite,
             child: Text(
-              "Efficiently track deliveries and rides in real time for a seamless, transparent, and connected experience.",
+              "Connect logistics needs with available movers effortlessly commute, run errands, or navigate daily routines with ease.",
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -129,14 +136,13 @@ class SplashScreenFour extends StatelessWidget{
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
             onPressed: () {onTapGetStarted(context);},
           ),
-          SizedBox(height: 22.h),
-          GestureDetector(
-            onTap: () {onTapBack(context);},
-            child: Text(
-              "Back",
-              style: theme.textTheme.titleSmall,
-            ),
-          )
+          SizedBox(height: 16.h),
+          CustomOutlinedButton(
+            text: "Sign In",
+            buttonStyle: CustomButtonStyles.outlineOnPrimary,
+            buttonTextStyle: CustomTextStyles.titleSmallOnPrimary,
+            onPresssed: () {onTapSignIn(context);},
+          ),
         ],
       ),
     );
@@ -150,5 +156,10 @@ class SplashScreenFour extends StatelessWidget{
   // Navigates back to the splash screen three when the action is triggered
   onTapBack(BuildContext context){
     Navigator.pushNamed(context, AppRoutes.splashScreenThree);
+  }
+
+  // Navigates to the sign in screen when the action is triggered
+  onTapSignIn(BuildContext context){
+    Navigator.pushNamed(context, AppRoutes.signInScreen);
   }
 }

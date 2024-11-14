@@ -1,33 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/app_export.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  ThemeHelper().changeTheme('primary');
-  runApp(MaterialApp(
-    home: MyApp(),
-  ));
+  Future.wait([
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+    PrefUtils().init()
+  ]).then((value) {
+    runApp(ProviderScope(child: MyApp()));
+  });
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context, WidgetRef ref,){
+    final themeType = ref.watch(themeNotifier).themeType;
     return Sizer(
       builder: (context, orientation, deviceType){
         return MaterialApp(
           theme: theme,
           title: 'Movr',
+          navigatorKey: NavigatorService.navigatorKey,
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: [
+            AppLocalizationDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate
+          ],
+          supportedLocales: [
+            Locale(
+              'en',
+              '',
+            )
+          ],
           initialRoute: AppRoutes.initialRoute,
           routes: AppRoutes.routes,
-          // home: Scaffold(
-          //   appBar: AppBar(title: Text('Test App')),
-          //   body: Center(child: Text('Hello,Flutter Web!')),
-          // ),
         );
       },
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -8,17 +9,21 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_radio_button.dart';
+import 'models/add_route_one_item_model.dart';
+import 'models/add_route_one_model.dart';
+import 'notifier/add_route_one_notifier.dart';
 import 'widgets/add_route_one_item_widget.dart';
 
 // ignore for file, class must be immutable
-class AddRouteScreenOne extends StatelessWidget{
-  AddRouteScreenOne({Key? key})
+class AddRouteScreenOne extends ConsumerStatefulWidget{
+  const AddRouteScreenOne({Key? key})
     : super(key: key,);
 
-  String radioGroup = "";
-  List<String> dropdownItemList = ["Item One", "Item Two", "Item Three"];
-  List<String> dropdownItemList1 = ["Item One", "Item Two", "Item Three"];
+  @override
+  AddRouteScreenOneState createState() => AddRouteScreenOneState();
+}
 
+class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -45,7 +50,7 @@ class AddRouteScreenOne extends StatelessWidget{
           ),
         ),
         bottomNavigationBar: _buildButtonnav(context),
-      )
+      ),
     );
   }
 
@@ -107,39 +112,47 @@ class AddRouteScreenOne extends StatelessWidget{
               children: [
                 SizedBox(
                   width: double.maxFinite,
-                  child: Column(
-                    children: [
-                      CustomRadioButton(
-                        text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                        value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                        groupValue: radioGroup,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20.h,
-                          vertical: 14.h,
-                        ),
-                        decoration: RadioStyleHelper.fillOnPrimary,
-                        onChange: (value){
-                          radioGroup = value;
-                        },
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 16.h),
-                        child: CustomRadioButton(
-                          text: "Muritala Mohammed Airport",
-                          value: "Muritala Mohammed Airport",
-                          groupValue: radioGroup,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 30.h,
-                            vertical: 14.h,
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      return Column(
+                        children: [
+                          CustomRadioButton(
+                            text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+                            value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+                            groupValue: ref.watch(addRouteOneNotifier).radioGroup,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20.h,
+                              vertical: 14.h,
+                            ),
+                            isExpandedText: true,
+                            overflow: TextOverflow.ellipsis,
+                            decoration: RadioStyleHelper.fillOnPrimary,
+                            onChange: (value){
+                              ref.read(addRouteOneNotifier.notifier).changeRadioButton(value);
+                            },
                           ),
-                          decoration: RadioStyleHelper.fillOnPrimary,
-                          onChange: (value){
-                            radioGroup = value;
-                          },
-                        ),
-                      )
-                    ],
-                  ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 16.h),
+                            child: CustomRadioButton(
+                              text: "Muritala Mohammed Airport",
+                              value: "Muritala Mohammed Airport",
+                              groupValue: ref.watch(addRouteOneNotifier).radioGroup,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 30.h,
+                                vertical: 14.h,
+                              ),
+                              isExpandedText: true,
+                              overflow: TextOverflow.ellipsis,
+                              decoration: RadioStyleHelper.fillOnPrimary,
+                              onChange: (value){
+                                ref.read(addRouteOneNotifier.notifier).changeRadioButton(value);
+                              },
+                            ),
+                          )
+                        ],
+                      );
+                    },
+                  ), 
                 )
               ],
             ),
@@ -170,20 +183,23 @@ class AddRouteScreenOne extends StatelessWidget{
             ),
           ),
           SizedBox(height: 12.h),
-          SizedBox(
-            height: 80.h,
-            width: 358.h,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index){
-                return AddRouteOneItemWidget();
-              }, 
-              separatorBuilder: (context, index){
-                return SizedBox(
-                  width: 14.h,
+          Container(
+            child: Consumer(
+              builder: (context, ref, _) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 14.h,
+                    children: List.generate(
+                      ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList.length ?? 0, (index) {
+                        AddRouteOneItemModel model = ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList[index] ?? AddRouteOneItemModel();
+                        return AddRouteOneItemWidget(model);
+                      },
+                    ),
+                  ),
                 );
-              }, 
-              itemCount: 7
+              }
             ),
           )
         ],
@@ -208,24 +224,28 @@ class AddRouteScreenOne extends StatelessWidget{
                   children: [
                     Text(
                       "Type of service",
-                      style: CustomTextStyles.labelLargeGray400,
+                      style: theme.textTheme.labelLarge,
                     ),
                     SizedBox(height: 4.h),
-                    CustomDropDown(
-                      icon: Container(
-                        margin: EdgeInsets.only(left: 16.h),
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgBlueGrayDownArrow,
-                          height: 16.h,
-                          width: 20.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      iconSize: 16.h,
-                      hintText: "Type of service",
-                      items: dropdownItemList,
-                      contentPadding: EdgeInsets.all(14.h),
-                      borderDecoration: DropDownStyleHelper.outlineBlueGray,
+                    Consumer(
+                      builder: (context, ref, _) {
+                        return CustomDropDown(
+                          icon: Container(
+                            margin: EdgeInsets.only(left: 16.h),
+                            child: CustomImageView(
+                              imagePath: ImageConstant.imgBlueGrayDownArrow,
+                              height: 16.h,
+                              width: 20.h,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          iconSize: 16.h,
+                          hintText: "Type of service",
+                          items: ref.watch(addRouteOneNotifier).addRouteOneModelObj?.serviceTypeDropdown.map((item) => item.title).toList() ?? [],
+                          contentPadding: EdgeInsets.all(14.h),
+                          borderDecoration: DropDownStyleHelper.outlineBlueGray,
+                        );
+                      }
                     )
                   ],
                 ),
@@ -241,35 +261,39 @@ class AddRouteScreenOne extends StatelessWidget{
                       style: theme.textTheme.labelLarge,
                     ),
                     SizedBox(height: 10.h),
-                    CustomDropDown(
-                      icon: Container(
-                        margin: EdgeInsets.only(left: 16.h),
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgBlueGrayDownArrow,
-                          height: 16.h,
-                          width: 20.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      iconSize: 16.h,
-                      hintText: "Set Time",
-                      items: dropdownItemList1,
-                      prefix: Container(
-                        margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgClock,
-                          height: 16.h,
-                          width: 16.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      prefixConstraints: BoxConstraints(
-                        maxHeight: 50.h,
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 14.h,
-                        vertical: 16.h,
-                      ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        return CustomDropDown(
+                          icon: Container(
+                            margin: EdgeInsets.only(left: 16.h),
+                            child: CustomImageView(
+                              imagePath: ImageConstant.imgBlueGrayDownArrow,
+                              height: 16.h,
+                              width: 20.h,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          iconSize: 16.h,
+                          hintText: "Set Time",
+                          items: ref.watch(addRouteOneNotifier).addRouteOneModelObj?.departureDropdown.map((item) => item.title).toList() ?? [],
+                          prefix: Container(
+                            margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
+                            child: CustomImageView(
+                              imagePath: ImageConstant.imgClock,
+                              height: 16.h,
+                              width: 16.h,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          prefixConstraints: BoxConstraints(
+                            maxHeight: 50.h,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 14.h,
+                            vertical: 16.h,
+                          ),
+                        );
+                      }
                     )
                   ],
                 ),

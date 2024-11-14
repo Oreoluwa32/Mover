@@ -22,9 +22,11 @@ extension RadioStyleHelper on CustomRadioButton{
       this.width,
       this.padding,
       this.textStyle,
+      this.overflow,
       this.textAlignment,
       this.gradient,
-      this.backgroundColor
+      this.backgroundColor,
+      this.isExpandedText = false
       }
     ) : super(key: key,);
 
@@ -39,9 +41,11 @@ extension RadioStyleHelper on CustomRadioButton{
     final double? width;
     final EdgeInsetsGeometry? padding;
     final TextStyle? textStyle;
+    final TextOverflow? overflow;
     final TextAlign? textAlignment;
     final Gradient? gradient;
     final Color? backgroundColor;
+    final bool isExpandedText;
 
     @override
   Widget build(BuildContext context) {

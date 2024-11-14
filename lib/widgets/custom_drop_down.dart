@@ -91,7 +91,7 @@ class CustomDropDown extends StatelessWidget{
           child: Text(
             value,
             overflow: TextOverflow.ellipsis,
-            style: hintStyle ?? CustomTextStyles.bodySmallGray400,
+            style: hintStyle ?? CustomTextStyles.bodySmallBlack900,
           ),
         );
       }).toList(),

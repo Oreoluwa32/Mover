@@ -22,12 +22,21 @@ import '../presentation/add_route_three_bottomsheet/add_route_three_bottomsheet.
 import '../presentation/set_date_bottomsheet/set_date_bottomsheet.dart';
 import '../presentation/set_date_bottomsheet_two/set_date_bottomsheet_two.dart';
 import '../presentation/personal_information_screen/personal_information_screen.dart';
-import '../presentation/verification_screen/verfication_screen.dart';
+import '../presentation/verification_screen/verification_screen.dart';
 import '../presentation/vehicle_information_screen/vehicle_information_screen.dart';
 // import '../presentation/my_route_plus_page/my_route_plus_page.dart';
 import '../presentation/verification_screen_one/verification_screen_one.dart';
 import '../presentation/under_review_screen/under_review_screen.dart';
 import '../presentation/select_plan_screen/select_plan_screen.dart';
+import '../presentation/home_delivery_request_screen/home_delivery_request_screen.dart';
+import '../presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
+import '../presentation/ride_sharing_task_bottomsheet_one/ride_sharing_task_bottomsheet_one.dart';
+import '../presentation/delivery_rating_screen_one/delivery_rating_screen_one.dart';
+import '../presentation/delivery_rating_screen_two/delivery_rating_screen_two.dart';
+import '../presentation/ride_cancel_screen_one/ride_cancel_screen_one.dart';
+import '../presentation/ride_sharing_pickup_one/ride_sharing_pickup_one.dart';
+import '../presentation/hire_mover_screen/hire_mover_screen.dart';
+import '../presentation/no_mover_screen/no_mover_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -89,7 +98,25 @@ class AppRoutes {
 
   static const String setDateBottomsheetTwo = '/set_date_bottomsheet';
 
+  static const String homeDeliveryRequestScreen = '/home_delivery_request_screen';
+
+  static const String deliveryTaskOneBottomsheet = '/delivery_task_one_bottomsheet';
+
+  static const String rideSharingTaskBottomsheetOne = '/ride_sharing_task_bottomsheet_one';
+
+  static const String rideSharingPickupOne = '/ride_sharing_pickup_one';
+
+  static const String deliveryRatingScreenOne = '/delivery_rating_screen_one';
+
+  static const String deliveryRatingScreenTwo = '/delivery_rating_screen_two';
+
+  static const String rideCancelScreenOne = '/ride_cancel_screen_one';
+
   // static const String myRoutePlusPage = '/my_route_plus_page';
+
+  static const String hireMoverScreen = 'hire_mover_screen';
+
+  static const String noMoverScreen = 'no_mover_screen';
 
   static const String initialRoute = '/initialRoute';
 
@@ -102,7 +129,7 @@ class AppRoutes {
 
     splashScreenFour: (context) => SplashScreenFour(),
 
-    checkMailScreen: (context) => CheckMailScreen(),
+    checkMailScreen: (context) => CheckMailScreen(email: ''),
 
     createAccountScreen: (context) => CreateAccountScreen(),
 
@@ -122,7 +149,7 @@ class AppRoutes {
 
     homeScreenDialog: (context) => HomeScreenDialog(),
 
-    verificationScreen: (context) => VerficationScreen(),
+    verificationScreen: (context) => VerificationScreen(),
 
     verificationScreenOne: (context) => VerificationScreenOne(),
 
@@ -152,6 +179,22 @@ class AppRoutes {
 
     setDateBottomsheetTwo: (context) => SetDateBottomsheetTwo(),
 
-    initialRoute: (context) => CheckMailScreen()
+    homeDeliveryRequestScreen: (context) => HomeDeliveryRequestScreen(),
+
+    deliveryTaskOneBottomsheet: (context) => DeliveryTaskOneBottomsheet(),
+
+    rideSharingTaskBottomsheetOne: (context) => RideSharingTaskBottomsheetOne(),
+
+    deliveryRatingScreenOne: (context) => DeliveryRatingScreenOne(),
+
+    deliveryRatingScreenTwo: (context) => DeliveryRatingScreenTwo(),
+
+    rideCancelScreenOne: (context) => RideCancelScreenOne(),
+
+    hireMoverScreen: (context) => HireMoverScreen(),
+
+    noMoverScreen: (context) => NoMoverScreen(),
+
+    initialRoute: (context) => AddRouteScreenOne()
   };
 }
