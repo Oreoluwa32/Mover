@@ -1,4 +1,8 @@
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../../theme/custom_button_style.dart';
@@ -9,6 +13,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_radio_button.dart';
+import '../../widgets/custom_text_form_field.dart';
 import 'models/add_route_one_item_model.dart';
 import 'models/add_route_one_model.dart';
 import 'notifier/add_route_one_notifier.dart';
@@ -24,6 +29,59 @@ class AddRouteScreenOne extends ConsumerStatefulWidget{
 }
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
+
+  TextEditingController locationController = TextEditingController();
+  TextEditingController destinationController = TextEditingController();
+
+
+  Future<String?> getToken() async {
+  final storage = FlutterSecureStorage();
+  return await storage.read(key: 'auth_token');
+}
+
+Future<void> createRoute(BuildContext context) async {
+  final token = await getToken();
+  if (token == null) {
+    Fluttertoast.showToast(msg: "No token found. Please log in first.");
+    return;
+  }
+
+  final notifierState = ref.read(addRouteOneNotifier);
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
+  final requestBody = {
+    "location": notifierState.radioGroup, 
+    "destination": destinationController.text,
+    "transportation_mode": notifierState.addRouteOneModelObj?.transportMeansList.firstWhere(
+      (item) => item.isSelected,
+      orElse: () => AddRouteOneItemModel(),
+    ).meansTitle,
+    "service_type": notifierState.serviceTypeDropDownValue?.title,
+    "departure_time": notifierState.departureDropDownValue?.title,
+  };
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Token $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.statusCode == 200) {
+      final message = jsonDecode(response.body)['message'] ?? 'Route created successfully.';
+      Fluttertoast.showToast(msg: message);
+    } else {
+      final error = jsonDecode(response.body)['error'] ?? 'Failed to create route.';
+      Fluttertoast.showToast(msg: error);
+    }
+  } catch (e) {
+    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -109,51 +167,33 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
             width: double.maxFinite,
             margin: EdgeInsets.symmetric(horizontal: 16.h),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Consumer(
-                    builder: (context, ref, _) {
-                      return Column(
-                        children: [
-                          CustomRadioButton(
-                            text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                            value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                            groupValue: ref.watch(addRouteOneNotifier).radioGroup,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 20.h,
-                              vertical: 14.h,
-                            ),
-                            isExpandedText: true,
-                            overflow: TextOverflow.ellipsis,
-                            decoration: RadioStyleHelper.fillOnPrimary,
-                            onChange: (value){
-                              ref.read(addRouteOneNotifier.notifier).changeRadioButton(value);
-                            },
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 16.h),
-                            child: CustomRadioButton(
-                              text: "Muritala Mohammed Airport",
-                              value: "Muritala Mohammed Airport",
-                              groupValue: ref.watch(addRouteOneNotifier).radioGroup,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 30.h,
-                                vertical: 14.h,
-                              ),
-                              isExpandedText: true,
-                              overflow: TextOverflow.ellipsis,
-                              decoration: RadioStyleHelper.fillOnPrimary,
-                              onChange: (value){
-                                ref.read(addRouteOneNotifier.notifier).changeRadioButton(value);
-                              },
-                            ),
-                          )
-                        ],
-                      );
-                    },
-                  ), 
-                )
+                Consumer(
+                  builder: (context, ref, _) {
+                    return CustomTextFormField(
+                      controller: locationController,
+                      hintText: "Enter your location",
+                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
+                      onTap: () {
+                        ref.read(addRouteOneNotifier.notifier).changeRadioButton('location');
+                      },
+                    );
+                  },
+                ),
+                SizedBox(height: 16.h),
+                Consumer(
+                  builder: (context, ref, _) {
+                    return CustomTextFormField(
+                      controller: destinationController,
+                      hintText: "Enter your destination",
+                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
+                      onTap: () {
+                        ref.read(addRouteOneNotifier.notifier).changeRadioButton('destination');
+                      },
+                    );
+                  },
+                ),
               ],
             ),
           )
@@ -163,49 +203,116 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
   }
 
   // Section Widget 
-  Widget _buildColumnmeansof(BuildContext context){
+  // Widget _buildColumnmeansof(BuildContext context){
+  //   return Container(
+  //     width: double.maxFinite,
+  //     margin: EdgeInsets.only(left: 16.h),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         SizedBox(
+  //           width: double.maxFinite,
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 "Means of transportation",
+  //                 style: theme.textTheme.labelLarge,
+  //               )
+  //             ],
+  //           ),
+  //         ),
+  //         SizedBox(height: 12.h),
+  //         Container(
+  //           child: Consumer(
+  //             builder: (context, ref, _) {
+  //               return SingleChildScrollView(
+  //                 scrollDirection: Axis.horizontal,
+  //                 child: Wrap(
+  //                   direction: Axis.horizontal,
+  //                   spacing: 14.h,
+  //                   children: List.generate(
+  //                     ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList.length ?? 0, (index) {
+  //                       AddRouteOneItemModel model = ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList[index] ?? AddRouteOneItemModel();
+  //                       return AddRouteOneItemWidget(model);
+  //                     },
+  //                   ),
+  //                 ),
+  //               );
+  //             }
+  //           ),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _buildColumnmeansof(BuildContext context) {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.only(left: 16.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Means of transportation",
-                  style: theme.textTheme.labelLarge,
-                )
-              ],
-            ),
+          Text(
+            "Means of transportation",
+            style: theme.textTheme.labelLarge,
           ),
           SizedBox(height: 12.h),
-          Container(
-            child: Consumer(
-              builder: (context, ref, _) {
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Wrap(
-                    direction: Axis.horizontal,
-                    spacing: 14.h,
-                    children: List.generate(
-                      ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList.length ?? 0, (index) {
-                        AddRouteOneItemModel model = ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList[index] ?? AddRouteOneItemModel();
-                        return AddRouteOneItemWidget(model);
+          Consumer(
+            builder: (context, ref, _) {
+              final transportModes = ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList ?? [];
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(transportModes.length, (index) {
+                    final mode = transportModes[index];
+                    final isSelected = mode.isSelected;
+
+                    return GestureDetector(
+                      onTap: () {
+                        // Change the selected mode when tapped
+                        ref.read(addRouteOneNotifier.notifier).selectTransportMode(index);
                       },
-                    ),
-                  ),
-                );
-              }
-            ),
-          )
+                      child: Container(
+                        padding: EdgeInsets.all(15.h),
+                        margin: EdgeInsets.only(right: 25.h),
+                        decoration: BoxDecoration(
+                          color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : Colors.transparent,
+                          border: Border.all(
+                            color: isSelected ? theme.colorScheme.primary : appTheme.gray20001,
+                            width: 2.h,
+                          ),
+                          borderRadius: BorderRadius.circular(8.h),
+                        ),
+                        child: Column(
+                          children: [
+                            CustomImageView(
+                              imagePath: mode.meansImage ?? '',
+                              height: 40.h,
+                              width: 40.h,
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              mode.meansTitle ?? '',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isSelected ? theme.colorScheme.primary : appTheme.gray600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
   }
+
 
   // Section Widget
   Widget _buildColumnnumberof(BuildContext context){

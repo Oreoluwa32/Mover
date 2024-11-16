@@ -29,9 +29,8 @@ class PersonalInformationScreen extends ConsumerStatefulWidget{
 class PersonalInformationScreenState extends ConsumerState<PersonalInformationScreen>{
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final storage = FlutterSecureStorage();
-
   Future<String?> getToken() async {
+    final storage = FlutterSecureStorage();
     return await storage.read(key: 'auth_token');
   }
 

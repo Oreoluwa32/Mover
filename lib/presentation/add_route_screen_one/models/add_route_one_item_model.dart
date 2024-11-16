@@ -6,7 +6,8 @@ class AddRouteOneItemModel {
   AddRouteOneItemModel({
     this.meansImage,
     this.meansTitle,
-    this.id
+    this.id,
+    this.isSelected = false,
   }) {
     meansImage = meansImage ?? ImageConstant.imgWalkingMan;
     meansTitle = meansTitle ?? "Public";
@@ -16,4 +17,5 @@ class AddRouteOneItemModel {
   String? meansImage;
   String? meansTitle;
   String? id;
+  bool isSelected;
 }

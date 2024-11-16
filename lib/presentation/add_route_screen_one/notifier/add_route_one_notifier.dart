@@ -77,4 +77,23 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState>{
   void changeRadioButton(String value) {
     state = state.copyWith(radioGroup: value);
   }
+
+  void selectTransportMode(int index) {
+    final updatedModes = state.addRouteOneModelObj?.transportMeansList.map((item) {
+      // Update `isSelected` for the selected index
+      final isSelected = state.addRouteOneModelObj?.transportMeansList.indexOf(item) == index;
+      return AddRouteOneItemModel(
+        meansImage: item.meansImage,
+        meansTitle: item.meansTitle,
+        id: item.id,
+        isSelected: isSelected,
+      );
+    }).toList();
+
+    state = state.copyWith(
+      addRouteOneModelObj: state.addRouteOneModelObj?.copyWith(
+        transportMeansList: updatedModes,
+      ),
+    );
+  }
 }
