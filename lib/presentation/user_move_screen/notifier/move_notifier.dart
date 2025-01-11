@@ -32,6 +32,6 @@ final moveNotifier = StateNotifierProvider.autoDispose<MoveNotifier, MoveState>(
 );
 
 // A notifier that manages the state of the screen accroding to the event that is dispatched to it
-class MoveNotifier extends StateNotifier{
+class MoveNotifier extends StateNotifier<MoveState>{
   MoveNotifier(MoveState state) : super(state);
 }

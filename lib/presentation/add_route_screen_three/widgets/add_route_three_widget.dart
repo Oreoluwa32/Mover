@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../models/add_route_item_model.dart';
 
-class AddRouteThreeWidget extends StatelessWidget{
-  const AddRouteThreeWidget({Key? key})
-    : super(key: key,);
+class AddRouteThreeWidget extends StatelessWidget {
+  AddRouteThreeWidget(this.addRouteItemModelObj, {super.key});
+
+  AddRouteItemModel addRouteItemModelObj;
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +28,12 @@ class AddRouteThreeWidget extends StatelessWidget{
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgWalkingMan,
+            imagePath: addRouteItemModelObj.tabImage!,
             height: 54.h,
             width: double.maxFinite,
           ),
           Text(
-            "Public",
+            addRouteItemModelObj.tabTitle!,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelMedium,
           )

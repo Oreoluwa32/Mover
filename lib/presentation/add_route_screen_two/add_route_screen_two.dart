@@ -16,7 +16,7 @@ class AddRouteScreenTwo extends StatelessWidget{
   AddRouteScreenTwo({Key? key})
     : super(key: key,);
 
-  TextEditingController inputfieldoneController = TextEditingController();
+  TextEditingController pickupController = TextEditingController();
   TextEditingController addStopController = TextEditingController();
   TextEditingController destinationController = TextEditingController();
   List<String> dropdownItemList = ["Item One", "Item Two", "Item Three"];
@@ -94,8 +94,15 @@ class AddRouteScreenTwo extends StatelessWidget{
             ),
             actions: [
               AppbarTrailingImage(
-                imagePath: ImageConstant.imgPlusBlack,
+                imagePath: ImageConstant.imgPlus,
                 margin: EdgeInsets.only(right: 15.h),
+              ),
+              AppbarTrailingImage(
+                imagePath: ImageConstant.imgSetting,
+                margin: EdgeInsets.only(
+                  left: 22.h,
+                  right: 15.h,
+                ),
               )
             ],
           ),
@@ -117,43 +124,21 @@ class AddRouteScreenTwo extends StatelessWidget{
                         child: Row(
                           children: [
                             Expanded(
-                              child: CustomTextFormField(
-                                controller: inputfieldoneController,
-                                hintText: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                                hintStyle: CustomTextStyles.bodySmallOnPrimaryContainer,
-                                prefix: Container(
-                                  margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
-                                  child: CustomImageView(
-                                    imagePath: ImageConstant.imgSelectedRadio,
-                                    height: 16.h,
-                                    width: 24.h,
-                                    fit: BoxFit.contain,
-                                  ),
+                              child: CustomSearchView(
+                                controller: addStopController,
+                                hintText: "Pickup",
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 14.h,
+                                  vertical: 16.h,
                                 ),
-                                prefixConstraints: BoxConstraints(
-                                  maxHeight: 50.h,
-                                ),
-                                suffix: Container(
-                                  margin: EdgeInsets.fromLTRB(16.h, 16.h, 14.h, 16.h),
-                                  child: CustomImageView(
-                                    imagePath: ImageConstant.imgGrayList,
-                                    height: 16.h,
-                                    width: 12.h,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                suffixConstraints: BoxConstraints(maxHeight: 50.h),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 16.h,),
-                                borderDecoration: TextFormFieldStyleHelper.fillGray,
-                                fillColor: appTheme.gray10001,
                               ),
                             ),
                             SizedBox(width: 8.h),
-                            CustomImageView(
-                              imagePath: ImageConstant.imgCancel,
-                              height: 24.h,
-                              width: 24.h,
-                            )
+                            // CustomImageView(
+                            //   imagePath: ImageConstant.imgCancel,
+                            //   height: 24.h,
+                            //   width: 24.h,
+                            // )
                           ],
                         ),
                       ),
@@ -205,7 +190,8 @@ class AddRouteScreenTwo extends StatelessWidget{
                             // )
                           ],
                         ),
-                      )
+                      ),
+                      SizedBox(height: 24.h,)
                     ],
                   ),
                 )

@@ -5,69 +5,72 @@ import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_radio_button.dart';
 import 'notifier/search_mover_notifier.dart';
 
-class SearchMoverBottomsheet extends ConsumerStatefulWidget{
+class SearchMoverBottomsheet extends ConsumerStatefulWidget {
   const SearchMoverBottomsheet({Key? key}) : super(key: key);
 
   @override
   SearchMoverBottomsheetState createState() => SearchMoverBottomsheetState();
 }
 
-class SearchMoverBottomsheetState extends ConsumerState<SearchMoverBottomsheet> {
+class SearchMoverBottomsheetState
+    extends ConsumerState<SearchMoverBottomsheet> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.only(
-        left: 16.h,
-        top: 16.h,
-        right: 16.h,
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
-        borderRadius: BorderRadiusStyle.customBorderTL24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 50.h,
-            child: Divider(),
-          ),
-          SizedBox(height: 14.h),
-          Text(
-            "Searching for mover",
-            style: CustomTextStyles.titleMediumBlack900,
-          ),
-          SizedBox(height: 18.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(
-              color: appTheme.blueGray10001,
+    return Material(
+      child: Container(
+        width: double.maxFinite,
+        padding: EdgeInsets.only(
+          left: 16.h,
+          top: 16.h,
+          right: 16.h,
+        ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withOpacity(1),
+          borderRadius: BorderRadiusStyle.customBorderTL24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 50.h,
+              child: Divider(),
             ),
-          ),
-          SizedBox(height: 24.h),
-          _buildSeenMovers(context),
-          SizedBox(height: 24.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Divider(
-              color: appTheme.gray20001,
+            SizedBox(height: 14.h),
+            Text(
+              "Searching for mover",
+              style: CustomTextStyles.titleMediumBlack900,
             ),
-          ),
-          SizedBox(height: 22.h),
-          _buildLocation(context),
-          SizedBox(height: 24.h),
-          CustomElevatedButton(
-            text: "View Prices",
-            buttonStyle: CustomButtonStyles.none,
-          ),
-          SizedBox(height: 24.h),
-          Text(
-            "Cancel request",
-            style: CustomTextStyles.titleSmallRedA700Medium,
-          ),
-          SizedBox(height: 20.h),
-        ],
+            SizedBox(height: 18.h),
+            SizedBox(
+              width: double.maxFinite,
+              child: Divider(
+                color: appTheme.blueGray10001,
+              ),
+            ),
+            SizedBox(height: 24.h),
+            _buildSeenMovers(context),
+            SizedBox(height: 24.h),
+            SizedBox(
+              width: double.maxFinite,
+              child: Divider(
+                color: appTheme.gray20001,
+              ),
+            ),
+            SizedBox(height: 22.h),
+            _buildLocation(context),
+            SizedBox(height: 24.h),
+            CustomElevatedButton(
+              text: "View Prices",
+              buttonStyle: CustomButtonStyles.none,
+            ),
+            SizedBox(height: 24.h),
+            Text(
+              "Cancel request",
+              style: CustomTextStyles.titleSmallRedA700Medium,
+            ),
+            SizedBox(height: 20.h),
+          ],
+        ),
       ),
     );
   }
@@ -134,26 +137,29 @@ class SearchMoverBottomsheetState extends ConsumerState<SearchMoverBottomsheet> 
                 overflow: TextOverflow.ellipsis,
                 decoration: RadioStyleHelper.fillOnPrimary,
                 onChange: (value) {
-                  ref.read(searchMoverNotifier.notifier).changeRadioButton(value);
+                  ref
+                      .read(searchMoverNotifier.notifier)
+                      .changeRadioButton(value);
                 },
               ),
               Padding(
                 padding: EdgeInsets.only(top: 8.h),
                 child: CustomRadioButton(
-                  text: "",
-                  value: "",
-                  groupValue: ref.watch(searchMoverNotifier).radioGroup,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 30.h,
-                    vertical: 14.h,
-                  ),
-                  isExpandedText: true,
-                  overflow: TextOverflow.ellipsis,
-                  decoration: RadioStyleHelper.fillOnPrimary,
-                  onChange: (value) {
-                    ref.read(searchMoverNotifier.notifier).changeRadioButton(value);
-                  }
-                ),
+                    text: "",
+                    value: "",
+                    groupValue: ref.watch(searchMoverNotifier).radioGroup,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 30.h,
+                      vertical: 14.h,
+                    ),
+                    isExpandedText: true,
+                    overflow: TextOverflow.ellipsis,
+                    decoration: RadioStyleHelper.fillOnPrimary,
+                    onChange: (value) {
+                      ref
+                          .read(searchMoverNotifier.notifier)
+                          .changeRadioButton(value);
+                    }),
               )
             ],
           );

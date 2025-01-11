@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../models/days_item_model.dart';
 
-class ChipviewoneItemWidget extends StatelessWidget{
-  const ChipviewoneItemWidget({Key? key})
-    : super(key: key,);
+class ChipviewoneItemWidget extends StatelessWidget {
+  ChipviewoneItemWidget(this.daysItemModelObj, {Key? key, this.onSelectedDay})
+      : super(
+          key: key,
+        );
+
+  DaysItemModel daysItemModelObj;
+
+  Function(bool)? onSelectedDay;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +22,7 @@ class ChipviewoneItemWidget extends StatelessWidget{
         showCheckmark: false,
         labelPadding: EdgeInsets.zero,
         label: Text(
-          "S",
+          daysItemModelObj.days!,
           style: TextStyle(
             color: appTheme.blueGray800,
             fontSize: 14.fSize,
@@ -23,11 +30,13 @@ class ChipviewoneItemWidget extends StatelessWidget{
             fontWeight: FontWeight.w400,
           ),
         ),
-        selected: false,
+        selected: (daysItemModelObj.isSelected ?? false),
         backgroundColor: Colors.transparent,
         selectedColor: Colors.transparent,
         side: BorderSide.none,
-        onSelected: (value) {},
+        onSelected: (value) {
+          onSelectedDay?.call(value);
+        },
       ),
     );
   }

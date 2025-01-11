@@ -141,17 +141,24 @@ class CustomTextStyles {
     color: theme.colorScheme.primary,
     fontSize: 12.fSize,
   );
-  static get bodySmallPrimary12 => theme.textTheme.bodySmall!.copyWith(
+  static get bodySmallPrimary10 => theme.textTheme.bodySmall!.copyWith(
     color: theme.colorScheme.primary,
-    fontSize: 12.fSize,
+    fontSize: 10.fSize,
   );
   static get bodySmallPrimaryContainer => theme.textTheme.bodySmall!.copyWith(
     color: theme.colorScheme.primaryContainer,
     fontSize: 12.fSize,
   );
+  static get bodySmallRed500 => theme.textTheme.bodySmall!.copyWith(
+    color: appTheme.red500,
+    fontSize: 8.fSize,
+  );
   static get bodySmallRedA700 => theme.textTheme.bodySmall!.copyWith(
     color: appTheme.redA700,
-    fontSize: 12.fSize,
+  );
+  static get bodySmallRedA70010 => theme.textTheme.bodySmall!.copyWith(
+    color: appTheme.redA700,
+    fontSize: 10.fSize,
   );
   // Inter text style
   static get interErrorContainer => TextStyle(
@@ -316,6 +323,9 @@ class CustomTextStyles {
   static get titleSmallGray600 => theme.textTheme.titleSmall!.copyWith(
     color: appTheme.gray600,
   );
+  static get titleSmallBold => theme.textTheme.titleSmall!.copyWith(
+    fontWeight: FontWeight.w700,
+  );
   static get titleSmallErrorContainer => theme.textTheme.titleSmall!.copyWith(
     color: theme.colorScheme.errorContainer,
   );
@@ -368,6 +378,9 @@ class CustomTextStyles {
   static get titleSmallInterPrimary => theme.textTheme.titleSmall!.inter.copyWith(
     color: theme.colorScheme.primary,
     fontWeight: FontWeight.w500,
+  );
+  static get titleSmallMedium => theme.textTheme.titleSmall!.copyWith(
+    fontWeight: FontWeight.w500
   );
   static get titleSmallPrimary => theme.textTheme.titleSmall!.copyWith(
     color: theme.colorScheme.primary,

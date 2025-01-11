@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -5,7 +7,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/utils/validation_functions.dart';
-import '../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -14,7 +15,6 @@ import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_text_form_field.dart';
-import 'models/vehicle_info_model.dart';
 import 'notifier/vehicle_info_notifier.dart';
 
 // ignore for file, class must be immutable
@@ -30,7 +30,7 @@ class VehicleInformationScreen extends ConsumerStatefulWidget{
 class VehicleInformationScreenState extends ConsumerState<VehicleInformationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   Future<String?> getToken() async {
     return await storage.read(key: 'auth_token');
@@ -44,16 +44,39 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
   }
 
   final notifierState = ref.watch(vehicleInfoNotifier);
+
+  // Convert images to Base64
+  final vehiclePhotoBase64 = notifierState.vehiclePhotoPath != null
+        ? base64Encode(File(notifierState.vehiclePhotoPath!).readAsBytesSync())
+        : null;
+    final driverLicenseBase64 = notifierState.driverLicensePath != null
+        ? base64Encode(File(notifierState.driverLicensePath!).readAsBytesSync())
+        : null;
+    final vehicleInspectorReportBase64 =
+        notifierState.vehicleReportPath != null
+            ? base64Encode(
+                File(notifierState.vehicleReportPath!)
+                    .readAsBytesSync())
+            : null;
+    final vehicleInsuranceBase64 = notifierState.vehicleInsurancePath != null
+        ? base64Encode(
+            File(notifierState.vehicleInsurancePath!).readAsBytesSync())
+        : null;
+
   final url = Uri.parse('https://demosystem.pythonanywhere.com/update-vehicle/');
   final requestBody = {
     "vehicle_plate_number": notifierState.firstNameController?.text,
     "vehicle_type": notifierState.selectedDropDownValue?.title,
     "vehicle_brand": notifierState.selectedDropDownValue1?.title,
     "vehicle_color": notifierState.selectedDropDownValue2?.title,
-    "vehicle_photo": "base64_encoded_image_data",
-    "driver_license": "base64_encoded_image_data",
-    "vehicle_inspector_report": "base64_encoded_image_data",
-    "vehicle_insurance": "base64_encoded_image_data",
+    if (vehiclePhotoBase64 != null)
+        "vehicle_photo": vehiclePhotoBase64,
+      if (driverLicenseBase64 != null)
+        "driver_license": driverLicenseBase64,
+      if (vehicleInspectorReportBase64 != null)
+        "vehicle_inspector_report": vehicleInspectorReportBase64,
+      if (vehicleInsuranceBase64 != null)
+        "vehicle_insurance": vehicleInsuranceBase64,
   };
 
   try {
@@ -207,6 +230,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                               context,
                               clickToUpload: "Click to upload",
                               uploadSize: "PNG or JPG (max. 800x400px)",
+                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehiclePhoto
                             ),
                           ),
                           SizedBox(height: 22.h),
@@ -221,6 +245,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                               context,
                               clickToUpload: "Click to upload",
                               uploadSize: "PNG or JPG (max. 800x400px)",
+                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadDriverLicense
                             ),
                           ),
                           SizedBox(height: 24.h),
@@ -234,6 +259,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                               context,
                               clickToUpload: "Click to upload",
                               uploadSize: "PNG or JPG (max. 800x400px)",
+                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehicleReport
                             ),
                           ),
                           SizedBox(height: 22.h),
@@ -248,6 +274,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                               context,
                               clickToUpload: "Click to upload",
                               uploadSize: "PNG or JPG (max. 800x400px)",
+                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehicleInsurance
                             ),
                           ),
                           SizedBox(height: 24.h),
@@ -356,45 +383,81 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
     BuildContext context, {
     required String clickToUpload,
     required String uploadSize,
+    required Function(String) onImageSelected,
   }) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 14.h),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(
-          color: appTheme.blueGray10002,
-          width: 1.h,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomIconButton(
-            height: 40.h,
-            width: 40.h,
-            padding: EdgeInsets.all(10.h),
-            decoration: IconButtonStyleHelper.outlineGrayTL20,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgCloudUpload,
+    return Consumer(
+      builder: (context, ref, _) {
+        // Get the appropriate image path based on the caller
+        String? imagePath;
+        if (onImageSelected ==
+            ref.read(vehicleInfoNotifier.notifier).uploadVehiclePhoto) {
+          imagePath = ref.watch(vehicleInfoNotifier).vehiclePhotoPath;
+        } else if (onImageSelected ==
+            ref.read(vehicleInfoNotifier.notifier).uploadDriverLicense) {
+          imagePath = ref.watch(vehicleInfoNotifier).driverLicensePath;
+        } else if (onImageSelected ==
+            ref
+                .read(vehicleInfoNotifier.notifier)
+                .uploadVehicleReport) {
+          imagePath = ref.watch(vehicleInfoNotifier).vehicleReportPath;
+        } else if (onImageSelected ==
+            ref.read(vehicleInfoNotifier.notifier).uploadVehicleInsurance) {
+          imagePath = ref.watch(vehicleInfoNotifier).vehicleInsurancePath;
+        }
+
+        return GestureDetector(
+          onTap: () async {
+            final picker = ImagePicker();
+            final pickedImage =
+                await picker.pickImage(source: ImageSource.gallery);
+            if (pickedImage != null) {
+              onImageSelected(pickedImage.path);
+            }
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 14.h),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onPrimary.withOpacity(1),
+              borderRadius: BorderRadiusStyle.roundedBorder8,
+              border: Border.all(
+                color: appTheme.blueGray10002,
+                width: 1.h,
+              ),
             ),
+            child: imagePath != null
+                ? Image.file(File(imagePath))
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomIconButton(
+                        height: 40.h,
+                        width: 40.h,
+                        padding: EdgeInsets.all(10.h),
+                        decoration: IconButtonStyleHelper.outlineGrayTL20,
+                        child: CustomImageView(
+                          imagePath: ImageConstant.imgCloudUpload,
+                        ),
+                      ),
+                      SizedBox(height: 12.h),
+                      Text(
+                        clickToUpload,
+                        style: CustomTextStyles.titleSmallInterPrimary.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        uploadSize,
+                        style: CustomTextStyles.bodySmallInterGray600_1
+                            .copyWith(
+                          color: appTheme.gray600,
+                        ),
+                      )
+                    ],
+                  ),
           ),
-          SizedBox(height: 12.h),
-          Text(
-            clickToUpload,
-            style: CustomTextStyles.titleSmallInterPrimary.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            uploadSize,
-            style: CustomTextStyles.bodySmallInterGray600_1.copyWith(
-              color: appTheme.gray600,
-            ),
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 

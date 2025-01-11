@@ -5,7 +5,8 @@ import '../../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../models/vehicle_info_model.dart';
 part 'vehicle_info_state.dart';
 
-final vehicleInfoNotifier = StateNotifierProvider.autoDispose<VehicleInfoNotifier, VehicleInfoState>(
+final vehicleInfoNotifier =
+    StateNotifierProvider.autoDispose<VehicleInfoNotifier, VehicleInfoState>(
   (ref) => VehicleInfoNotifier(VehicleInfoState(
     firstNameController: TextEditingController(),
     selectedDropDownValue: SelectionPopupModel(title: ''),
@@ -25,8 +26,7 @@ final vehicleInfoNotifier = StateNotifierProvider.autoDispose<VehicleInfoNotifie
         id: 3,
         title: "Item Three",
       ),
-    ],
-    dropdownItemList1: [
+    ], dropdownItemList1: [
       SelectionPopupModel(
         id: 4,
         title: "Item One",
@@ -40,8 +40,7 @@ final vehicleInfoNotifier = StateNotifierProvider.autoDispose<VehicleInfoNotifie
         id: 6,
         title: "Item Three",
       ),
-    ],
-    dropdownItemList2: [
+    ], dropdownItemList2: [
       SelectionPopupModel(
         id: 7,
         title: "Item One",
@@ -60,6 +59,22 @@ final vehicleInfoNotifier = StateNotifierProvider.autoDispose<VehicleInfoNotifie
 );
 
 // A notifier that manages the state of vehicle info according to the event dispatched to it
-class VehicleInfoNotifier extends StateNotifier<VehicleInfoState>{
+class VehicleInfoNotifier extends StateNotifier<VehicleInfoState> {
   VehicleInfoNotifier(VehicleInfoState state) : super(state);
+
+  void uploadVehiclePhoto(String imagePath) {
+    state = state.copyWith(vehiclePhotoPath: imagePath);
+  }
+
+  void uploadVehicleReport(String imagePath) {
+    state = state.copyWith(vehicleReportPath: imagePath);
+  }
+
+  void uploadDriverLicense(String imagePath) {
+    state = state.copyWith(driverLicensePath: imagePath);
+  }
+
+  void uploadVehicleInsurance(String imagePath) {
+    state = state.copyWith(vehicleInsurancePath: imagePath);
+  }
 }

@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
+import '../../core/utils/date_time_utils.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
-import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
-import 'widgets/chipviewone_item_widget.dart';
+import 'models/days_item_model.dart';
+import 'notifier/set_date_notifier.dart';
+import 'widgets/chipviewone_item_widget.dart'; //ignore for file, class must be immutable
 
-// ignore for file, class must be immutable
-class SetDateBottomsheet extends StatelessWidget{
-  SetDateBottomsheet({Key? key})
-    : super(key: key,);
+class SetDateBottomsheet extends ConsumerStatefulWidget {
+  const SetDateBottomsheet({Key? key})
+      : super(
+          key: key,
+        );
 
-  TextEditingController startdateController = TextEditingController();
-  List<String> dropdownItemList = ["Item One", "Item Two", "Item Three"];
-  TextEditingController enddateController = TextEditingController();
+  @override
+  SetDateBottomsheetState createState() => SetDateBottomsheetState();
+}
 
+class SetDateBottomsheetState extends ConsumerState<SetDateBottomsheet> {
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -49,66 +52,83 @@ class SetDateBottomsheet extends StatelessWidget{
   }
 
   // Section Widget
-  Widget _buildDate(BuildContext context){
-    return CustomTextFormField(
-      readOnly: true,
-      controller: startdateController,
-      hintText: "Set date",
-      prefix: Container(
-        margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
-        child: CustomImageView(
-          imagePath: ImageConstant.imgCalendar,
-          height: 16.h,
-          width: 16.h,
-          fit: BoxFit.contain,
-        ),
-      ),
-      prefixConstraints: BoxConstraints(maxHeight: 50.h),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 14.h,
-        vertical: 16.h,
-      ),
-      onTap: () {},
+  Widget _buildDate(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomTextFormField(
+          readOnly: true,
+          controller: ref.watch(setDateNotifier).startDateController,
+          hintText: "Set date",
+          prefix: Container(
+            margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
+            child: CustomImageView(
+              imagePath: ImageConstant.imgCalendar,
+              height: 16.h,
+              width: 16.h,
+              fit: BoxFit.contain,
+            ),
+          ),
+          prefixConstraints: BoxConstraints(maxHeight: 50.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 14.h,
+            vertical: 16.h,
+          ),
+          onTap: () {
+            onTapStartDate(context);
+          },
+        );
+      },
     );
   }
 
   // Section Widget
-  Widget _buildOnetwo(BuildContext context){
-    return CustomOutlinedButton(
-      width: 50.h,
-      text: "1",
-      buttonStyle: CustomButtonStyles.outlineGray,
-      buttonTextStyle: CustomTextStyles.bodySmallErrorContainer,
+  Widget _buildOnetwo(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomTextFormField(
+          width: 50.h,
+          controller: ref.watch(setDateNotifier).numberController,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 14.h,
+            vertical: 16.h,
+          )
+        );
+      },
     );
   }
 
   // Section Widget
-  Widget _buildDateone(BuildContext context){
-    return CustomTextFormField(
-      readOnly: true,
-      controller: enddateController,
-      hintText: "Set date",
-      textInputAction: TextInputAction.done,
-      prefix: Container(
-        margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
-        child: CustomImageView(
-          imagePath: ImageConstant.imgCalendar,
-          height: 16.h,
-          width: 16.h,
-          fit: BoxFit.contain,
-        ),
-      ),
-      prefixConstraints: BoxConstraints(maxHeight: 50.h),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 14.h,
-        vertical: 16.h,
-      ),
-      onTap: () {},
+  Widget _buildDateone(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomTextFormField(
+          readOnly: true,
+          controller: ref.watch(setDateNotifier).endDateController,
+          hintText: "Set date",
+          prefix: Container(
+            margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
+            child: CustomImageView(
+              imagePath: ImageConstant.imgCalendar,
+              height: 16.h,
+              width: 16.h,
+              fit: BoxFit.contain,
+            ),
+          ),
+          prefixConstraints: BoxConstraints(maxHeight: 50.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 14.h,
+            vertical: 16.h,
+          ),
+          onTap: () {
+            onTapEndDate(context);
+          },
+        );
+      },
     );
   }
 
   // Section Widget
-  Widget _buildColumnlineone(BuildContext context){
+  Widget _buildColumnlineone(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -118,7 +138,7 @@ class SetDateBottomsheet extends StatelessWidget{
             alignment: Alignment.center,
             child: SizedBox(
               width: 50.h,
-              child: Divider(),
+              child: const Divider(),
             ),
           ),
           SizedBox(height: 14.h),
@@ -157,24 +177,34 @@ class SetDateBottomsheet extends StatelessWidget{
                 _buildOnetwo(context),
                 SizedBox(width: 16.h),
                 Expanded(
-                  child: CustomDropDown(
-                    icon: Container(
-                      margin: EdgeInsets.only(left: 16.h),
-                      child: CustomImageView(
-                        imagePath: ImageConstant.imgBlueGrayDownArrow,
-                        height: 16.h,
-                        width: 20.h,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    iconSize: 16.h,
-                    hintText: "Week",
-                    hintStyle: CustomTextStyles.bodySmallErrorContainer,
-                    items: dropdownItemList,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 14.h,
-                      vertical: 16.h,
-                    ),
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      return CustomDropDown(
+                        icon: Container(
+                          margin: EdgeInsets.only(left: 16.h),
+                          child: CustomImageView(
+                            imagePath: ImageConstant.imgBlueGrayDownArrow,
+                            height: 16.h,
+                            width: 20.h,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        iconSize: 16.h,
+                        hintText: "Week",
+                        hintStyle: CustomTextStyles.bodySmallErrorContainer,
+                        items: ref
+                                .watch(setDateNotifier)
+                                .setDateModelObj
+                                ?.repeatDropdown
+                                .map((item) => item.title)
+                                .toList() ??
+                            [],
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 14.h,
+                          vertical: 16.h,
+                        ),
+                      );
+                    },
                   ),
                 )
               ],
@@ -182,21 +212,42 @@ class SetDateBottomsheet extends StatelessWidget{
           ),
           SizedBox(height: 16.h),
           Container(
-            width: double.maxFinite,
-            margin: EdgeInsets.only(
-              left: 14.h,
-              right: 18.h,
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Wrap(
-                direction: Axis.horizontal,
-                runSpacing: 10.h,
-                spacing: 10.h,
-                children: List<Widget>.generate(7, (index) => ChipviewoneItemWidget()),
+              width: double.maxFinite,
+              margin: EdgeInsets.only(
+                left: 14.h,
+                right: 18.h,
               ),
-            ),
-          ),
+              child: Consumer(builder: (context, ref, _) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    direction: Axis.horizontal,
+                    runSpacing: 10.h,
+                    spacing: 10.h,
+                    children: List<Widget>.generate(
+                        ref
+                                .watch(setDateNotifier)
+                                .setDateModelObj
+                                ?.daysOfWeek
+                                .length ??
+                            0, (index) {
+                      DaysItemModel model = ref
+                              .watch(setDateNotifier)
+                              .setDateModelObj
+                              ?.daysOfWeek[index] ??
+                          DaysItemModel();
+                      return ChipviewoneItemWidget(
+                        model,
+                        onSelectedDay: (value) {
+                          ref
+                              .read(setDateNotifier.notifier)
+                              .onSelectedDays(index, value);
+                        },
+                      );
+                    }),
+                  ),
+                );
+              })),
           SizedBox(height: 14.h),
           SizedBox(
             width: double.maxFinite,
@@ -222,13 +273,15 @@ class SetDateBottomsheet extends StatelessWidget{
     );
   }
 
-  // Section Widget 
-  Widget _buildSave(BuildContext context){
-    return CustomElevatedButton(text: "Save",);
+  // Section Widget
+  Widget _buildSave(BuildContext context) {
+    return CustomElevatedButton(
+      text: "Save",
+    );
   }
 
   // Section Widget
-  Widget _buildColumnsave(BuildContext context){
+  Widget _buildColumnsave(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -238,9 +291,44 @@ class SetDateBottomsheet extends StatelessWidget{
           Text(
             "Cancel",
             style: CustomTextStyles.titleSmallErrorContainer,
-          )
+          ),
+          SizedBox(height: 20.h,)
         ],
       ),
     );
+  }
+
+  // Displays a date picker dialog and updates the selected date in the [setDateModelObj] object of the current [startDateController] if the user selects a valid date.
+  // This function returns a `Future` that completes with `void`.
+  Future<void> onTapStartDate(BuildContext context) async {
+    DateTime? dateTime = await showDatePicker(
+        context: context,
+        initialDate: ref.watch(setDateNotifier).setDateModelObj!.startDate ??
+            DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day));
+    if (dateTime != null) {
+      ref.watch(setDateNotifier).setDateModelObj!.startDate = dateTime;
+      ref.watch(setDateNotifier).startDateController?.text =
+          dateTime.format(pattern: dateTimeFormatPattern);
+    }
+  }
+
+  // Displays a date picker dialog and updates the selected date in the [setDateModelObj] object of the current [endDateController] if the user selects a valid date.
+  // This function returns a `Future` that completes with `void`.
+  Future<void> onTapEndDate(BuildContext context) async {
+    DateTime? dateTime = await showDatePicker(
+        context: context,
+        initialDate: ref.watch(setDateNotifier).setDateModelObj!.endDate ??
+            DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day));
+    if (dateTime != null) {
+      ref.watch(setDateNotifier).setDateModelObj!.endDate = dateTime;
+      ref.watch(setDateNotifier).endDateController?.text =
+          dateTime.format(pattern: dateTimeFormatPattern);
+    }
   }
 }

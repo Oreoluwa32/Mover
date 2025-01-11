@@ -3,11 +3,19 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import 'notifier/scan_notifier.dart';
 
-class ScanScreen extends StatelessWidget{
+class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({Key? key})
-    : super(key: key,);
+      : super(
+          key: key,
+        );
 
+  @override
+  ScanScreenState createState() => ScanScreenState();
+}
+
+class ScanScreenState extends ConsumerState<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -44,7 +52,7 @@ class ScanScreen extends StatelessWidget{
                       children: [
                         Text(
                           "Switch to pin code",
-                          style: CustomTextStyles.titleSmallPurple900,
+                          style: CustomTextStyles.titleSmallPurple900
                         ),
                         SizedBox(width: 12.h),
                         CustomImageView(
@@ -66,7 +74,7 @@ class ScanScreen extends StatelessWidget{
   }
 
   // Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context){
+  PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
       height: 92.h,
       leadingWidth: 40.h,
@@ -90,6 +98,4 @@ class ScanScreen extends StatelessWidget{
       styleType: Style.bgOutline,
     );
   }
-
-  // Navigates back to the previous screen
 }

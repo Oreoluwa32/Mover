@@ -13,64 +13,64 @@ final hireMoverNotifier = StateNotifierProvider.autoDispose<HireMoverNotifier, H
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackBike,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackCar,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackManWalk,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackBike,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackCar,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackManWalk,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackBike,
+        price: "₦1000"
       ),
       MoverItemModel(
         profileImage: ImageConstant.imgProfile,
         moverName: "John Doe",
         homeAway: ImageConstant.imgHomeIcon,
         distance: "2km away",
-        vehicleType: ImageConstant.imgBike,
-        price: "1000"
+        vehicleType: ImageConstant.imgBlackCar,
+        price: "₦1000"
       ),
     ]),
   )),

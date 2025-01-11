@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:new_project/presentation/delivery_task_one_bottomsheet/widgets/delivery_task_one_bottomsheet_widget.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_radio_button.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'models/delivery_task_item_model.dart';
+import 'notifier/delivery_task_notifier.dart';
+import 'widgets/delivery_task_one_bottomsheet_widget.dart'; // ignore for file, class must be immuatble
 
-// ignore for file, must be immutable
-class DeliveryTaskOneBottomsheet extends StatelessWidget{
-  DeliveryTaskOneBottomsheet({Key? key})
-    : super(key: key,);
+class DeliveryTaskOneBottomsheet extends ConsumerStatefulWidget {
+  const DeliveryTaskOneBottomsheet({super.key});
 
-  TextEditingController itemController = TextEditingController();
-  String radioGroup = "";
-  TextEditingController priceController = TextEditingController();
+  @override
+  DeliveryTaskBottomsheetState createState() => DeliveryTaskBottomsheetState();
+}
 
+class DeliveryTaskBottomsheetState
+    extends ConsumerState<DeliveryTaskOneBottomsheet> {
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -31,7 +33,7 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: 16.h),
-                _buildColumnlineone(context),
+                _buildTitle(context),
                 SizedBox(height: 30.h),
                 SizedBox(
                   height: 642.h,
@@ -50,26 +52,27 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
                               style: CustomTextStyles.bodyMediumMulishGray800,
                             ),
                             SizedBox(height: 28.h),
-                            _buildRowname(context),
+                            _buildName(context),
                             SizedBox(height: 16.h),
                             Container(
-                              width: 320.h,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 14.h,
-                                vertical: 10.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: appTheme.deepPurple50,
-                                borderRadius: BorderRadiusStyle.roundedBorder4,
-                              ),
-                              child: Text(
-                                "1234 movers are heading to the same destination",
-                                style: CustomTextStyles.bodySmallDeeppurple600,
-                                textAlign: TextAlign.center,
-                              )
-                            ),
+                                width: 320.h,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 14.h,
+                                  vertical: 10.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: appTheme.deepPurple50,
+                                  borderRadius:
+                                      BorderRadiusStyle.roundedBorder4,
+                                ),
+                                child: Text(
+                                  "1234 movers are heading to the same destination",
+                                  style:
+                                      CustomTextStyles.bodySmallDeeppurple600,
+                                  textAlign: TextAlign.center,
+                                )),
                             SizedBox(height: 16.h),
-                            _buildGroup(context),
+                            _buildLocation(context),
                             SizedBox(height: 14.h),
                             Align(
                               alignment: Alignment.centerLeft,
@@ -79,12 +82,19 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
                               ),
                             ),
                             SizedBox(height: 4.h),
-                            CustomTextFormField(
-                              controller: priceController,
-                              hintText: "NGN",
-                              hintStyle: theme.textTheme.bodySmall!,
-                              textInputAction: TextInputAction.done,
-                              contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                            Consumer(
+                              builder: (context, ref, _) {
+                                return CustomTextFormField(
+                                  controller: ref
+                                      .watch(deliveryTaskNotifier)
+                                      .priceController,
+                                  hintText: "NGN",
+                                  hintStyle: theme.textTheme.bodySmall!,
+                                  textInputAction: TextInputAction.done,
+                                  contentPadding: EdgeInsets.fromLTRB(
+                                      14.h, 16.h, 14.h, 14.h),
+                                );
+                              },
                             ),
                             SizedBox(height: 8.h),
                             _buildPrices(context),
@@ -115,13 +125,18 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
                               style: theme.textTheme.labelLarge,
                             ),
                             SizedBox(height: 16.h),
-                            CustomTextFormField(
-                              controller: itemController,
-                              hintText: "Enter the item description",
-                              hintStyle: theme.textTheme.bodySmall,
-                              textInputAction: TextInputAction.done,
-                              contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                              textStyle: CustomTextStyles.bodySmallGray800,
+                            // CustomTextFormField(
+                            //   controller: itemController,
+                            //   hintText: "Enter the item description",
+                            //   hintStyle: theme.textTheme.bodySmall,
+                            //   textInputAction: TextInputAction.done,
+                            //   contentPadding:
+                            //       EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                            //   textStyle: CustomTextStyles.bodySmallGray800,
+                            // )
+                            Text(
+                              "Box of assorted clothes for delivery. This package contains a mix of casual and formal wear, including shirts, pants, dresses, and accessories. All items are clean, neatly folded, and in excellent condition.",
+                              style: CustomTextStyles.bodySmallGray800,
                             )
                           ],
                         ),
@@ -139,7 +154,7 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
   }
 
   // Section Widget
-  Widget _buildColumnlineone(BuildContext context){
+  Widget _buildTitle(BuildContext context) {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -173,8 +188,8 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
     );
   }
 
-  // Section Widget 
-  Widget _buildRowname(BuildContext context){
+  // Section Widget
+  Widget _buildName(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Row(
@@ -184,7 +199,9 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
             imagePath: ImageConstant.imgProfile,
             height: 50.h,
             width: 50.h,
-            radius: BorderRadius.circular(24.h,),
+            radius: BorderRadius.circular(
+              24.h,
+            ),
           ),
           Expanded(
             child: Container(
@@ -259,8 +276,8 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
     );
   }
 
-  // Section WIdget 
-  Widget _buildGroup(BuildContext context){
+  // Section WIdget
+  Widget _buildLocation(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -268,14 +285,16 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
           CustomRadioButton(
             text: "Muritala Mohammed Airport",
             value: "Muritala Mohammed Airport",
-            groupValue: radioGroup,
+            groupValue: ref.watch(deliveryTaskNotifier).radioGroup,
             padding: EdgeInsets.symmetric(
               horizontal: 30.h,
               vertical: 14.h,
             ),
+            isExpandedText: true,
+            overflow: TextOverflow.ellipsis,
             decoration: RadioStyleHelper.fillOnPrimary,
             onChange: (value) {
-              radioGroup = value;
+              ref.read(deliveryTaskNotifier.notifier).changeRadioButton(value);
             },
           ),
           Padding(
@@ -283,14 +302,18 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
             child: CustomRadioButton(
               text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
               value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-              groupValue: radioGroup,
+              groupValue: ref.watch(deliveryTaskNotifier).radioGroup,
               padding: EdgeInsets.symmetric(
                 horizontal: 20.h,
                 vertical: 14.h,
               ),
+              isExpandedText: true,
+              overflow: TextOverflow.ellipsis,
               decoration: RadioStyleHelper.fillOnPrimary,
               onChange: (value) {
-                radioGroup = value;
+                ref
+                    .read(deliveryTaskNotifier.notifier)
+                    .changeRadioButton(value);
               },
             ),
           )
@@ -300,28 +323,40 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
   }
 
   // Section Wigdet
-  Widget _buildPrices(BuildContext context){
-    return SizedBox(
-      height: 28.h,
-      width: 250.h,
-      child: ListView.separated(
-        padding: EdgeInsets.only(right: 92.h),
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          return DeliveryTaskOneBottomsheetWidget();
-        }, 
-        separatorBuilder: (context, index) {
-          return SizedBox(
-            width: 12.h,
-          );
-        }, 
-        itemCount: 4,
-      ),
+  Widget _buildPrices(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(right: 92.h),
+      width: double.maxFinite,
+      child: Consumer(builder: (context, ref, _) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Wrap(
+            direction: Axis.horizontal,
+            spacing: 12.h,
+            children: List.generate(
+              ref
+                      .watch(deliveryTaskNotifier)
+                      .deliveryTaskModelObj
+                      ?.deliveryTaskItemList
+                      .length ??
+                  0,
+              (index) {
+                DeliveryTaskItemModel model = ref
+                        .watch(deliveryTaskNotifier)
+                        .deliveryTaskModelObj
+                        ?.deliveryTaskItemList[index] ??
+                    DeliveryTaskItemModel();
+                return DeliveryTaskOneBottomsheetWidget(model);
+              },
+            ),
+          ),
+        );
+      }),
     );
   }
 
   // Section Widget
-  Widget _buildButtonnav(BuildContext context){
+  Widget _buildButtonnav(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -342,6 +377,11 @@ class DeliveryTaskOneBottomsheet extends StatelessWidget{
             CustomElevatedButton(
               text: "Bid Price",
               buttonStyle: CustomButtonStyles.fillBlueGray,
+            ),
+            SizedBox(height: 22.h,),
+            Text(
+              "Decline",
+              style: CustomTextStyles.titleSmallRedA700,
             )
           ],
         ),

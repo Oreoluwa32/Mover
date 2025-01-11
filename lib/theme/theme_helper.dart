@@ -111,6 +111,8 @@ class ThemeHelper {
 
   // Returns the current theme data
   ThemeData themeData() => _getThemeData();
+
+  static of(BuildContext context) {}
 }
 
 // Class contaning the supported text theme styles

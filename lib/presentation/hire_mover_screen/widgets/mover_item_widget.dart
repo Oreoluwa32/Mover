@@ -41,38 +41,19 @@ class MoverItemWidget extends StatelessWidget{
                     children: [
                       Text(
                         moverItemModelObj.moverName!,
-                        style: theme.textTheme.titleSmall,
+                        style: theme.textTheme.titleSmall?.copyWith(color: Colors.black87),
                       ),
-                      Container(
-                        height: 16.h,
-                        width: 16.h,
-                        margin: EdgeInsets.only(left: 8.h),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadiusStyle.roundedBorder4,
-                          border: Border.all(
-                            color: appTheme.purple900,
-                            width: 0.67.h,
-                          ),
-                          gradient: LinearGradient(
-                            begin: Alignment(0.5, -0.04),
-                            end: Alignment(0.5, 0.25),
-                            colors: [
-                              theme.colorScheme.onPrimary.withOpacity(1),
-                              theme.colorScheme.primary
-                            ],
-                          ),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CustomImageView(
-                              imagePath: moverItemModelObj.homeAway!,
-                              height: 10.h,
-                              width: 10.h,
-                            )
-                          ],
-                        ),
-                      )
+                      Padding(padding: EdgeInsets.only(right: 8.h)),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CustomImageView(
+                            imagePath: moverItemModelObj.homeAway!,
+                            height: 16.h,
+                            width: 16.h,
+                          )
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -112,7 +93,7 @@ class MoverItemWidget extends StatelessWidget{
           SizedBox(width: 16.h),
           Text(
             moverItemModelObj.price!,
-            style: theme.textTheme.titleSmall,
+            style: theme.textTheme.titleSmall?.copyWith(color: Colors.black87),
           )
         ],
       ),

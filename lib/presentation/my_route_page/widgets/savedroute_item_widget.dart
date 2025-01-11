@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../models/saved_route_model.dart';
 
-class SavedrouteItemWidget extends StatelessWidget{
-  const SavedrouteItemWidget({Key? key})
-    : super(key: key,);
+class SavedrouteItemWidget extends StatelessWidget {
+  SavedrouteItemWidget(this.savedrouteItemModelObj, {Key? key})
+      : super(
+          key: key,
+        );
+
+  SavedRouteModel savedrouteItemModelObj;
 
   @override
   Widget build(BuildContext context) {
@@ -13,8 +18,13 @@ class SavedrouteItemWidget extends StatelessWidget{
         horizontal: 14.h,
         vertical: 12.h,
       ),
-      decoration: AppDecoration.black100.copyWith(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onPrimary.withOpacity(1),
         borderRadius: BorderRadiusStyle.roundedBorder8,
+        border: Border.all(
+          color: appTheme.gray20001,
+          width: 1.h
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -25,7 +35,7 @@ class SavedrouteItemWidget extends StatelessWidget{
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Work Route",
+                  savedrouteItemModelObj.routetitle!,
                   style: CustomTextStyles.labelLargeGray800,
                 ),
                 Spacer(),
@@ -37,14 +47,16 @@ class SavedrouteItemWidget extends StatelessWidget{
                     margin: EdgeInsets.only(top: 4.h),
                     decoration: BoxDecoration(
                       color: appTheme.redA700,
-                      borderRadius: BorderRadius.circular(3.h,),
+                      borderRadius: BorderRadius.circular(
+                        3.h,
+                      ),
                     ),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(left: 4.h),
                   child: Text(
-                    "Live",
+                    savedrouteItemModelObj.islive!,
                     style: CustomTextStyles.labelMediumInterRedA700,
                   ),
                 )
@@ -64,8 +76,9 @@ class SavedrouteItemWidget extends StatelessWidget{
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                          style: CustomTextStyles.bodySmall110,
+                          savedrouteItemModelObj.address!,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyles.bodySmallInterGray60010,
                         ),
                         SizedBox(height: 6.h),
                         SizedBox(
@@ -80,8 +93,8 @@ class SavedrouteItemWidget extends StatelessWidget{
                               Padding(
                                 padding: EdgeInsets.only(left: 8.h),
                                 child: Text(
-                                  "7:30PM",
-                                  style: CustomTextStyles.bodySmall110,
+                                  savedrouteItemModelObj.time!,
+                                  style: CustomTextStyles.bodySmallInterGray60010,
                                 ),
                               ),
                               CustomImageView(
@@ -93,8 +106,8 @@ class SavedrouteItemWidget extends StatelessWidget{
                               Padding(
                                 padding: EdgeInsets.only(left: 8.h),
                                 child: Text(
-                                  "Mon - Fri",
-                                  style: CustomTextStyles.bodySmall110,
+                                  savedrouteItemModelObj.days!,
+                                  style: CustomTextStyles.bodySmallInterGray60010,
                                 ),
                               )
                             ],
@@ -105,7 +118,7 @@ class SavedrouteItemWidget extends StatelessWidget{
                   ),
                 ),
                 CustomImageView(
-                  imagePath: ImageConstant.imgRightArrow,
+                  imagePath: ImageConstant.imgChevronRight,
                   height: 16.h,
                   width: 16.h,
                   margin: EdgeInsets.only(top: 8.h),
