@@ -275,4 +275,34 @@ class ImageConstant {
 
   // White cancel icon
   static String imgWhiteCancel = '$imagePath/img_white_cancel.svg';
+
+  // Credit card icon
+  static String imgCreditCard = '$imagePath/img_credit_card.svg';
+
+  // Chevron left icon
+  static String imgChevronLeft = '$imagePath/img_chevron_left.svg';
+
+  // Bank icon
+  static String imgBank = '$imagePath/img_bank.svg';
+
+  // Smartphone icon
+  static String imgSmartphone = '$imagePath/img_smartphone.svg';
+
+  // Black chevron right
+  static String imgChevronRightBlack = '$imagePath/img_chevron_right_black.svg';
+
+  // Black chevron left
+  static String imgChevronLeftBlack = '$imagePath/img_chevron_left_black.svg';
+
+  // Gray credit card icon
+  static String imgCreditCardGray = '$imagePath/img_credit_card_gray.svg';
+
+  // Mastercard icon
+  static String imgMastercard = '$imagePath/img_mastercard.png';
+
+  // Visa icon
+  static String imgVisa = '$imagePath/img_visa.png';
+
+  // Purple plus icon
+  static String imgPurplePlus = '$imagePath/img_purple_plus.svg';
 }

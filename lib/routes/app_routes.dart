@@ -50,6 +50,9 @@ import '../presentation/delivery_screen/delivery_screen.dart';
 import '../presentation/share_ride_screen/share_ride_screen.dart';
 import '../presentation/share_ride_payment/share_ride_payment.dart';
 import '../presentation/share_ride_screen_one/share_ride_screen_one.dart';
+import '../presentation/deposit_screen/deposit_screen.dart';
+import '../presentation/deposit_bottomsheet/deposit_bottomsheet.dart';
+import '../presentation/deposit_screen_two/deposit_screen_two.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -161,6 +164,12 @@ class AppRoutes {
 
   static const String shareRidePayment = 'share_ride_payment';
 
+  static const String depositScreen = 'deposit_screen';
+
+  static const String depositBottomsheet = 'deposit_bottomsheet';
+
+  static const String depositScreenTwo = 'deposit_screen_two';
+
   static const String initialRoute = '/initialRoute';
 
   static Map<String, WidgetBuilder> routes = {
@@ -264,6 +273,12 @@ class AppRoutes {
 
     shareRidePayment: (context) => ShareRidePayment(),
 
-    initialRoute: (context) => AddRouteScreenThree()
+    depositScreen: (context) => DepositScreen(),
+
+    depositBottomsheet: (context) => DepositBottomsheet(),
+
+    depositScreenTwo: (context) => DepositScreenTwo(),
+
+    initialRoute: (context) => SplashScreenTwo()
   };
 }
