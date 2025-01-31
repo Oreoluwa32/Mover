@@ -23,6 +23,14 @@ class MyApp extends ConsumerWidget {
         return MaterialApp(
           theme: theme,
           title: 'Movr',
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.linear(1.0)
+              ), 
+              child: child!
+            );
+          },
           navigatorKey: NavigatorService.navigatorKey,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: [

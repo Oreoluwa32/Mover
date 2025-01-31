@@ -20,6 +20,9 @@ extension on TextStyle {
 /// Additionally, this class includes extensions on [TextStyle] to easily apply specific font families to text.
 class CustomTextStyles {
   // Body text style
+  static get bodyLargeGray80001 => theme.textTheme.bodyLarge!.copyWith(
+    color: appTheme.gray80001,
+  );
   static get bodyLargeOnPrimary => theme.textTheme.bodyLarge!.copyWith(
     color: theme.colorScheme.onPrimary,
   );
@@ -141,6 +144,10 @@ class CustomTextStyles {
     color: theme.colorScheme.primary,
     fontSize: 12.fSize,
   );
+  static get bodySmallOnPrimary => theme.textTheme.bodySmall!.copyWith(
+    color: theme.colorScheme.primary.withOpacity(1),
+    fontSize: 9.fSize,
+  );
   static get bodySmallPrimary10 => theme.textTheme.bodySmall!.copyWith(
     color: theme.colorScheme.primary,
     fontSize: 10.fSize,
@@ -148,6 +155,9 @@ class CustomTextStyles {
   static get bodySmallPrimaryContainer => theme.textTheme.bodySmall!.copyWith(
     color: theme.colorScheme.primaryContainer,
     fontSize: 12.fSize,
+  );
+  static get bodySmallOrange300 => theme.textTheme.bodySmall!.copyWith(
+    color: appTheme.orange300,
   );
   static get bodySmallRed500 => theme.textTheme.bodySmall!.copyWith(
     color: appTheme.red500,
@@ -192,6 +202,9 @@ class CustomTextStyles {
   );
   static get labelLargeGray600 => theme.textTheme.labelLarge!.copyWith(
     color: appTheme.gray600,
+  );
+  static get labelLargeGray50 => theme.textTheme.labelLarge!.copyWith(
+    color: appTheme.gray50,
   );
   static get labelLargeGray800 => theme.textTheme.labelLarge!.copyWith(
     color: appTheme.gray800,
@@ -258,6 +271,9 @@ class CustomTextStyles {
     fontWeight: FontWeight.w600,
   ).mulish;
   // Title text style
+  static TextStyle get titleLargeGray80001 => theme.textTheme.titleLarge!.copyWith(
+    color: appTheme.gray80001,
+  );
   static get titleMedium18 => theme.textTheme.titleMedium!.copyWith(
     fontSize: 18.fSize,
   );

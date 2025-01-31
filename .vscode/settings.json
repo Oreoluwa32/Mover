@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/new_project/linux"
+    "cmake.sourceDirectory": "D:/new_project/linux",
+    "java.compile.nullAnalysis.mode": "automatic"
 }

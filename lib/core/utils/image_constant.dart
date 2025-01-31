@@ -305,4 +305,67 @@ class ImageConstant {
 
   // Purple plus icon
   static String imgPurplePlus = '$imagePath/img_purple_plus.svg';
+
+  // Black wallet icon
+  static String imgBlackWallet = '$imagePath/img_wallet_black.svg';
+
+  // Document icon
+  static String imgDocument = '$imagePath/img_document.svg';
+
+  // Notification icon
+  static String imgNotification = '$imagePath/img_notification.svg';
+
+  // Chat support icon
+  static String imgChatSupport = '$imagePath/img_chat_support.svg';
+
+  // Security lock icon
+  static String imgSecurityLock = '$imagePath/img_security_lock.svg';
+
+  // Policy icon
+  static String imgPolicy = '$imagePath/img_policy.svg';
+
+  // Language icon
+  static String imgLanguage = '$imagePath/img_language.svg';
+
+  // Log out icon
+  static String imgLogout = '$imagePath/img_logout.svg';
+
+  // Help icon
+  static String imgHelp = '$imagePath/img_help.svg';
+
+  // Black package icon
+  static String imgPackageBlack = '$imagePath/img_black_package.svg';
+
+  // Refer party icon
+  static String imgReferParty = '$imagePath/img_party.svg';
+
+  // Rate icon
+  static String imgRate = '$imagePath/img_rate_star.svg';
+
+  // Chat square icon
+  static String imgChatSquare = '$imagePath/img_chat_square.svg';
+
+  // Alert circle icon
+  static String imgAlertCircle = '$imagePath/img_alert_circle.svg';
+
+  // Gift icon
+  static String imgGift = '$imagePath/img_gift.svg';
+
+  // Coin icon
+  static String imgCoin = '$imagePath/img_coin.svg';
+
+  // Bitmoji 1
+  static String imgBitmoji1 = '$imagePath/img_bitmoji_1.svg';
+
+  // Bitmoji 2
+  static String imgBitmoji2 = '$imagePath/img_bitmoji_2.svg';
+
+  // Bitmoji 3
+  static String imgBitmoji3 = '$imagePath/img_bitmoji_3.svg';
+
+  // Bitmoji 4
+  static String imgBitmoji4 = '$imagePath/img_bitmoji_4.svg';
+
+  // Bitmoji frame
+  static String imgBitmojiFrame = '$imagePath/img_bitmoji_frame.jpg';
 }

@@ -48,7 +48,7 @@ class EmailVerifiedScreenState extends ConsumerState<EmailVerifiedScreen> {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      "Your password has been successfully reset. Click below to log in magically.",
+                      "Your email has been verified. Click below to log in magically.",
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,

@@ -262,6 +262,12 @@ class LightCodeColors{
   Color get lightGreen500 => Color(0XFF77C055);
   Color get lightGreen700 => Color(0XFF60A93E);
   Color get lightGreen900 => Color(0XFF3D6E27);
+  // Orange
+  Color get orange300 => Color(0xFFECC54D);
+  Color get orange50 => Color(0XFFFFFBDD);
+  Color get orange500 => Color(0XFFF4900C);
+  Color get orangeA200 => Color(0XFFFFAC33);
+  Color get orangeA700 => Color(0XFFFF5E00);
   // purple
   Color get purple900 => Color(0XFF50169C);
   // Red

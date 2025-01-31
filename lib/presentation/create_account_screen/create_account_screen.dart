@@ -10,6 +10,7 @@ import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'notifier/create_account_notifier.dart';
+import '../../core/utils/progress_dialog_utils.dart';
 
 class CreateAccountScreen extends ConsumerStatefulWidget{
   const CreateAccountScreen({Key? key})
@@ -246,6 +247,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       onPressed: () {
         // Call the register function 
         if (_formKey.currentState?.validate() ?? false) {
+              ProgressDialogUtils.showProgressDialog(isCancellable: false);
               registerUser(context, ref.read(createAccountNotifier.notifier));
             }
       },

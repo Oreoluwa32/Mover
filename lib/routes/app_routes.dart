@@ -53,6 +53,12 @@ import '../presentation/share_ride_screen_one/share_ride_screen_one.dart';
 import '../presentation/deposit_screen/deposit_screen.dart';
 import '../presentation/deposit_bottomsheet/deposit_bottomsheet.dart';
 import '../presentation/deposit_screen_two/deposit_screen_two.dart';
+import '../presentation/profile_screen/profile_screen.dart';
+import '../presentation/transaction_history_screen/transaction_history_screen.dart';
+import '../presentation/account_funded_screen/account_funded_screen.dart';
+import '../presentation/activity_in_progress_page/activity_in_progress_page.dart';
+import '../presentation/schedule_trip_bottomsheet/schedule_trip_bottomsheet.dart';
+import '../presentation/refer_friends_screen/refer_friends_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -170,6 +176,18 @@ class AppRoutes {
 
   static const String depositScreenTwo = 'deposit_screen_two';
 
+  static const String profileScreen = 'profile_screen';
+
+  static const String transactionHistoryScreen = 'transaction_history_screen';
+
+  static const String accountFundedScreen = 'account_funded_screen';
+
+  static const String activityInProgressPage = 'activity_in_progress_page';
+
+  static const String scheduleTripBottomsheet = 'schedule_trip_bottomsheet';
+
+  static const String referFriendsScren = 'refer_friends_screen';
+
   static const String initialRoute = '/initialRoute';
 
   static Map<String, WidgetBuilder> routes = {
@@ -279,6 +297,18 @@ class AppRoutes {
 
     depositScreenTwo: (context) => DepositScreenTwo(),
 
-    initialRoute: (context) => SplashScreenTwo()
+    profileScreen: (context) => ProfileScreen(),
+
+    transactionHistoryScreen: (context) => TransactionHistoryScreen(),
+
+    accountFundedScreen: (context) => AccountFundedScreen(),
+
+    activityInProgressPage: (context) => ActivityInProgressPage(),
+
+    scheduleTripBottomsheet: (context) => ScheduleTripBottomsheet(),
+
+    referFriendsScren: (context) => ReferFriendsScreen(),
+
+    initialRoute: (context) => ReferFriendsScreen()
   };
 }

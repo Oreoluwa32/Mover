@@ -53,11 +53,11 @@ class HomeOneScreen extends StatelessWidget{
       case BottomBarEnum.Home:
         return AppRoutes.homeOneInitialPage;
       case BottomBarEnum.Route:
-        return AppRoutes.homeOneInitialPage;
+        return AppRoutes.myRoutePage;
       case BottomBarEnum.Activity:
-        return AppRoutes.homeOneInitialPage;
+        return AppRoutes.myRoutePage;
       case BottomBarEnum.Profile:
-        return AppRoutes.homeOneInitialPage;
+        return AppRoutes.profileScreen;
       default:
         return "/";
     }
