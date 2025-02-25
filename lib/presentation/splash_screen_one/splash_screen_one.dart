@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import 'notifier/splash_screen_one_notifier.dart';
@@ -10,6 +11,22 @@ class SplashScreenOne extends ConsumerStatefulWidget{
 }
 
 class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
+  late Timer _timer;
+
+  @override
+  void initState(){
+    super.initState();
+    _timer = Timer(const Duration(seconds: 3), () {
+      NavigatorService.pushNamed(AppRoutes.splashScreenTwo);
+    });
+  }
+
+  @override
+  void dispose(){
+    _timer.cancel(); // Cancels the timer to prevent memory leaks
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context){
     return SafeArea(

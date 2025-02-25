@@ -15,6 +15,7 @@ import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/add_route_one_item_model.dart';
 import 'notifier/add_route_one_notifier.dart';
+import '../home_screen_dialog/home_screen_dialog.dart';
 
 // ignore for file, class must be immutable
 class AddRouteScreenOne extends ConsumerStatefulWidget {
@@ -80,6 +81,18 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       Fluttertoast.showToast(
           msg: "An error occurred. Please check your connection.");
     }
+  }
+
+  bool _isAddRouteButtonEnabled() {
+    final notifierState = ref.watch(addRouteOneNotifier);
+    //Check if at least one transport mode is selected.
+    final isTransportModeSelected = notifierState.addRouteOneModelObj?.transportMeansList.any((item) => item.isSelected) ?? false;
+
+    return locationController.text.isNotEmpty &&
+        destinationController.text.isNotEmpty &&
+        isTransportModeSelected &&
+        notifierState.serviceTypeDropDownValue?.title.isNotEmpty == true &&
+        notifierState.setTimeController!.text.isNotEmpty;
   }
 
   @override
@@ -149,6 +162,9 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
             leading: AppbarLeadingImage(
               imagePath: ImageConstant.imgCancel,
               margin: EdgeInsets.only(left: 16.h),
+              onTap: () {
+                onTapBack(context);
+              },
             ),
             centerTitle: true,
             title: AppbarSubtitle(
@@ -166,13 +182,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                 ),
                 onTap: () {
                   showModalBottomSheet(
-                      context: context,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(20.h))),
-                      builder: (BuildContext context) {
-                        return const AddRouteThreeBottomsheet();
-                      });
+                    context: context,
+                    builder: (_) => AddRouteThreeBottomsheet(),
+                    isScrollControlled: true
+                  );
                 },
               )
             ],
@@ -375,8 +388,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                             fit: BoxFit.contain,
                           ),
                         ),
+                        textStyle: theme.textTheme.bodySmall,
                         iconSize: 16.h,
                         hintText: "Type of service",
+                        hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray40001),
                         items: ref
                                 .watch(addRouteOneNotifier)
                                 .addRouteOneModelObj
@@ -408,6 +423,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                         controller:
                             ref.watch(addRouteOneNotifier).setTimeController,
                         hintText: "Set time",
+                        hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray40001),
                         textInputAction: TextInputAction.done,
                         prefix: Container(
                           margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
@@ -459,13 +475,27 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
+          // CustomElevatedButton(
+          //   text: "Add route",
+          //   buttonStyle: _isAddRouteButtonEnabled() ? null : CustomButtonStyles.fillBlueGray,
+          //   onPressed: _isAddRouteButtonEnabled() ? () {
+          //     createRoute(context);
+          //   } : null,
+          // )
           CustomElevatedButton(
             text: "Add route",
             buttonStyle: CustomButtonStyles.fillBlueGray,
+            onPressed: () {
+              NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+            }
           )
         ],
       ),
     );
+  }
+
+  onTapBack(BuildContext context) {
+    NavigatorService.goBack();
   }
 
   // Displays a date picker dialog and updates the selected date in the [addRouteTwoModelObj] object of the current [setTimeController] if the user selects a valid date.

@@ -5,7 +5,7 @@ import 'user_delivery_qr_tab.dart';
 import 'notifier/user_delivery_notifier.dart';
 
 class UserDeliveryBottomsheetOne extends ConsumerStatefulWidget {
-  const UserDeliveryBottomsheetOne({Key? key}) : super(key: key);
+  const UserDeliveryBottomsheetOne({super.key});
 
   @override
   UserDeliveryBottomsheetOneState createState() =>
@@ -45,7 +45,17 @@ class UserDeliveryBottomsheetOneState
                   height: 16.h,
                 ),
                 _buildColumn(context),
-                _buildTabbar(context)
+                _buildTabbar(context),
+                SizedBox(height: 70.h,),
+                GestureDetector(
+                  onTap: () {
+                    NavigatorService.pushNamed(AppRoutes.rideCancelScreenOne);
+                  },
+                  child: Text(
+                    "Cancel Request",
+                    style: CustomTextStyles.titleSmallRedA700,
+                  ),
+                )
               ],
             ),
           ),
@@ -223,7 +233,7 @@ class UserDeliveryBottomsheetOneState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomImageView(
-                            imagePath: ImageConstant.imgChat,
+                            imagePath: ImageConstant.imgChatSquare,
                             height: 24.h,
                             width: 24.h,
                           ),
@@ -355,7 +365,7 @@ class UserDeliveryBottomsheetOneState
                       setState(() {});
                     },
                   ),
-                )
+                ),
               ],
             ),
           )

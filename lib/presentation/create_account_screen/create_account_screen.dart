@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:new_project/domain/googleauth/google_auth_helper.dart';
 import 'package:new_project/presentation/check_mail_screen/check_mail_screen.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
@@ -267,7 +269,24 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
           fit: BoxFit.contain,
         ),
       ),
+      buttonTextStyle: CustomTextStyles.titleSmallBluegray800,
+      onPresssed: () {
+        googleSignIn(context);
+      },
     );
+  }
+
+  googleSignIn(BuildContext context) async {
+    await GoogleAuthHelper().googleSignInProcess().then((googleUser) {
+      if (googleUser != null) {
+        onSuccessGoogleAuthResponse(googleUser, context);
+      }
+      else {
+        onErrorGoogleAuthResponse(context);
+      }
+    }).catchError((onError) {
+      onErrorGoogleAuthResponse(context);
+    });
   }
 
   // Navigates to the check mail screen when the action is triggered and also pass the email
@@ -275,8 +294,20 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     Navigator.pushNamed(context, AppRoutes.checkMailScreen);
   }
 
-  // Navigates to the sign in screen when the action is triggered
-  onTapSignIn(BuildContext context){
+  // Navigates to the select plan screen when the action is triggered
+  onSuccessGoogleAuthResponse(GoogleSignInAccount googleUser, BuildContext context){
+    Navigator.pushNamed(context, AppRoutes.signInScreen);
+  }
+
+  // Displays a snackbar with a custom message
+  // The [context] parameter should be the context of the widget that is calling this function
+  onErrorGoogleAuthResponse(BuildContext context){
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Error signing you in with Google"))
+    );
+  }
+
+  onTapSignIn(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.signInScreen);
   }
 }

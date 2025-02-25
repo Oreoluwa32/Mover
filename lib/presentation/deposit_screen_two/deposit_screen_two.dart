@@ -9,6 +9,7 @@ import '../../widgets/custom_text_form_field.dart';
 import 'models/deposit_item_two_model.dart';
 import 'notifier/deposit_two_notifier.dart';
 import 'widgets/deposit_item_two_widget.dart';
+import '../deposit_bottomsheet/deposit_bottomsheet.dart';
 
 class DepositScreenTwo extends ConsumerStatefulWidget {
   const DepositScreenTwo({Key? key}) : super(key: key);
@@ -58,7 +59,7 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
       height: 92.h,
       leadingWidth: 24.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgChevronLeft,
+        imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(left: 16.h, top: 44.h, bottom: 24.h),
         onTap: () {
           onTapBack(context);
@@ -191,22 +192,32 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
           ),
           SizedBox(
             width: double.maxFinite,
-            child: Row(
-              children: [
-                CustomImageView(
-                  imagePath: ImageConstant.imgPurplePlus,
-                  height: 18.h,
-                  width: 18.h,
-                ),
-                Padding(
-                  padding: EdgeInsets.only(left: 8.h),
-                  child: Text(
-                    "Add Debit/Credit Card",
-                    style: CustomTextStyles.labelLargePurple900,
+            child: GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                        context: context, 
+                        builder: (_) => DepositBottomsheet(),
+                        isScrollControlled: true,
+                        isDismissible: true
+                      );
+              },
+              child: Row(
+                children: [
+                  CustomImageView(
+                    imagePath: ImageConstant.imgPurplePlus,
+                    height: 18.h,
+                    width: 18.h,
                   ),
-                )
-              ],
-            ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.h),
+                    child: Text(
+                      "Add Debit/Credit Card",
+                      style: CustomTextStyles.labelLargePurple900,
+                    ),
+                  )
+                ],
+              ),
+            )
           )
         ],
       ),
@@ -236,6 +247,9 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
           CustomElevatedButton(
             text: "Deposit",
             buttonStyle: CustomButtonStyles.fillBlueGray,
+            onPressed: () {
+              NavigatorService.pushNamed(AppRoutes.accountFundedScreen);
+            },
           )
         ],
       ),

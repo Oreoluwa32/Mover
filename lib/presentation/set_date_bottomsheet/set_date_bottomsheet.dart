@@ -277,6 +277,9 @@ class SetDateBottomsheetState extends ConsumerState<SetDateBottomsheet> {
   Widget _buildSave(BuildContext context) {
     return CustomElevatedButton(
       text: "Save",
+      onPressed: () {
+        NavigatorService.pushNamed(AppRoutes.addRouteScreenThree);
+      },
     );
   }
 
@@ -288,9 +291,14 @@ class SetDateBottomsheetState extends ConsumerState<SetDateBottomsheet> {
         children: [
           _buildSave(context),
           SizedBox(height: 22.h),
-          Text(
-            "Cancel",
-            style: CustomTextStyles.titleSmallErrorContainer,
+          GestureDetector(
+            child: Text(
+              "Cancel",
+              style: CustomTextStyles.titleSmallErrorContainer,
+            ),
+            onTap: () {
+              Navigator.pop(context);
+            }
           ),
           SizedBox(height: 20.h,)
         ],

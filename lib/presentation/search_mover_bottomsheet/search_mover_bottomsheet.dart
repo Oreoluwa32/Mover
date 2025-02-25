@@ -45,6 +45,8 @@ class SearchMoverBottomsheetState
               width: double.maxFinite,
               child: Divider(
                 color: appTheme.blueGray10001,
+                thickness: 3.h,
+
               ),
             ),
             SizedBox(height: 24.h),
@@ -54,6 +56,7 @@ class SearchMoverBottomsheetState
               width: double.maxFinite,
               child: Divider(
                 color: appTheme.gray20001,
+                thickness: 1.h,
               ),
             ),
             SizedBox(height: 22.h),
@@ -61,12 +64,19 @@ class SearchMoverBottomsheetState
             SizedBox(height: 24.h),
             CustomElevatedButton(
               text: "View Prices",
-              buttonStyle: CustomButtonStyles.none,
+              onPressed: () {
+                NavigatorService.pushNamed(AppRoutes.hireMoverScreen);
+              },
             ),
             SizedBox(height: 24.h),
-            Text(
-              "Cancel request",
-              style: CustomTextStyles.titleSmallRedA700Medium,
+            GestureDetector(
+              child: Text(
+                "Cancel Request",
+                style: CustomTextStyles.titleSmallRedA700Medium,
+              ),
+              onTap: () {
+                NavigatorService.goBack();
+              },
             ),
             SizedBox(height: 20.h),
           ],
@@ -126,8 +136,8 @@ class SearchMoverBottomsheetState
           return Column(
             children: [
               CustomRadioButton(
-                text: "",
-                value: "",
+                text: "Peace Estate, Elebu, Ibadan",
+                value: "Peace Estate, Elebu, Ibadan",
                 groupValue: ref.watch(searchMoverNotifier).radioGroup,
                 padding: EdgeInsets.symmetric(
                   horizontal: 20.h,
@@ -145,11 +155,11 @@ class SearchMoverBottomsheetState
               Padding(
                 padding: EdgeInsets.only(top: 8.h),
                 child: CustomRadioButton(
-                    text: "",
-                    value: "",
+                    text: "Km 24, Lagos-Ibadan Expressway, Ibadan",
+                    value: "Km 24, Lagos-Ibadan Expressway, Ibadan",
                     groupValue: ref.watch(searchMoverNotifier).radioGroup,
                     padding: EdgeInsets.symmetric(
-                      horizontal: 30.h,
+                      horizontal: 20.h,
                       vertical: 14.h,
                     ),
                     isExpandedText: true,

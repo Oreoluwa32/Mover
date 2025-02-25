@@ -12,6 +12,7 @@ class AddRouteOneItemWidget extends StatelessWidget{
   Widget build(BuildContext context) {
     return Container(
       width: 100.h,
+      height: 78.h,
       padding: EdgeInsets.symmetric(
         horizontal: 30.h,
         vertical: 2.h,

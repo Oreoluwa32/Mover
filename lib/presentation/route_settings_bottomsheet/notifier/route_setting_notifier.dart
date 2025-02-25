@@ -12,4 +12,8 @@ final routeSettingNotifier =
 // A notifier that manaes the state of the screen according to the event that is dispatched to it
 class RouteSettingNotifier extends StateNotifier<RouteSettingState> {
   RouteSettingNotifier(RouteSettingState state) : super(state);
+
+  void setDistance(double distance) {
+    state = state.copyWith(distance: distance);
+  }
 }

@@ -4,14 +4,17 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_rating_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import 'notifier/delivery_rating_notifier.dart';
 
-// ignore for file, class must be immutable
-class DeliveryRatingScreenOne extends StatelessWidget{
-  DeliveryRatingScreenOne({Key? key})
+class DeliveryRatingScreenOne extends ConsumerStatefulWidget{
+  const DeliveryRatingScreenOne({Key? key})
     : super(key: key,);
 
-  TextEditingController experienceController = TextEditingController();
+  @override
+  DeliveryRatingScreenOneState createState() => DeliveryRatingScreenOneState();
+}
 
+class DeliveryRatingScreenOneState extends ConsumerState<DeliveryRatingScreenOne>{
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -61,16 +64,16 @@ class DeliveryRatingScreenOne extends StatelessWidget{
   // Section Widget 
   Widget _buildStackratetext(BuildContext context){
     return SizedBox(
-      height: 242.h,
+      height: 202.h,
       width: double.maxFinite,
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
           CustomImageView(
             imagePath: ImageConstant.imgGreenCheck,
-            height: 202.h,
+            height: 76.1.h,
             width: double.maxFinite,
-            alignment: Alignment.topCenter,
+            alignment: Alignment.center,
           ),
           Text(
             "How would you rate your experience\nwith Benard Joseph",
@@ -78,7 +81,7 @@ class DeliveryRatingScreenOne extends StatelessWidget{
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: CustomTextStyles.titleMediumBlack900.copyWith(height: 1.50,),
-          )
+          ),
         ],
       ),
     );
@@ -101,16 +104,20 @@ class DeliveryRatingScreenOne extends StatelessWidget{
                   style: theme.textTheme.labelLarge,
                 ),
                 SizedBox(height: 4.h),
-                CustomTextFormField(
-                  controller: experienceController,
-                  hintText: "Describe your experience",
-                  textInputAction: TextInputAction.done,
-                  contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                Consumer(
+                  builder: (context, ref, _) {
+                    return CustomTextFormField(
+                      controller: ref.watch(deliveryRatingNotifier).descrController,
+                      hintText: "Describe your experience",
+                      textInputAction: TextInputAction.done,
+                      contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                    );
+                  }
                 )
               ],
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 15.h),
           Container(
             width: double.maxFinite,
             padding: EdgeInsets.symmetric(
@@ -130,12 +137,12 @@ class DeliveryRatingScreenOne extends StatelessWidget{
                   "Items were handled with care, and everything arrived in perfect condition",
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall!.copyWith(height: 1.20,),
+                  style: CustomTextStyles.bodySmallBlack900!.copyWith(height: 1.20,),
                 )
               ],
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 15.h),
           Container(
             width: double.maxFinite,
             padding: EdgeInsets.only(
@@ -159,13 +166,13 @@ class DeliveryRatingScreenOne extends StatelessWidget{
                     "Movers were prompt and efficient, completing the delivery on time",
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall!.copyWith(height: 1.20,),
+                    style: CustomTextStyles.bodySmallBlack900!.copyWith(height: 1.20,),
                   ),
                 )
               ],
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 15.h),
           Container(
             width: double.maxFinite,
             padding: EdgeInsets.only(
@@ -189,7 +196,7 @@ class DeliveryRatingScreenOne extends StatelessWidget{
                     "Excellent communication throughput, keeping me informed about the delivery",
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall!.copyWith(height: 1.20),
+                    style: CustomTextStyles.bodySmallBlack900!.copyWith(height: 1.20,),
                   ),
                 )
               ],
@@ -213,6 +220,9 @@ class DeliveryRatingScreenOne extends StatelessWidget{
             text: "Post",
             margin: EdgeInsets.only(bottom: 12.h),
             buttonStyle: CustomButtonStyles.fillBlueGray,
+            onPressed: () {
+              NavigatorService.pushNamed(AppRoutes.deliveryRatingScreenTwo);
+            },
           )
         ],
       ),

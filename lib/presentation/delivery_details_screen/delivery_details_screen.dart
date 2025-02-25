@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:images_picker/images_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/file_upload_helper.dart';
+import '../../core/utils/permission_manager.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
@@ -222,15 +225,8 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
             builder: (context, ref, _) {
               final imagePath = ref.watch(deliveryDetailsNotifier).imagePath;
               return GestureDetector(
-                onTap: () async {
-                  final picker = ImagePicker();
-                  final pickedImage =
-                      await picker.pickImage(source: ImageSource.gallery);
-                  if (pickedImage != null) {
-                    ref
-                        .read(deliveryDetailsNotifier.notifier)
-                        .uploadImage(pickedImage.path);
-                  }
+                onTap: () {
+                  requestCameraGalleryPermission(context);
                 },
                 child: Container(
                   width: double.maxFinite,
@@ -243,32 +239,30 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       width: 1.h,
                     ),
                   ),
-                  child: imagePath != null
-                      ? Image.file(File(imagePath))
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomIconButton(
-                              height: 40.h,
-                              width: 40.h,
-                              padding: EdgeInsets.all(10.h),
-                              decoration: IconButtonStyleHelper.outlineGray,
-                              child: CustomImageView(
-                                imagePath: ImageConstant.imgCloudUpload,
-                              ),
-                            ),
-                            SizedBox(height: 12.h),
-                            Text(
-                              "Click to upload",
-                              style: CustomTextStyles.titleSmallInterPrimary,
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              "PNG or JPG (max. 800x400px)",
-                              style: CustomTextStyles.bodySmallInterGray600_1,
-                            )
-                          ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomIconButton(
+                        height: 40.h,
+                        width: 40.h,
+                        padding: EdgeInsets.all(10.h),
+                        decoration: IconButtonStyleHelper.outlineGray,
+                        child: CustomImageView(
+                          imagePath: ImageConstant.imgCloudUpload,
                         ),
+                      ),
+                      SizedBox(height: 12.h),
+                      Text(
+                        "Click to upload",
+                        style: CustomTextStyles.titleSmallInterPrimary,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        "PNG or JPG (max. 800x400px)",
+                        style: CustomTextStyles.bodySmallInterGray600_1,
+                      )
+                    ],
+                  ),
                 ),
               );
             },
@@ -459,6 +453,9 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
     return CustomElevatedButton(
       text: "Find Mover",
       buttonStyle: CustomButtonStyles.fillBlueGray,
+      onPressed: () {
+        NavigatorService.pushNamed(AppRoutes.searchMoverBottomsheet);
+      },
     );
   }
 
@@ -490,5 +487,16 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   // Navigates back to the previous screen
   onTapBack(BuildContext context) {
     NavigatorService.goBack();
+  }
+
+  // Requests permission to access the camera and storage, and displays a model sheet for selecting images
+  // Throws an error if permission is denied or an error occures while selecting images
+  requestCameraGalleryPermission(BuildContext context) async {
+    await PermissionManager.requestPermission(Permission.camera);
+    await PermissionManager.requestPermission(Permission.storage);
+    List<String?>? imageList = [];
+    await FileManager().showModelSheetForImage(getImages: (value) async {
+      imageList = value;
+    });
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_export.dart';
 
-enum BottomBarEnum {Home, Route, Location, Activity, Profile}
+enum BottomBarEnum {Home, Route, Move, Activity, Profile}
 
 // Ignore for file: must be immutable
 class CustomBottomBar extends StatefulWidget{
@@ -32,8 +32,8 @@ class CustomBottomBarState extends State<CustomBottomBar>{
     ),
     BottomMenuMode1(
       icon: ImageConstant.imgNavCardinal,
-      activeIcon: ImageConstant.imgNavCardinalSelected,
-      type: BottomBarEnum.Location,
+      activeIcon: ImageConstant.imgNavCardinal,
+      type: BottomBarEnum.Move,
     ),
     BottomMenuMode1(
       icon: ImageConstant.imgNavActivity,
@@ -52,7 +52,8 @@ class CustomBottomBarState extends State<CustomBottomBar>{
   @override
   Widget build (BuildContext context){
     return SizedBox(
-      height: 88.h,
+      height: 61.h,
+      width: 343.h,
       child: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         showSelectedLabels: false,
@@ -97,7 +98,10 @@ class CustomBottomBarState extends State<CustomBottomBar>{
                           ],
                         ),
                         padding: EdgeInsets.all(13.410004.h),
-                        // child: CustomImageView(imagePath: ImageConstant.i1395),
+                        child: CustomImageView(
+                          imagePath: bottomMenuList[index].icon,
+                          color: Color(0XFF6D6D6D),
+                        ),
                       ),
                     ),
                     CustomImageView(
@@ -115,11 +119,11 @@ class CustomBottomBarState extends State<CustomBottomBar>{
           return BottomNavigationBarItem(
             icon: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: 18.h,
+                horizontal: 16.h,
                 vertical: 10.h,
               ),
               decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary,
+                color: theme.colorScheme.onPrimary.withOpacity(1),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -132,9 +136,10 @@ class CustomBottomBarState extends State<CustomBottomBar>{
                     width: 18.h,
                     color: Color(0XFF6D6D6D),
                   ),
+                  SizedBox(height: 2.h,),
                   Text(
                     bottomMenuList[index].title ?? "",
-                    style: theme.textTheme.bodySmall!.copyWith(
+                    style: CustomTextStyles.bodySmallGray400!.copyWith(
                       color: Color(0XFF6D6D6D),
                     ),
                   ),
@@ -143,11 +148,11 @@ class CustomBottomBarState extends State<CustomBottomBar>{
             ),
             activeIcon: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: 18.h,
+                horizontal: 16.h,
                 vertical: 10.h,
               ),
               decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary,
+                color: theme.colorScheme.onPrimary.withOpacity(1),
                 borderRadius: BorderRadius.horizontal(
                   left: Radius.circular(12.h),
                 ),
@@ -165,7 +170,7 @@ class CustomBottomBarState extends State<CustomBottomBar>{
                   ),
                   Text(
                     bottomMenuList[index].title ?? "",
-                    style: CustomTextStyles.labelMediumPrimary.copyWith(
+                    style: CustomTextStyles.bodySmallGray400!.copyWith(
                       color: Color(0XFF6A19D3),
                     ),
                   )
@@ -205,6 +210,23 @@ class BottomMenuMode1{
 }
 
 class DefaultWidget extends StatelessWidget{
+  const DefaultWidget({super.key});
+
+//   final Widget child;
+
+//   @override
+//   Widget build(BuildContext context){
+//     return Navigator(
+//       onGenerateRoute: (settings) {
+//         return MaterialPageRoute(
+//           builder: (context) => child
+//         );
+//       },
+//     );
+//   }
+// }
+
+
   @override
   Widget build(BuildContext context){
     return Container(

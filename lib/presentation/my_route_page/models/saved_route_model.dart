@@ -5,13 +5,15 @@ import '../../../core/app_export.dart';
 class SavedRouteModel {
   SavedRouteModel(
       {this.routetitle,
+      this.liveDot,
       this.islive,
       this.address,
       this.time,
       this.days,
       this.id}) {
     routetitle = routetitle ?? "Work Route";
-    islive = islive ?? "Live";
+    liveDot = liveDot ?? true;
+    islive = islive ?? true;
     address = address ?? "Gateway Zone, Magodo Phase II, GRA Lagos State";
     time = time ?? "7:30AM";
     days = days ?? "Mon - Fri";
@@ -19,7 +21,8 @@ class SavedRouteModel {
   }
 
   String? routetitle;
-  String? islive;
+  bool? islive;
+  bool? liveDot;
   String? address;
   String? time;
   String? days;

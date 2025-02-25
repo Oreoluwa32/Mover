@@ -48,6 +48,9 @@ class AccountFundedScreenState extends ConsumerState<AccountFundedScreen> {
             right: 16.h,
             bottom: 16.h,
           ),
+          onTap: () {
+            NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+          },
         )
       ],
     );

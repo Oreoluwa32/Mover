@@ -3,12 +3,18 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-// import '../../widgets/custom_icon_button.dart';
+import '../../widgets/custom_icon_button.dart';
+import 'notifier/pickup_notifier.dart';
 
-class DeliveryPickupScreenTwo extends StatelessWidget{
+class DeliveryPickupScreenTwo extends ConsumerStatefulWidget{
   const DeliveryPickupScreenTwo({Key? key})
     : super(key: key,);
 
+  @override
+  DeliveryPickupScreenTwoState createState() => DeliveryPickupScreenTwoState();
+}
+
+class DeliveryPickupScreenTwoState extends ConsumerState<DeliveryPickupScreenTwo>{
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -68,6 +74,9 @@ class DeliveryPickupScreenTwo extends StatelessWidget{
           top: 44.h,
           bottom: 24.h,
         ),
+        onTap: () {
+          NavigatorService.goBack();
+        },
       ),
       centerTitle: true,
       title: AppbarSubtitle(

@@ -94,7 +94,14 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
             shrinkWrap: true,
             itemBuilder: (context, index) {
               MoverItemModel model = ref.watch(hireMoverNotifier).hireMoverModelObj?.moverItemList[index] ?? MoverItemModel();
-              return MoverItemWidget(model);
+              return GestureDetector(
+                onTap: () {
+                  NavigatorService.pushNamed(AppRoutes.hireMoverScreenOne);
+                },
+                child: MoverItemWidget(
+                  model,
+                ),
+              );
             }, 
             separatorBuilder: (context, index) {
               return SizedBox(height: 8.h,);
@@ -102,12 +109,12 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
             itemCount: ref.watch(hireMoverNotifier).hireMoverModelObj?.moverItemList.length ?? 0,
           );
         }
-      )
+      ),
     );
   }
 
   // Navigates back to the previous screen
   onTapBack(BuildContext context) {
-    
+    NavigatorService.goBack();
   }
 }

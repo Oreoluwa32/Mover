@@ -3,12 +3,18 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_pin_code_text_field.dart';
+import '../../widgets/custom_pin_text_field.dart';
+import 'notifier/scan_notifier.dart';
 
-class ScanScreenOne extends StatelessWidget{
+class ScanScreenOne extends ConsumerStatefulWidget{
   const ScanScreenOne({Key? key})
     : super(key: key,);
-  
+
+  @override
+  ScanScreenOneState createState() => ScanScreenOneState();
+}
+
+class ScanScreenOneState extends ConsumerState<ScanScreenOne>{
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -31,27 +37,39 @@ class ScanScreenOne extends StatelessWidget{
               SizedBox(height: 52.h),
               SizedBox(
                 width: double.maxFinite,
-                child: CustomPinCodeTextField(
-                  context: context, 
-                  onChanged: (value) {},
-                ),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    return CustomPinTextField(
+                      context: context, 
+                      controller: ref.watch(scanNotifier).codeController,
+                      onChanged: (value) {
+                        ref.watch(scanNotifier).codeController?.text = value;
+                      },
+                    );
+                  }
+                )
               ),
               SizedBox(height: 52.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Switch to scan",
-                    style: CustomTextStyles.titleSmallPurple900,
-                  ),
-                  SizedBox(width: 12.h),
-                  CustomImageView(
-                    imagePath: ImageConstant.imgRepeat,
-                    height: 18.h,
-                    width: 18.h,
-                  )
-                ],
+              GestureDetector(
+                onTap: () {
+                  NavigatorService.goBack();
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Switch to scan",
+                      style: CustomTextStyles.titleSmallPurple900,
+                    ),
+                    SizedBox(width: 12.h),
+                    CustomImageView(
+                      imagePath: ImageConstant.imgRepeat,
+                      height: 18.h,
+                      width: 18.h,
+                    )
+                  ],
+                ),
               ),
               SizedBox(height: 4.h)
             ],
@@ -67,13 +85,15 @@ class ScanScreenOne extends StatelessWidget{
       height: 92.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgLeftArrow1,
+        imagePath: ImageConstant.imgChevronLeft,
         margin: EdgeInsets.only(
           left: 16.h,
           top: 44.h,
           bottom: 24.h,
         ),
-        onTap: () {},
+        onTap: () {
+          NavigatorService.pushNamed(AppRoutes.deliveryRatingScreenOne);
+        },
       ),
       centerTitle: true,
       title: AppbarSubtitle(
@@ -86,6 +106,4 @@ class ScanScreenOne extends StatelessWidget{
       styleType: Style.bgOutline,
     );
   }
-
-  // Navigates back to the previous screen 
 }

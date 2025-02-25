@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
@@ -36,7 +35,9 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
                             .depositModelObj
                             ?.depositItemList[index] ??
                         DepositItemModel();
-                    return DepositItemWidget(model);
+                    return DepositItemWidget(model, onTapCard: () {
+                      onTapCard(context);
+                    });
                   },
                   separatorBuilder: (context, index) {
                     return SizedBox(
@@ -71,7 +72,7 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Deposit",
-        margin: EdgeInsets.only(top: 46.h, bottom: 21.h),
+        margin: EdgeInsets.only(top: 44.h, bottom: 23.h),
       ),
       styleType: Style.bgOutline,
     );
@@ -80,5 +81,14 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
   // Navigates back to the previous screen
   onTapBack(BuildContext context) {
     NavigatorService.goBack();
+  }
+
+  onTapCard(BuildContext context) {
+    showModalBottomSheet(
+                        context: context, 
+                        builder: (_) => DepositBottomsheet(),
+                        isScrollControlled: true,
+                        isDismissible: true
+                      );
   }
 }

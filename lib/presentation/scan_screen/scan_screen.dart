@@ -50,15 +50,23 @@ class ScanScreenState extends ConsumerState<ScanScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          "Switch to pin code",
-                          style: CustomTextStyles.titleSmallPurple900
+                        GestureDetector(
+                          onTap: () {
+                            NavigatorService.pushNamed(AppRoutes.scanScreenOne);
+                          },
+                          child: Text(
+                            "Switch to pin code",
+                            style: CustomTextStyles.titleSmallPurple900
+                          ),
                         ),
                         SizedBox(width: 12.h),
                         CustomImageView(
                           imagePath: ImageConstant.imgRepeat,
                           height: 18.h,
                           width: 18.h,
+                          onTap: () {
+                            NavigatorService.pushNamed(AppRoutes.scanScreenOne);
+                          },
                         )
                       ],
                     )
@@ -79,13 +87,15 @@ class ScanScreenState extends ConsumerState<ScanScreen> {
       height: 92.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgLeftArrow1,
+        imagePath: ImageConstant.imgChevronLeft,
         margin: EdgeInsets.only(
           left: 16.h,
           top: 44.h,
           bottom: 24.h,
         ),
-        onTap: () {},
+        onTap: () {
+          NavigatorService.goBack();
+        },
       ),
       centerTitle: true,
       title: AppbarSubtitle(

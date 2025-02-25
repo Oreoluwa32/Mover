@@ -97,7 +97,7 @@ class ReferFriendsScreenState extends ConsumerState<ReferFriendsScreen>{
         imagePath: ImageConstant.imgCancel,
         margin: EdgeInsets.only(left: 16.h, top: 44.h, bottom: 22.h),
         onTap: () {
-
+          onTapBack(context);
         },
       ),
       centerTitle: true,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../../core/app_export.dart';
 import '../payment_bottomsheet/payment_bottomsheet.dart';
 import '../../theme/custom_button_style.dart';
@@ -77,7 +78,9 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
                 left: 16.h,
                 top: 1.h,
               ),
-              onTap: () {},
+              onTap: () {
+                NavigatorService.goBack();
+              },
             ),
             centerTitle: true,
             title: AppbarTitle(text: "Mover"),
@@ -320,18 +323,27 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
             imagePath: ImageConstant.imgFacebook,
             height: 18.h,
             width: 18.h,
+            onTap: () {
+              onTapFacebook(context);
+            },
           ),
           CustomImageView(
             imagePath: ImageConstant.imgInstagram,
             height: 18.h,
             width: 18.h,
             margin: EdgeInsets.only(left: 16.h),
+            onTap: () {
+              onTapInstagram(context);
+            },
           ),
           CustomImageView(
             imagePath: ImageConstant.imgLinkedin,
             height: 18.h,
             width: 18.h,
             margin: EdgeInsets.only(left: 16.h),
+            onTap: () {
+              onTapLinkedin(context);
+            },
           ),
         ],
       ),
@@ -370,6 +382,7 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
                       top: Radius.circular(20.h)
                     )
                   ),
+                  isScrollControlled: true,
                   builder: (BuildContext context) {
                     return PaymentBottomsheet();
                   });
@@ -378,5 +391,29 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
         ],
       ),
     );
+  }
+
+  // Opens a URL in the device's default web browser
+  // The [context] parameter is the `BuildContext` of the widget that invoked the function
+  // Throws an exception if the URL could not be launched
+  onTapFacebook(BuildContext context) async {
+    var url = 'www.facebook.com';
+    if (!await launchUrlString(url)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  onTapInstagram(BuildContext context) async {
+    var url = 'www.instagram.com';
+    if (!await launchUrlString(url)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  onTapLinkedin(BuildContext context) async {
+    var url = 'www.linkedin.com';
+    if (!await launchUrlString(url)) {
+      throw 'Could not launch $url';
+    }
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:new_project/presentation/save_your_route_dialog/save_your_route_dialog.dart';
+import '../presentation/save_your_route_dialog/save_your_route_dialog.dart';
 import '../presentation/splash_screen_two/splash_screen_two.dart';
 import '../presentation/splash_screen_three/splash_screen_three.dart';
 import '../presentation/splash_screen_four/splash_screen_four.dart';
@@ -59,6 +59,9 @@ import '../presentation/account_funded_screen/account_funded_screen.dart';
 import '../presentation/activity_in_progress_page/activity_in_progress_page.dart';
 import '../presentation/schedule_trip_bottomsheet/schedule_trip_bottomsheet.dart';
 import '../presentation/refer_friends_screen/refer_friends_screen.dart';
+import '../presentation/scan_screen/scan_screen.dart';
+import '../presentation/delivery_pickup_screen_two/delivery_pickup_screen_two.dart';
+import '../presentation/scan_screen_one/scan_screen_one.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -188,6 +191,15 @@ class AppRoutes {
 
   static const String referFriendsScren = 'refer_friends_screen';
 
+  static const String saveYourRouteDialog = 'save_your_route_dialog';
+
+  static const String scanScreen = 'scan_screen';
+
+  static const String scanScreenOne = 'scan_screen_one';
+
+  static const String deliveryPickupScreenTwo = 'delivery_pickup_screen_two';
+
+
   static const String initialRoute = '/initialRoute';
 
   static Map<String, WidgetBuilder> routes = {
@@ -309,6 +321,14 @@ class AppRoutes {
 
     referFriendsScren: (context) => ReferFriendsScreen(),
 
-    initialRoute: (context) => ReferFriendsScreen()
+    saveYourRouteDialog: (context) => SaveYourRouteDialog(),
+
+    scanScreen: (context) => ScanScreen(),
+
+    deliveryPickupScreenTwo: (context) => DeliveryPickupScreenTwo(),
+
+    scanScreenOne: (context) => ScanScreenOne(),
+
+    initialRoute: (context) => HireMoverScreen()
   };
 }

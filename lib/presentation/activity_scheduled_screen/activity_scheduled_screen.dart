@@ -48,7 +48,12 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
             shrinkWrap: true,
             itemBuilder: (context, index) {
               ScheduledItemModel model = ref.watch(activityScheduledNotifier).activityScheduledModelObj?.scheduledItemList[index] ?? ScheduledItemModel();
-              return ScheduledItemWidget(model);
+              return GestureDetector(
+                onTap: () {
+                  NavigatorService.pushNamed(AppRoutes.scheduleTripBottomsheet);
+                },
+                child: ScheduledItemWidget(model),
+              );
             }, 
             separatorBuilder: (context, index) {
               return SizedBox(

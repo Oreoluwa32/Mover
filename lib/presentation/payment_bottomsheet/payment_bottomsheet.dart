@@ -205,7 +205,14 @@ class PaymentBottomsheetState extends ConsumerState<PaymentBottomsheet> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [CustomElevatedButton(text: "Proceed")],
+              children: [
+                CustomElevatedButton(
+                  text: "Proceed",
+                  onPressed: () {
+                    NavigatorService.pushNamed(AppRoutes.userDeliveryBottomsheetOne);
+                  },
+                )
+              ],
             ),
           )
         ],

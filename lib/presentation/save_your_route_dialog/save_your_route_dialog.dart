@@ -70,12 +70,18 @@ class SaveYourRouteDialogState extends ConsumerState<SaveYourRouteDialog> {
                         text: "Save route",
                         buttonTextStyle:
                             CustomTextStyles.titleSmallOnPrimaryMedium,
+                        onPressed: () {
+                          NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+                        },
                       ),
                       SizedBox(height: 12.h),
                       CustomOutlinedButton(
                         text: "Cancel",
                         buttonStyle: CustomButtonStyles.outlineGray,
                         buttonTextStyle: CustomTextStyles.titleSmallGray700,
+                        onPresssed: () {
+                          NavigatorService.goBack();
+                        },
                       )
                     ],
                   ),

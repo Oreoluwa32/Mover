@@ -1,11 +1,15 @@
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/file_upload_helper.dart';
+import '../../core/utils/permission_manager.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_title.dart';
+import '../transaction_history_screen/transaction_history_screen.dart';
 import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../home_one_screen/home_one_initial_page.dart';
 import '../my_route_page/my_route_page.dart';
@@ -36,26 +40,29 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: _buildAppbar(context),
         body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.symmetric(horizontal: 16.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 28.h
-              ), 
-              _buildAccount(context)
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 28.h
+                ), 
+                _buildAccount(context)
+              ],
+            ),
           ),
         ),
-        bottomNavigationBar: Container(
-          width: double.maxFinite,
-          margin: EdgeInsets.symmetric(horizontal: 16.h),
-          child: _buildBottombar(context),
-        ),
+        // bottomNavigationBar: Container(
+        //   width: double.maxFinite,
+        //   margin: EdgeInsets.symmetric(horizontal: 16.h),
+        //   child: _buildBottombar(context),
+        // ),
       ),
     );
   }
@@ -101,6 +108,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     context,
                     icon: ImageConstant.imgBlackWallet,
                     title: "Wallet",
+                    onTapCard: () {
+                      onTapWallet(context);
+                    }
                   ),
                 ),
                 SizedBox(height: 8.h,),
@@ -160,6 +170,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     context,
                     icon: ImageConstant.imgReferParty,
                     title: "Refer Friends",
+                    onTapCard: () {
+                      onTapReferFriends(context);
+                    }
                   ),
                 ),
                 SizedBox(height: 8.h,),
@@ -237,6 +250,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   width: 50.h,
                   height: 50.h,
                   radius: BorderRadius.circular(24.h),
+                  onTap: () {
+                    requestCameraGalleryPermission(context);
+                  },
                 ),
                 SizedBox(width: 16.h,),
                 Expanded(
@@ -269,69 +285,94 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // Section Widget
-  Widget _buildBottombar(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: CustomBottomBar(
-        onChanged: (BottomBarEnum type) {
-          Navigator.pushNamed(navigatorKey.currentContext!, getCurrentRoute(type));
-        },
-      ),
-    );
-  }
+  // Widget _buildBottombar(BuildContext context) {
+  //   return SizedBox(
+  //     width: double.maxFinite,
+  //     child: CustomBottomBar(
+  //       onChanged: (BottomBarEnum type) {
+  //         Navigator.pushNamed(navigatorKey.currentContext!, getCurrentRoute(type));
+  //       },
+  //     ),
+  //   );
+  // }
 
   // Common Widget
   Widget _buildCard(BuildContext context, {
     required String icon,
-    required String title
+    required String title,
+    Function? onTapCard,
   }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: 16.h
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
-      ),
-      child: Row(
-        children: [
-          CustomImageView(
-            imagePath: icon,
-            height: 18.h,
-            width: 18.h,
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 16.h),
-            child: Text(
-              title,
-              style: CustomTextStyles.labelLargeMedium.copyWith(
-                color: appTheme.gray80001
+    return GestureDetector(
+      onTap: () {
+        onTapCard?.call();
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          vertical: 16.h
+        ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withOpacity(1),
+        ),
+        child: Row(
+          children: [
+            CustomImageView(
+              imagePath: icon,
+              height: 18.h,
+              width: 18.h,
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 16.h),
+              child: Text(
+                title,
+                style: CustomTextStyles.labelLargeMedium.copyWith(
+                  color: appTheme.gray80001
+                ),
               ),
             ),
-          ),
-          Spacer(),
-          CustomImageView(
-            imagePath: ImageConstant.imgChevronRightBlack,
-            height: 16.h,
-            width: 16.h,
-          )
-        ],
+            Spacer(),
+            CustomImageView(
+              imagePath: ImageConstant.imgChevronRightBlack,
+              height: 16.h,
+              width: 16.h,
+            )
+          ],
+        ),
       ),
     );
   }
 
   // Handling route based on the bottom click actions
-  String getCurrentRoute(BottomBarEnum type) {
-    switch (type) {
-      case BottomBarEnum.Home:
-        return AppRoutes.homeOneInitialPage;
-      case BottomBarEnum.Route:
-        return AppRoutes.myRoutePage;
-      case BottomBarEnum.Activity:
-        return AppRoutes.activityInProgressPage;
-      case BottomBarEnum.Profile:
-        return AppRoutes.profileScreen;
-      default:
-        return "/";
-    }
+  // String getCurrentRoute(BottomBarEnum type) {
+  //   switch (type) {
+  //     case BottomBarEnum.Home:
+  //       return AppRoutes.homeOneInitialPage;
+  //     case BottomBarEnum.Route:
+  //       return AppRoutes.myRoutePage;
+  //     case BottomBarEnum.Activity:
+  //       return AppRoutes.activityInProgressPage;
+  //     case BottomBarEnum.Profile:
+  //       return AppRoutes.profileScreen;
+  //     default:
+  //       return "/";
+  //   }
+  // }
+
+  // Requests permission to access the camera and storage, and displays a model sheet for selecting images
+  // Throws an error if permission is denied or an error occures while selecting images
+  requestCameraGalleryPermission(BuildContext context) async {
+    await PermissionManager.requestPermission(Permission.camera);
+    await PermissionManager.requestPermission(Permission.storage);
+    List<String?>? imageList = [];
+    await FileManager().showModelSheetForImage(getImages: (value) async {
+      imageList = value;
+    });
+  }
+
+  onTapWallet(BuildContext context) {
+    NavigatorService.pushNamed(AppRoutes.transactionHistoryScreen);
+  }
+
+  onTapReferFriends(BuildContext context) {
+    NavigatorService.pushNamed(AppRoutes.referFriendsScren);
   }
 }

@@ -1,10 +1,13 @@
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'package:images_picker/images_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/file_upload_helper.dart';
+import '../../core/utils/permission_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
@@ -282,7 +285,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                         ],
                       ),
                     ),
-                    SizedBox(height: 78.h),
+                    SizedBox(height: 50.h),
                     CustomElevatedButton(
                       text: "Submit",
                       buttonStyle: CustomButtonStyles.fillBlueGray,
@@ -294,7 +297,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                             }
                       },
                     ),
-                    SizedBox(height: 4.h)
+                    SizedBox(height: 15.h)
                   ],
                 ),
               ),
@@ -323,7 +326,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
       height: 90.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgLeftArrow1,
+        imagePath: ImageConstant.imgChevronLeft,
         margin: EdgeInsets.only(
           left: 16.h,
           top: 44.h,
@@ -406,13 +409,8 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
         }
 
         return GestureDetector(
-          onTap: () async {
-            final picker = ImagePicker();
-            final pickedImage =
-                await picker.pickImage(source: ImageSource.gallery);
-            if (pickedImage != null) {
-              onImageSelected(pickedImage.path);
-            }
+          onTap: () {
+            requestCameraGalleryPermission(context);
           },
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 14.h),
@@ -464,5 +462,16 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
   // Navigates back to the verification screen
   onTapLeftArrow(BuildContext context){
     Navigator.pushNamed(context, AppRoutes.verificationScreen);
+  }
+
+  // Requests permission to access the camera and storage, and displays a model sheet for selecting images
+  // Throws an error if permission is denied or an error occures while selecting images
+  requestCameraGalleryPermission(BuildContext context) async {
+    await PermissionManager.requestPermission(Permission.camera);
+    await PermissionManager.requestPermission(Permission.storage);
+    List<String?>? imageList = [];
+    await FileManager().showModelSheetForImage(getImages: (value) async {
+      imageList = value;
+    });
   }
 }

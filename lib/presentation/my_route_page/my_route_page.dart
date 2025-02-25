@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../instant_add_route_screen_one/add_route_screen_one.dart';
+import '../add_route_screen_three/add_route_screen_three.dart';
 import '../../widgets/custom_floating_button.dart';
-import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import 'models/saved_route_model.dart';
@@ -89,7 +90,7 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> {
   // Section Widget
   Widget _buildFloatingactionb(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 150.h),
+      padding: EdgeInsets.only(bottom: 80.h),
       child: CustomFloatingButton(
         height: 48,
         width: 48,
@@ -134,14 +135,14 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> {
                 vertical: 23.h
               ),
             ),
-            onPressed: () {
-              // Handle "Instant route" button press
-              Navigator.of(context).pop(); // Close the overlay
-            },
             child: Text(
               'Instant route',
               style: CustomTextStyles.labelLargeGray400?.copyWith(color: Colors.black87)
             ),
+            onPressed: () {
+              // Handle "Instant route" button press
+              onTapInstant(context);
+            },
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -152,14 +153,14 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> {
                 vertical: 23.h
               ),
             ),
-            onPressed: () {
-              // Handle "Schedule route" button press
-              Navigator.of(context).pop(); // Close the overlay
-            },
             child: Text(
               'Schedule route',
               style: CustomTextStyles.labelLargeGray400?.copyWith(color: Colors.black87)
             ),
+            onPressed: () {
+              // Handle "Schedule route" button press
+              onTapSchedule(context);
+            },
           ),
           const SizedBox(height: 20),
           CustomFloatingButton(
@@ -181,5 +182,14 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> {
         ],
       ),
     );
+  }
+
+  // Navigates to the instant route screen
+  onTapInstant(BuildContext context) {
+    NavigatorService.pushNamed(AppRoutes.addRouteScreenOne);
+  }
+
+  onTapSchedule(BuildContext context) {
+    NavigatorService.pushNamed(AppRoutes.addRouteScreenThree);
   }
 }

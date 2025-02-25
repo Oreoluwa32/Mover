@@ -1,28 +1,38 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import 'models/delivery_pickup_item_model.dart';
+import 'notifier/delivery_pickup_notifier.dart';
 import 'widgets/pickup_one_widget.dart'; //ignore for file, must be immutable
 
-class DeliveryPickupScreenOne extends StatelessWidget{
+class DeliveryPickupScreenOne extends ConsumerStatefulWidget{
   const DeliveryPickupScreenOne({Key? key})
     : super(key: key,);
 
   @override
+  DeliveryPickupScreenState createState() => DeliveryPickupScreenState();
+}
+
+class DeliveryPickupScreenState extends ConsumerState<DeliveryPickupScreenOne>{
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
-        borderRadius: BorderRadiusStyle.customBorderTL24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: 16.h),
-          _buildColumn(context),
-          SizedBox(height: 40.h),
-          _buildButtonnav(context)
-        ],
+    return Material(
+      child: Container(
+        width: double.maxFinite,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withOpacity(1),
+          borderRadius: BorderRadiusStyle.customBorderTL24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 16.h),
+            _buildColumn(context),
+            SizedBox(height: 40.h),
+            _buildButtonnav(context)
+          ],
+        ),
       ),
     );
   }
@@ -119,31 +129,36 @@ class DeliveryPickupScreenOne extends StatelessWidget{
                 SizedBox(width: 16.h),
                 Text(
                   "₦1200",
-                  style: theme.textTheme.titleSmall,
+                  style: CustomTextStyles.bodySmallBlack900,
                 )
               ],
             ),
           ),
           SizedBox(height: 40.h),
-          SizedBox(
-            height: 52.h,
-            width: 282.h,
-            child: ListView.separated(
-              padding: EdgeInsets.only(
-                left: 32.h,
-                right: 26.h,
-              ),
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                return PickupOneWidget();
-              }, 
-              separatorBuilder: (context, index) {
-                return SizedBox(
-                  width: 100.h,
-                );
-              }, 
-              itemCount: 3,
+          Container(
+            margin: EdgeInsets.only(
+              left: 32.h,
+              right: 26.h,
             ),
+            width: double.maxFinite,
+            child: Consumer(
+              builder: (context, ref, _) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    direction: Axis.horizontal,
+                    spacing: 100.h,
+                    children: List.generate(
+                      ref.watch(deliveryPickupNotifier).deliveryPickupModelObj?.deliveryPickupItemList.length ?? 0,
+                      (index) {
+                        DeliveryPickupItemModel model = ref.watch(deliveryPickupNotifier).deliveryPickupModelObj?.deliveryPickupItemList[index] ?? DeliveryPickupItemModel();
+                        return PickupOneWidget(model);
+                      }
+                    ),
+                  ),
+                );
+              }
+            )
           ),
           SizedBox(height: 34.h),
           SizedBox(
@@ -159,6 +174,9 @@ class DeliveryPickupScreenOne extends StatelessWidget{
                   imagePath: ImageConstant.imgRightArrow1,
                   height: 16.h,
                   width: 16.h,
+                  onTap: () {
+                    NavigatorService.pushNamed(AppRoutes.deliveryPickupScreenTwo);
+                  },
                 )
               ],
             ),
@@ -187,6 +205,9 @@ class DeliveryPickupScreenOne extends StatelessWidget{
         children: [
           CustomElevatedButton(
             text: "Confirm Pickup - Scan",
+            onPressed: () {
+              NavigatorService.pushNamed(AppRoutes.scanScreen);
+            },
           )
         ],
       ),

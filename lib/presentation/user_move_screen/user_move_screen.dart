@@ -61,7 +61,9 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
           shrinkWrap: true,
           itemBuilder: (context, index) {
             ListsendpackageItemModel model = ref.watch(moveNotifier).moveModelObj?.listsendpackageItemList[index] ?? ListsendpackageItemModel();
-            return ListsendpackageItemWidget(model);
+            return ListsendpackageItemWidget(model, onTapSendPackage: () {
+              NavigatorService.pushNamed(AppRoutes.deliveryDetailsScreen);
+            });
           }, 
           separatorBuilder: (context, index) {
             return SizedBox(

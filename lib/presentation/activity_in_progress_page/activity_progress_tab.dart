@@ -6,14 +6,14 @@ import 'models/progress_item_model.dart';
 import 'notifier/activity_progress_notifier.dart';
 import 'widgets/progress_item_widget.dart';
 
-class ActivityProgressTab extends ConsumerStatefulWidget{
+class ActivityProgressTab extends ConsumerStatefulWidget {
   const ActivityProgressTab({Key? key}) : super(key: key);
 
   @override
   ActivityProgressTabState createState() => ActivityProgressTabState();
 }
 
-class ActivityProgressTabState extends ConsumerState<ActivityProgressTab>{
+class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -44,8 +44,11 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab>{
             itemCount: ref.watch(activityProgressNotifier).activityProgressTabModelObj?.progressList.length ?? 0,
             itemBuilder: (context, index) {
               ProgressItemModel model = ref.watch(activityProgressNotifier).activityProgressTabModelObj?.progressList[index] ?? ProgressItemModel();
-              return ProgressItemWidget(
-                model
+              return GestureDetector(
+                onTap: () {
+                  NavigatorService.pushNamed(AppRoutes.userDeliveryBottomsheetOne);
+                },
+                child: ProgressItemWidget(model),
               );
             },
           );

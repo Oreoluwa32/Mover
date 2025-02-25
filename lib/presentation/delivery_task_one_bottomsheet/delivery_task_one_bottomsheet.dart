@@ -179,6 +179,9 @@ class DeliveryTaskBottomsheetState
                   height: 24.h,
                   width: 24.h,
                   margin: EdgeInsets.only(left: 98.h),
+                  onTap: () {
+                    NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+                  },
                 )
               ],
             ),
@@ -377,11 +380,19 @@ class DeliveryTaskBottomsheetState
             CustomElevatedButton(
               text: "Bid Price",
               buttonStyle: CustomButtonStyles.fillBlueGray,
+              onPressed: () {
+                NavigatorService.pushNamed(AppRoutes.deliveryPickupScreenOne);
+              },
             ),
             SizedBox(height: 22.h,),
-            Text(
-              "Decline",
-              style: CustomTextStyles.titleSmallRedA700,
+            GestureDetector(
+              onTap: () {
+                NavigatorService.pushNamed(AppRoutes.rideCancelScreenOne);
+              },
+              child: Text(
+                "Decline",
+                style: CustomTextStyles.titleSmallRedA700Medium
+              )
             )
           ],
         ),

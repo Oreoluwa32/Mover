@@ -22,6 +22,8 @@ class AddRouteThreeBottomsheetState
 
   @override
   Widget build(BuildContext context) {
+    final routeSettingNot = ref.watch(routeSettingNotifier.notifier);
+
     return Material(
       child: Container(
         width: double.maxFinite,
@@ -101,13 +103,22 @@ class AddRouteThreeBottomsheetState
                 children: [
                   CustomElevatedButton(
                     text: "Save",
+                    onPressed: () {
+                      routeSettingNot.setDistance(_distance);
+                      NavigatorService.goBack();
+                    },
                   ),
                   SizedBox(
                     height: 24.h,
                   ),
-                  Text(
-                    "Cancel",
-                    style: CustomTextStyles.titleSmallErrorContainerMedium,
+                  GestureDetector(
+                    onTap: () {
+                      onTapBack(context);
+                    },
+                    child: Text(
+                      "Cancel",
+                      style: CustomTextStyles.titleSmallErrorContainerMedium,
+                  ),
                   )
                 ],
               ),
@@ -117,5 +128,9 @@ class AddRouteThreeBottomsheetState
         ),
       ),
     );
+  }
+
+  onTapBack(BuildContext context) {
+    NavigatorService.goBack();
   }
 }

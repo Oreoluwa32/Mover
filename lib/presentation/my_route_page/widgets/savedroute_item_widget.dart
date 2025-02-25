@@ -39,24 +39,24 @@ class SavedrouteItemWidget extends StatelessWidget {
                   style: CustomTextStyles.labelLargeGray800,
                 ),
                 Spacer(),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    height: 6.h,
-                    width: 6.h,
-                    margin: EdgeInsets.only(top: 4.h),
-                    decoration: BoxDecoration(
-                      color: appTheme.redA700,
-                      borderRadius: BorderRadius.circular(
-                        3.h,
-                      ),
-                    ),
-                  ),
-                ),
+                // Align(
+                //   alignment: Alignment.topCenter,
+                //   child: Container(
+                //     height: 6.h,
+                //     width: 6.h,
+                //     margin: EdgeInsets.only(top: 1.h),
+                //     decoration: BoxDecoration(
+                //       color: appTheme.redA700,
+                //       borderRadius: BorderRadius.circular(
+                //         3.h,
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 Padding(
                   padding: EdgeInsets.only(left: 4.h),
                   child: Text(
-                    savedrouteItemModelObj.islive!,
+                    savedrouteItemModelObj.islive! ? "Live" : "",
                     style: CustomTextStyles.labelMediumInterRedA700,
                   ),
                 )
@@ -118,7 +118,7 @@ class SavedrouteItemWidget extends StatelessWidget {
                   ),
                 ),
                 CustomImageView(
-                  imagePath: ImageConstant.imgChevronRight,
+                  imagePath: ImageConstant.imgChevronRightBlack,
                   height: 16.h,
                   width: 16.h,
                   margin: EdgeInsets.only(top: 8.h),

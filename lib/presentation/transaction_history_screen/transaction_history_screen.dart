@@ -231,6 +231,9 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
             child: CustomElevatedButton(
               height: 44.h,
               text: "Deposit",
+              onPressed: () {
+                NavigatorService.pushNamed(AppRoutes.depositScreen);
+              },
             ),
           ),
           SizedBox(width: 12.h),

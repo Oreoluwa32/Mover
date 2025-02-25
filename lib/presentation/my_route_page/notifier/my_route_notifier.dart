@@ -11,24 +11,33 @@ final myRouteNotifier =
       myRouteModelObj: MyRouteModel(savedrouteItemList: [
     SavedRouteModel(
         routetitle: "Work Route",
-        islive: "Live",
+        liveDot: true,
+        islive: true,
         address: "Gateway Zone, Magodo Phase II, GRA Lagos State",
         time: "7:30AM",
         days: "Mon - Fri"),
     SavedRouteModel(
         address: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+        liveDot: false,
+        islive: false,
+        time: "8:30AM",
+        days: "Mon - Fri"),
+    SavedRouteModel(
+        address: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+        liveDot: false,
+        islive: false,
         time: "7:30AM",
         days: "Mon - Fri"),
     SavedRouteModel(
         address: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+        liveDot: false,
+        islive: false,
         time: "7:30AM",
         days: "Mon - Fri"),
     SavedRouteModel(
         address: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-        time: "7:30AM",
-        days: "Mon - Fri"),
-    SavedRouteModel(
-        address: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+        liveDot: false,
+        islive: false,
         time: "7:30AM",
         days: "Mon - Fri"),
   ]))),

@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_trailing_image.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import 'notifier/rating_notifier.dart';
 
-class DeliveryRatingScreenTwo extends StatelessWidget{
+class DeliveryRatingScreenTwo extends ConsumerStatefulWidget{
   const DeliveryRatingScreenTwo({Key? key})
     : super(key: key,);
 
+  @override
+  DeliveryRatingScreenTwoState createState() => DeliveryRatingScreenTwoState();
+}
+
+class DeliveryRatingScreenTwoState extends ConsumerState<DeliveryRatingScreenTwo>{
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -25,13 +31,13 @@ class DeliveryRatingScreenTwo extends StatelessWidget{
                 "Delivery Complete",
                 style: CustomTextStyles.titleMediumGray80001,
               ),
-              SizedBox(height: 10.h),
+              SizedBox(height: 90.h),
               CustomImageView(
                 imagePath: ImageConstant.imgGreenCheck,
-                height: 202.h,
+                height: 76.1.h,
                 width: double.maxFinite,
               ),
-              SizedBox(height: 40.h),
+              SizedBox(height: 90.h),
               Text(
                 "Thank you for the feedback",
                 style: CustomTextStyles.titleMediumBlack900,
@@ -61,6 +67,9 @@ class DeliveryRatingScreenTwo extends StatelessWidget{
             right: 15.h,
             bottom: 16.h,
           ),
+          onTap: () {
+            NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+          },
         )
       ],
     );

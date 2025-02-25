@@ -220,7 +220,7 @@ class ImageConstant {
   static String img3DBike = '$imagePath/img_3d_bike.png';
 
   // 3d bus image
-  static String img3DBus = '$imagePath/img_3d_bus.png';
+  static String img3DBus = '$imagePath/img_3d_bus.svg';
 
   // 3d plane image
   static String img3DPlane = '$imagePath/img_3d_plane.png';
@@ -368,4 +368,10 @@ class ImageConstant {
 
   // Bitmoji frame
   static String imgBitmojiFrame = '$imagePath/img_bitmoji_frame.jpg';
+
+  // Chevron right gray
+  static String imgChevronRightGray = '$imagePath/img_chevron_right_bluegray.svg';
+
+  // Black chevron right
+  static String imgBlackChevronRight = '$imagePath/img_black_chevron_right.svg';
 }

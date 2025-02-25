@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 class NavigatorService {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+  NavigatorService(String saveYourRouteDialog);
+
   static Future<dynamic> pushNamed(
     String routeName, {
       dynamic arguments,

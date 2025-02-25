@@ -550,7 +550,13 @@ class DeliveryScreenState extends ConsumerState<DeliveryScreen> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.max,
-        children: [CustomElevatedButton(text: "Hire Mover")],
+        children: [
+          CustomElevatedButton(
+            text: "Hire Mover",
+            onPressed: () {
+              NavigatorService.pushNamed(AppRoutes.searchMoverBottomsheet);
+            },
+          )],
       ),
     );
   }

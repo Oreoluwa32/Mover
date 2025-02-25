@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../widgets/custom_bottom_bar.dart';
+import '../home_one_screen/home_one_initial_page.dart';
+import '../profile_screen/profile_screen.dart';
+import '../my_route_page/my_route_page.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_trailing_image.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
@@ -196,4 +200,36 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
       ),
     );
   }
+
+  // // Handling the route based on bottom click actions
+  // String getCurrentRoute(BottomBarEnum type){
+  //   switch(type){
+  //     case BottomBarEnum.Home:
+  //       return AppRoutes.homeOneInitialPage;
+  //     case BottomBarEnum.Route:
+  //       return AppRoutes.myRoutePage;
+  //     case BottomBarEnum.Activity:
+  //       return AppRoutes.activityInProgressPage;
+  //     case BottomBarEnum.Profile:
+  //       return AppRoutes.profileScreen;
+  //     default:
+  //       return "/";
+  //   }
+  // }
+
+  // // Handling the page based on the routes
+  // Widget getCurrentPage( BuildContext context, String currentRoute){
+  //   switch(currentRoute){
+  //     case AppRoutes.homeOneInitialPage:
+  //       return HomeOneInitialPage();
+  //     case AppRoutes.myRoutePage:
+  //       return MyRoutePage();
+  //     case AppRoutes.activityInProgressPage:
+  //       return ActivityInProgressPage();
+  //     case AppRoutes.profileScreen:
+  //       return ProfileScreen();
+  //     default:
+  //       return DefaultWidget();
+  //   }
+  // }
 }

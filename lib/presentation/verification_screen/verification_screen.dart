@@ -74,7 +74,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
       height: 90.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgLeftArrow1,
+        imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
           top: 44.h,
@@ -108,12 +108,12 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
         children: [
           Text(
             identification,
-            style: CustomTextStyles.titleMediumGray80001Medium.copyWith(
+            style: CustomTextStyles.bodyMediumMulishBlack900.copyWith(
               color: appTheme.gray80001,
             ),
           ),
           CustomImageView(
-            imagePath: ImageConstant.imgRightArrow1,
+            imagePath: ImageConstant.imgBlackChevronRight,
             height: 16.h,
             width: 16.h,
           )

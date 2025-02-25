@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:images_picker/images_picker.dart';
 import '../../core/app_export.dart';
 import '../set_date_bottomsheet/set_date_bottomsheet.dart';
 import '../../core/utils/date_time_utils.dart';
+import '../../core/utils/file_upload_helper.dart';
+import '../../core/utils/permission_manager.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -116,43 +119,57 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                     children: [
                       _buildColumnmeansof(context),
                       SizedBox(height: 22.h),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16.h),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildColumnnumberof(context),
-                                SizedBox(height: 24.h),
-                                _buildMaxCap(context),
-                                SizedBox(height: 24.h),
-                                _buildDepartureone(context),
-                                SizedBox(height: 22.h),
-                                Text(
-                                  "Do you want to make a returning route?",
-                                  style: theme.textTheme.labelLarge,
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final selectedTransportMode = ref.watch(addRouteTwoNotifier).addRouteTwoModelObj?.transportMeansList.firstWhere((item) => item.isSelected,
+                          orElse: () => AddRouteItemModel(),
+                          ).tabTitle;
+
+                          if(selectedTransportMode == null) {
+                            return Container(); // If no tab is selected, return empty container
+                          }
+                          if (selectedTransportMode == "Public") {
+                            return SizedBox(
+                              width: double.maxFinite,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16.h),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _buildColumnnumberof(context),
+                                      SizedBox(height: 24.h),
+                                      _buildMaxCap(context),
+                                      SizedBox(height: 24.h),
+                                      _buildDepartureone(context),
+                                      SizedBox(height: 22.h),
+                                      Text(
+                                        "Do you want to make a returning route?",
+                                        style: theme.textTheme.labelLarge,
+                                      ),
+                                      SizedBox(height: 10.h),
+                                      _buildDoyouwantto(context),
+                                      SizedBox(height: 22.h),
+                                      _buildColumnreturn(context),
+                                      SizedBox(height: 24.h),
+                                      _buildTimeRange(context),
+                                      SizedBox(
+                                        height: 22.h,
+                                      ),
+                                      _buildTrainTicket(context),
+                                      SizedBox(
+                                        height: 22.h,
+                                      ),
+                                      _buildUpload(context)
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(height: 10.h),
-                                _buildDoyouwantto(context),
-                                SizedBox(height: 22.h),
-                                _buildColumnreturn(context),
-                                SizedBox(height: 24.h),
-                                _buildTimeRange(context),
-                                SizedBox(
-                                  height: 22.h,
-                                ),
-                                _buildTrainTicket(context),
-                                SizedBox(
-                                  height: 22.h,
-                                ),
-                                _buildUpload(context)
-                              ],
-                            ),
-                          ),
-                        ),
+                              ),
+                            );
+                          }
+                          return Container();
+                        }
                       ),
                       SizedBox(height: 4.h)
                     ],
@@ -204,6 +221,9 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
             leading: AppbarLeadingImage(
               imagePath: ImageConstant.imgCancel,
               margin: EdgeInsets.only(left: 16.h),
+              onTap: () {
+                onTapBack(context);
+              },
             ),
             centerTitle: true,
             title: AppbarSubtitle(
@@ -751,15 +771,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
             builder: (context, ref, _) {
               final imagePath = ref.watch(addRouteTwoNotifier).imagePath;
               return GestureDetector(
-                  onTap: () async {
-                    final picker = ImagePicker();
-                    final pickedImage =
-                        await picker.pickImage(source: ImageSource.gallery);
-                    if (pickedImage != null) {
-                      ref
-                          .read(addRouteTwoNotifier.notifier)
-                          .uploadImage(pickedImage.path);
-                    }
+                  onTap: () {
+                    requestCameraGalleryPermission(context);
                   },
                   child: Container(
                     width: double.maxFinite,
@@ -770,36 +783,34 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                       border:
                           Border.all(color: appTheme.blueGray10002, width: 1.h),
                     ),
-                    child: imagePath != null
-                        ? Image.file(File(imagePath))
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomIconButton(
-                                height: 40.h,
-                                width: 40.h,
-                                padding: EdgeInsets.all(10.h),
-                                decoration: IconButtonStyleHelper.outlineGray,
-                                child: CustomImageView(
-                                  imagePath: ImageConstant.imgCloudUpload,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 12.h,
-                              ),
-                              Text(
-                                "Click to upload",
-                                style: CustomTextStyles.titleSmallInterPrimary,
-                              ),
-                              SizedBox(
-                                height: 4.h,
-                              ),
-                              Text(
-                                "PNG or JPG (max. 800 x 400px)",
-                                style: CustomTextStyles.bodySmallInterGray600_1,
-                              )
-                            ],
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomIconButton(
+                          height: 40.h,
+                          width: 40.h,
+                          padding: EdgeInsets.all(10.h),
+                          decoration: IconButtonStyleHelper.outlineGray,
+                          child: CustomImageView(
+                            imagePath: ImageConstant.imgCloudUpload,
                           ),
+                        ),
+                        SizedBox(
+                          height: 12.h,
+                        ),
+                        Text(
+                          "Click to upload",
+                          style: CustomTextStyles.titleSmallInterPrimary,
+                        ),
+                        SizedBox(
+                          height: 4.h,
+                        ),
+                        Text(
+                          "PNG or JPG (max. 800 x 400px)",
+                          style: CustomTextStyles.bodySmallInterGray600_1,
+                        )
+                      ],
+                    ),
                   ));
             },
           ),
@@ -848,6 +859,9 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     return CustomElevatedButton(
       text: "Add route",
       buttonStyle: CustomButtonStyles.fillBlueGray,
+      onPressed: () {
+        NavigatorService.pushNamed(AppRoutes.saveYourRouteDialog);
+      },
     );
   }
 
@@ -960,5 +974,20 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
       ref.watch(addRouteTwoNotifier).setTimeController?.text = formattedTime;
     }
+  }
+
+  // Requests permission to access the camera and storage, and displays a model sheet for selecting images
+  // Throws an error if permission is denied or an error occures while selecting images
+  requestCameraGalleryPermission(BuildContext context) async {
+    await PermissionManager.requestPermission(Permission.camera);
+    await PermissionManager.requestPermission(Permission.storage);
+    List<String?>? imageList = [];
+    await FileManager().showModelSheetForImage(getImages: (value) async {
+      imageList = value;
+    });
+  }
+
+  onTapBack(BuildContext context) {
+    NavigatorService.goBack();
   }
 }

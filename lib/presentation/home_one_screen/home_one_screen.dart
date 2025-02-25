@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../activity_in_progress_page/activity_in_progress_page.dart';
+import '../my_route_page/my_route_page.dart';
+import '../profile_screen/profile_screen.dart';
+import '../user_move_screen/user_move_screen.dart';
 import 'home_one_initial_page.dart';
+import 'notifier/home_notifier.dart';
 
 // ignore for file, must be immutable
-class HomeOneScreen extends StatelessWidget{
-  HomeOneScreen({Key? key})
+class HomeOneScreen extends ConsumerStatefulWidget{
+  const HomeOneScreen({Key? key})
     : super(
       key: key,
     );
 
+  @override
+  HomeOneScreenState createState() => HomeOneScreenState();
+}
+
+// ignore for file, must be immutable
+class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
   GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
   @override
@@ -20,7 +31,7 @@ class HomeOneScreen extends StatelessWidget{
           key: navigatorKey,
           initialRoute: AppRoutes.homeOneInitialPage,
           onGenerateRoute: (routeSetting) => PageRouteBuilder(
-            pageBuilder: (ctx, ani, ani1) => getCurrentPage(routeSetting.name!),
+            pageBuilder: (ctx, ani, ani1) => getCurrentPage(context, routeSetting.name!),
             transitionDuration: Duration(seconds: 0),
           ),
         ),
@@ -54,26 +65,28 @@ class HomeOneScreen extends StatelessWidget{
         return AppRoutes.homeOneInitialPage;
       case BottomBarEnum.Route:
         return AppRoutes.myRoutePage;
+      case BottomBarEnum.Move:
+        return AppRoutes.userMoveScreen;
       case BottomBarEnum.Activity:
-        return AppRoutes.myRoutePage;
+        return AppRoutes.activityInProgressPage;
       case BottomBarEnum.Profile:
         return AppRoutes.profileScreen;
-      default:
-        return "/";
-    }
+      }
   }
 
   // Handling the page based on the routes
-  Widget getCurrentPage(String currentRoute){
+  Widget getCurrentPage(BuildContext context, String currentRoute){
     switch(currentRoute){
       case AppRoutes.homeOneInitialPage:
         return HomeOneInitialPage();
-      // case BottomBarEnum.Route:
-      //   return AppRoutes.;
-      // case BottomBarEnum.Activity:
-      //   return AppRoutes.;
-      // case BottomBarEnum.Profile:
-      //   return AppRoutes.;
+      case AppRoutes.myRoutePage:
+        return MyRoutePage();
+      case AppRoutes.userMoveScreen:
+        return UserMoveScreen();
+      case AppRoutes.activityInProgressPage:
+        return ActivityInProgressPage();
+      case AppRoutes.profileScreen:
+        return ProfileScreen();
       default:
         return DefaultWidget();
     }

@@ -178,9 +178,9 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
                         ],
                       ),
                     ),
-                    SizedBox(height: 76.h),
+                    SizedBox(height: 50.h),
                     _buildSubmit(context),
-                    SizedBox(height: 4.h)
+                    SizedBox(height: 15.h)
                   ],
                 ),
               ),
@@ -197,7 +197,7 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
       height: 90.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgLeftArrow1,
+        imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
           top: 44.h,

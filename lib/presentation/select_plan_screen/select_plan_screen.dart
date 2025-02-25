@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:new_project/presentation/home_screen_dialog/home_screen_dialog.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -130,7 +131,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
         children: [
           Text(
             "Select a plan",
-            style: theme.textTheme.titleLarge,
+            style: CustomTextStyles.titleMediumBlack900,
           ),
           SizedBox(height: 12.h),
           RichText(
@@ -373,7 +374,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
           SizedBox(height: 14.h),
           CustomElevatedButton(
             text: "Try for free",
-            margin: EdgeInsets.only(bottom: 12.h),
+            margin: EdgeInsets.only(bottom: 10.h),
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
             onPressed: () {
               // updateSubscriptionPlan(context, "Premium");
@@ -495,6 +496,14 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
 
   // Navigates to the home screen dialog
   onTapTryForFree(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
+    showDialog(
+      context: context, 
+      builder: (_) => AlertDialog(
+        content: HomeScreenDialog(),
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        insetPadding: EdgeInsets.zero,
+      )
+    );
   }
 }

@@ -77,7 +77,9 @@ class DepositBottomsheetState extends ConsumerState<DepositBottomsheet> {
               ref.watch(depositBottomsheetNotifier).expiryDateController,
           hintText: "MM/YY",
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-          onTap: () {},
+          onTap: () {
+            onTapExpiryDate(context);
+          },
         );
       },
     );
@@ -210,6 +212,9 @@ class DepositBottomsheetState extends ConsumerState<DepositBottomsheet> {
     return CustomElevatedButton(
       text: "Next",
       buttonStyle: CustomButtonStyles.fillBlueGray,
+      onPressed: () {
+        NavigatorService.pushNamed(AppRoutes.depositScreenTwo);
+      },
     );
   }
 
@@ -232,9 +237,14 @@ class DepositBottomsheetState extends ConsumerState<DepositBottomsheet> {
           SizedBox(
             height: 22.h,
           ),
-          Text(
-            "Cancel",
-            style: CustomTextStyles.bodySmallRedA700,
+          GestureDetector(
+            onTap: () {
+              NavigatorService.goBack();
+            },
+            child: Text(
+              "Cancel",
+              style: CustomTextStyles.bodySmallRedA700,
+            ),
           )
         ],
       ),
@@ -253,7 +263,7 @@ class DepositBottomsheetState extends ConsumerState<DepositBottomsheet> {
             DateTime.now(),
         firstDate: DateTime(2020),
         lastDate: DateTime(
-            DateTime.now().year, DateTime.now().month, DateTime.now().day));
+            DateTime.now().year, DateTime.now().month));
     if (dateTime != null) {
       ref
           .watch(depositBottomsheetNotifier)
