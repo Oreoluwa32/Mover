@@ -329,6 +329,6 @@ class AppRoutes {
 
     scanScreenOne: (context) => ScanScreenOne(),
 
-    initialRoute: (context) => HireMoverScreen()
+    initialRoute: (context) => SplashScreenTwo()
   };
 }
