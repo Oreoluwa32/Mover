@@ -307,7 +307,13 @@ class AppRoutes {
 
     depositBottomsheet: (context) => DepositBottomsheet(),
 
-    depositScreenTwo: (context) => DepositScreenTwo(),
+    depositScreenTwo: (context) => DepositScreenTwo(
+      amount: '',
+      email: '',
+      reference: '',
+      onSuccessfulTransaction: (Object? result) {},
+      onFailedTransaction: (Object? error) {},
+    ),
 
     profileScreen: (context) => ProfileScreen(),
 
@@ -329,6 +335,6 @@ class AppRoutes {
 
     scanScreenOne: (context) => ScanScreenOne(),
 
-    initialRoute: (context) => SplashScreenTwo()
+    initialRoute: (context) => HomeOneScreen(),
   };
 }

@@ -50,6 +50,15 @@ class CustomButtonStyles {
     ),
     elevation: 0,
   );
+  static ButtonStyle get fillPrimaryTL41 => ElevatedButton.styleFrom(
+    backgroundColor: theme.colorScheme.primary,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(
+        6.h
+      ),
+    ),
+    elevation: 0,
+  );
   static ButtonStyle get fillRed => ElevatedButton.styleFrom(
     backgroundColor: appTheme.red50,
     shape: RoundedRectangleBorder(

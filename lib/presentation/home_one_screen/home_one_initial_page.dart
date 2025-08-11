@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:new_project/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/constants.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import 'models/home_initial_model.dart';
@@ -19,8 +22,27 @@ class HomeOneInitialPage extends StatefulWidget{
 
 // ignore for file: must be immutabel
 class HomeOneInitialPageState extends State<HomeOneInitialPage>{
+  Location locationController = Location();
+  LatLng? currentPosition;
+
+  static const LatLng sourceLocation = LatLng(6.6085, 3.2881);
+  static const LatLng destinationLocation = LatLng(6.5243, 3.3792);
+
   Completer<GoogleMapController> googleMapController = Completer();
   Completer<GoogleMapController> googleMapController1 = Completer();
+
+  static const googleMapsApiKey = Constants.GOOGLE_MAPS_API_KEY;
+
+  @override
+  void initState() {
+    super.initState();
+    getLocationUpdates().then(
+      (_) => {
+        getPolylinePoints().then((coordinates) => 
+          print(coordinates)),
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context){
@@ -43,7 +65,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage>{
                         alignment: Alignment.centerLeft,
                         children: [
                           _buildHorizontalscrol(context),
-                          _buildHorizontalscrol1(context),
+                          // _buildHorizontalscrol1(context),
                         ],
                       ),
                     ),
@@ -61,32 +83,138 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage>{
   // Section widget 
   Widget _buildHorizontalscrol(BuildContext context){
     return Align(
-      alignment: Alignment.topLeft,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: IntrinsicWidth(
-          child: SizedBox(
-            height: 852.h,
-            width: 968.h,
-            child: GoogleMap(
+      // alignment: Alignment.topLeft,
+      // child: SingleChildScrollView(
+      //   scrollDirection: Axis.horizontal,
+      //   child: IntrinsicWidth(
+      //     child: SizedBox(
+      //       height: 852.h,
+      //       width: 968.h,
+            child: currentPosition == null ? const Center(child: Text('Loading...'),) : GoogleMap(
               mapType: MapType.normal,
               initialCameraPosition: CameraPosition(
-                target: LatLng(37.43296265331129, -122.08832357078792,),
-                zoom: 14.4746,
+                target: LatLng(6.6085, 3.2881,),
+                zoom: 13.0,
               ),
+              markers: {
+                Marker(
+                  markerId: MarkerId('currentLocation'),
+                  position: currentPosition!
+                ),
+                Marker(
+                  markerId: MarkerId('sourceLocation'),
+                  position: sourceLocation
+                ),
+                Marker(
+                  markerId: MarkerId('destinationLocation'),
+                  position: destinationLocation
+                )
+              },
               onMapCreated: (GoogleMapController controller){
                 googleMapController.complete(controller);
               },
-              zoomControlsEnabled: false,
-              zoomGesturesEnabled: false,
-              myLocationButtonEnabled: false,
-              myLocationEnabled: false,
+              zoomControlsEnabled: true,
+              zoomGesturesEnabled: true,
+              myLocationButtonEnabled: true,
+              myLocationEnabled: true,
             ),
-          ),
+          );
+    //     ),
+    //   ),
+    // );
+  }
+
+  Future<void> cameraToPosition(LatLng position) async {
+    final GoogleMapController controller = await googleMapController.future;
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: position,
+          zoom: 14.0,
         ),
       ),
     );
   }
+
+  Future<void> getLocationUpdates() async {
+    bool isServiceEnabled = await locationController.serviceEnabled();
+    PermissionStatus permissionGranted;
+    
+    if(isServiceEnabled) {
+      isServiceEnabled = await locationController.requestService();
+    }
+    else{
+      return;
+    }
+
+    permissionGranted = await locationController.hasPermission();
+    if(permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await locationController.requestPermission();
+      if(permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    locationController.onLocationChanged.listen((LocationData currentLocation) {
+      // Handle location updates here
+      if (currentLocation.latitude != null && currentLocation.longitude != null) {
+        setState(() {
+          currentPosition = LatLng(
+            currentLocation.latitude!,
+            currentLocation.longitude!,
+          );
+          cameraToPosition(currentPosition!);
+        });
+      }
+    });
+  }
+
+  Future<List<LatLng>> getPolylinePoints() async {
+    List<LatLng> polylineCoordinates = [];
+    PolylinePoints polylinePoints = PolylinePoints(apiKey: googleMapsApiKey);
+    RoutesApiRequest result = RoutesApiRequest(
+      origin: PointLatLng(sourceLocation.latitude, sourceLocation.longitude), 
+      destination: PointLatLng(destinationLocation.latitude, destinationLocation.longitude),
+      travelMode: TravelMode.driving
+    );
+    if (result.routes.isNotEmpty) {
+      result.routes.forEach((PointLatLng point) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+      });
+      }
+      else {
+        print(result.errorMessage);
+      }
+      return polylineCoordinates;
+    }
+    // RoutesApiResponse response = await polylinePoints.getRouteBetweenCoordinatesV2(
+    //   request: request
+    // );
+
+    // if (request.points.isNotEmpty) {
+    // //   for (var point in response.routes) {
+    // //     polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+    // //   }
+    // // } else {
+    // //   print('No points found for the route');
+    // // }
+    // // return polylineCoordinates;
+    //   //   Route route = response.routes.first;
+      
+    //   // // Access route information
+    //   // print('Duration: ${route.durationMinutes} minutes');
+    //   // print('Distance: ${route.distanceKm} km');
+      
+    //   // // Get polyline points
+    //   // List<PointLatLng> points = route.polylinePoints ?? [];
+    //   request.points.forEach((PointLatLng point) {
+    //     polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+    //   });
+    //   }
+    //   else {
+    //     p
+    //   }
+    }
 
   // Section Widget 
   Widget _buildHorizontalscrol1(BuildContext context){

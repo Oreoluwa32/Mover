@@ -22,8 +22,11 @@ class CreateAccountScreen extends ConsumerStatefulWidget{
   CreateAccountScreenState createState() => CreateAccountScreenState();
 }
 // ignore for file, must be immutable
-class CreateAccountScreenState extends ConsumerState<CreateAccountScreen>{
+class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  bool _obscurePassword = true;
+  bool _isFormValid = false; // Add this state variable
 
   // Function to register user
 Future<void> registerUser(BuildContext context, CreateAccountNotifier createAccountNotifier) async {
@@ -74,86 +77,106 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
   }
 }
 
+  void _validateForm(CreateAccountNotifier notifier) {
+    final email = notifier.state.emailController?.text ?? '';
+    final password = notifier.state.passwordController?.text ?? '';
+    final isValid = isValidEmail(email, isRequired: true) && isValidPassword(password, isRequired: true);
+    if (_isFormValid != isValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
+  }
+
   @override
-  Widget build(BuildContext context){
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Form(
-          key: _formKey,
-          child: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.only(
-                    left: 16.h,
-                    top: 48.h,
-                    right: 16.h,
-                  ),
-                  child: Column(
-                    children: [
-                      CustomImageView(
-                        imagePath: ImageConstant.imgLogoWithoutText,
-                        height: 32.h,
-                        width: 50.h,
-                        alignment: Alignment.centerLeft,
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final notifier = ref.watch(createAccountNotifier);
+        // Listen to changes in the text fields
+        notifier.emailController?.addListener(() => _validateForm(ref.read(createAccountNotifier.notifier)));
+        notifier.passwordController?.addListener(() => _validateForm(ref.read(createAccountNotifier.notifier)));
+
+        return SafeArea(
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: Form(
+              key: _formKey,
+              child: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.maxFinite,
+                      padding: EdgeInsets.only(
+                        left: 16.h,
+                        top: 48.h,
+                        right: 16.h,
                       ),
-                      SizedBox(height: 20.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Let's get you started",
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                      ),
-                      Text(
-                        "Unlock the power of interconnected mobility",
-                        style: CustomTextStyles.titleMediumGray600,
-                      ),
-                      SizedBox(height: 26.h),
-                      _buildColumnemailaddr(context),
-                      SizedBox(height: 22.h),
-                      _buildColumnpassword(context),
-                      SizedBox(height: 22.h),
-                      _buildGetstarted(context),
-                      SizedBox(height: 16.h),
-                      _buildSignupwith(context),
-                      SizedBox(height: 32.h),
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.only(
-                          left: 58.h,
-                          right: 62.h,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Already have an account?",
-                              style: CustomTextStyles.bodyMediumGray600,
+                      child: Column(
+                        children: [
+                          CustomImageView(
+                            imagePath: ImageConstant.imgLogoWithoutText,
+                            height: 32.h,
+                            width: 50.h,
+                            alignment: Alignment.centerLeft,
+                          ),
+                          SizedBox(height: 20.h),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Let's get you started",
+                              style: theme.textTheme.headlineSmall,
                             ),
-                            SizedBox(width: 8.h),
-                            GestureDetector(
-                              onTap: () {onTapSignIn(context);},
-                              child: Text(
-                                "Sign in",
-                                style: CustomTextStyles.titleSmallPrimary_1,
-                              ),
-                            )
-                          ],
-                        ),
+                          ),
+                          Text(
+                            "Unlock the power of interconnected mobility",
+                            style: CustomTextStyles.titleMediumGray600,
+                          ),
+                          SizedBox(height: 26.h),
+                          _buildColumnemailaddr(context),
+                          SizedBox(height: 22.h),
+                          _buildColumnpassword(context),
+                          SizedBox(height: 22.h),
+                          _buildGetstarted(context),
+                          SizedBox(height: 16.h),
+                          _buildSignupwith(context),
+                          SizedBox(height: 32.h),
+                          Container(
+                            width: double.maxFinite,
+                            margin: EdgeInsets.only(
+                              left: 58.h,
+                              right: 62.h,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Already have an account?",
+                                  style: CustomTextStyles.bodyMediumGray600,
+                                ),
+                                SizedBox(width: 8.h),
+                                GestureDetector(
+                                  onTap: () {onTapSignIn(context);},
+                                  child: Text(
+                                    "Sign in",
+                                    style: CustomTextStyles.titleSmallPrimary_1,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 4.h)
+                        ],
                       ),
-                      SizedBox(height: 4.h)
-                    ],
-                  ),
-                )
-            ],
+                    )
+                ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -204,7 +227,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
           hintText: "Create a password",
           textInputAction: TextInputAction.done,
           textInputType: TextInputType.visiblePassword,
-          obscureText: true,
+          obscureText: _obscurePassword,
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
           validator: (value) {
             if (value == null || (!isValidPassword(value, isRequired: true))) {
@@ -212,6 +235,18 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
             }
             return null;
           },
+          // Add suffix icon for show/hide password
+          suffix: IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          ),
         );
       },
     );
@@ -241,17 +276,24 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
   }
 
   // Sectiom Widget 
-  Widget _buildGetstarted(BuildContext context){
-    return CustomElevatedButton(
-      text: "Get Started",
-      buttonStyle: CustomButtonStyles.fillBlueGray,
-      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-      onPressed: () {
-        // Call the register function 
-        if (_formKey.currentState?.validate() ?? false) {
-              ProgressDialogUtils.showProgressDialog(isCancellable: false);
-              registerUser(context, ref.read(createAccountNotifier.notifier));
-            }
+  Widget _buildGetstarted(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomElevatedButton(
+          text: "Get Started",
+          buttonStyle: _isFormValid
+              ? CustomButtonStyles.fillPrimaryTL41 // Use primary color when valid
+              : CustomButtonStyles.fillBlueGray, // Default color when not valid
+          buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+          onPressed: _isFormValid
+              ? () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    ProgressDialogUtils.showProgressDialog(isCancellable: false);
+                    registerUser(context, ref.read(createAccountNotifier.notifier));
+                  }
+                }
+              : null, // Disable button if not valid
+        );
       },
     );
   }

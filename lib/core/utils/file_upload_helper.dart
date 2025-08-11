@@ -1,42 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:images_picker/images_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 import '../app_export.dart';
 
 class FileManager {
   // Shows a modal bottomsheet for selecting images from the gallery or camera
   // The [maxFileSize] parameter specifies the maximum size of the image file, in bytes
-  // The [allowedExtensions] parameter is a list of allowed file extensionsfor upload
+  // The [allowedExtensions] parameter is a list of allowed file extensions for upload
   // The [getImages] parameter is a callback function that is called when the user selects an image. It receives a list of image paths as its argument
   // Returns a [Future] that completes when the bottomsheet is dismissed
   showModelSheetForImage({
     int maxFileSize = 10 * 1024,
     List<String> allowedExtensions = const [],
     void Function(List<String?>)? getImages,
-  }) async {}
+  }) async {
+    // TODO: Implement modal sheet logic
+  }
 
   // Retrieves a list of image paths selected from the gallery
-  // The [maxFileSize] parameter specifies the maximum sixe of the image file in bytes 
-  // The [allowedExtensions] parameter is a list of allowed file extensions for the images
-  // Returns a [Future] that completes with a list of image paths as its result
   Future<List<String?>> _getImagesFromGallery(
     int maxFileSize,
     List<String>? allowedExtensions,
   ) async {
     List<String?> files = [];
-    List<Media>? res1 = await ImagesPicker.pick(
-      pickType: PickType.image,
-      maxSize: maxFileSize,
-    );
-    res1?.forEach((element) {
-      var extension = element.path.split('.');
-      if (allowedExtensions != null && allowedExtensions.isNotEmpty) {
-        if (allowedExtensions.contains(extension.last)) {
+    final picker = ImagePicker();
+    List<XFile>? res1 = await picker.pickMultiImage();
+    if (res1 != null) {
+      for (var element in res1) {
+        final fileExtension = path.extension(element.path).replaceFirst('.', '');
+        final fileSize = await element.length();
+        if (allowedExtensions != null && allowedExtensions.isNotEmpty) {
+          if (allowedExtensions.contains(fileExtension) && fileSize <= maxFileSize) {
+            files.add(element.path);
+          }
+        } else if (fileSize <= maxFileSize) {
           files.add(element.path);
-        } else {}
-      } else {
-        files.add(element.path);
+        }
       }
-    });
+    }
     return files;
   }
 
@@ -45,25 +46,24 @@ class FileManager {
     List<String>? allowedExtensions,
   ) async {
     List<String?> files = [];
-    List<Media>? res1 = await ImagesPicker.openCamera(
-      pickType: PickType.image,
-      maxSize: maxFileSize,
-    );
-    res1?.forEach((element) {
-      var extension = element.path.split('.');
+    final picker = ImagePicker();
+    XFile? res1 = await picker.pickImage(source: ImageSource.camera);
+    if (res1 != null) {
+      final fileExtension = path.extension(res1.path).replaceFirst('.', '');
+      final fileSize = await res1.length();
       if (allowedExtensions != null && allowedExtensions.isNotEmpty) {
-        if (allowedExtensions.contains(extension.last)) {
-          files.add(element.path);
+        if (allowedExtensions.contains(fileExtension) && fileSize <= maxFileSize) {
+          files.add(res1.path);
         } else {
           ScaffoldMessenger.of(NavigatorService.navigatorKey.currentContext!)
               .showSnackBar(
-                SnackBar(content: Text('only $allowedExtensions images are allowed'),)
+                SnackBar(content: Text('Only $allowedExtensions images are allowed'),)
               );
         }
-      } else {
-        files.add(element.path);
+      } else if (fileSize <= maxFileSize) {
+        files.add(res1.path);
       }
-    });
+    }
     return files;
   }
 }

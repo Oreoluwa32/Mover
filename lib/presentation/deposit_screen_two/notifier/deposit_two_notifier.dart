@@ -9,6 +9,8 @@ final depositTwoNotifier =
     StateNotifierProvider.autoDispose<DepositTwoNotifier, DepositTwoState>(
   (ref) => DepositTwoNotifier(DepositTwoState(
     amountController: TextEditingController(),
+    referenceController: TextEditingController(),
+    emailController: TextEditingController(),
     depositModelTwoObj: DepositModelTwo(depositItemTwoList: [
       DepositItemTwoModel(
           image: ImageConstant.imgMastercard,
