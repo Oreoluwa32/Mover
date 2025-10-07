@@ -27,7 +27,7 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 80.h,),
+                  SizedBox(height: 40.h,),
                   SizedBox(
                     width: double.maxFinite,
                     child: Align(

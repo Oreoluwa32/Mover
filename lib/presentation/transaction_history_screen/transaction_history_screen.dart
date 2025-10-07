@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:carousel_slider_plus/carousel_slider_plus.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
@@ -24,29 +26,42 @@ class TransactionHistoryScreen extends ConsumerStatefulWidget{
 class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScreen>{
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: SizedBox(
+    return Scaffold(
+      backgroundColor: theme.colorScheme.onPrimary,
+      appBar: _buildAppbar(context),
+      body: SafeArea(
+        top: false,
+        child: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
-            child: Container(
+            child: SizedBox(
               width: double.maxFinite,
-              padding: EdgeInsets.only(top: 8.h),
               child: Column(
                 children: [
-                  SizedBox(height: 14.h),
+                  SizedBox(height: 24.h),
                   _buildBalance(context),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 24.h),
+                  _buildButtons(context),
+                  SizedBox(height: 26.h),
                   _buildMonthTrans(context),
-                  SizedBox(height: 12.h),
-                  _buildTrans(context)
+                  SizedBox(height: 14.h,),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 16.h),
+                      child: Text(
+                        "Dec 2024",
+                        style: CustomTextStyles.bodySmallErrorContainer,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  _buildTrans(context),
                 ],
               ),
             ),
           ),
         ),
-        bottomNavigationBar: _buildButtons(context),
       ),
     );
   }
@@ -54,14 +69,12 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 92.h,
+      height: 55.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
-          left: 16.h,
-          top: 44.h,
-          bottom: 24.h,
+          left: 16.h
         ),
         onTap: () {
           onTapBack(context);
@@ -71,8 +84,8 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
       title: AppbarSubtitle(
         text: "Wallet",
         margin: EdgeInsets.only(
-          top: 44.h,
-          bottom: 23.h,
+          top: 20.h,
+          bottom: 30.h,
         ),
       ),
       styleType: Style.bgOutline,
@@ -82,41 +95,55 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   // Section Widget
   Widget _buildBalance(BuildContext context) {
     return Container(
+      height: 146.h,
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Container(
-            width: double.maxFinite,
-            child: Consumer(
-              builder: (context, ref, _) {
-                return SingleChildScrollView(
+          Consumer(
+            builder: (context, ref, _) {
+              return CarouselSlider.builder(
+                options: CarouselOptions(
+                  height: 146.h,
+                  initialPage: 0,
+                  viewportFraction: 1.0,
                   scrollDirection: Axis.horizontal,
-                  child: Wrap(
-                    direction: Axis.horizontal,
-                    spacing: 12.h,
-                    children: List.generate(
-                      ref.watch(transHistoryNotifier).transactionHistoryModelObj?.balanceList.length ?? 0,
-                      (index) {
-                        BalanceItemModel model = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.balanceList[index] ?? BalanceItemModel();
-                        return BalanceItemWidget(
-                          model,
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
+                  onPageChanged: (index, reason) {
+                    ref.read(transHistoryNotifier.notifier).changeSliderIndex(index);
+                  },
+                ),
+                itemCount: ref.watch(transHistoryNotifier).transactionHistoryModelObj?.balanceList.length ?? 0,
+                itemBuilder: (context, index, realIndex) {
+                  BalanceItemModel model = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.balanceList[index] ?? BalanceItemModel();
+                  return BalanceItemWidget(model);
+                },
+              );
+            },
           ),
-          SizedBox(height: 26.h),
-          Text(
-            "Transactions",
-            style: CustomTextStyles.bodySmallErrorContainer,
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Consumer(builder: (context, ref, _) {
+              return Container(
+                height: 6.h,
+                margin: EdgeInsets.only(bottom: 24.h),
+                child: AnimatedSmoothIndicator(
+                  activeIndex: ref.watch(transHistoryNotifier).sliderIndex,
+                  count: ref.watch(transHistoryNotifier).transactionHistoryModelObj?.balanceList.length ?? 0,
+                  axisDirection: Axis.horizontal,
+                  effect: ScrollingDotsEffect(
+                    spacing: 4,
+                    activeDotColor: theme.colorScheme.onPrimary,
+                    dotColor: theme.colorScheme.onPrimary.withValues(alpha: 0.4),
+                    dotHeight: 6.h,
+                    dotWidth: 6.h,
+                  ),
+                ),
+              );
+            },),
           )
         ],
-      ),
+      )
     );
   }
 
@@ -125,18 +152,21 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
     return SizedBox(
       width: double.maxFinite,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.maxFinite,
-            margin: EdgeInsets.symmetric(horizontal: 16.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Jan 2025",
-                  style: CustomTextStyles.bodySmallErrorContainer,
-                )
-              ],
+          Padding(
+            padding: EdgeInsets.only(left: 16.h),
+            child: Text(
+              "Transactions",
+              style: CustomTextStyles.bodySmallErrorContainer,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Padding(
+            padding: EdgeInsets.only(left: 16.h),
+            child: Text(
+              "Jan",
+              style: CustomTextStyles.bodySmallErrorContainer,
             ),
           ),
           SizedBox(height: 4.h),
@@ -166,83 +196,90 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
 
   // Section Widget
   Widget _buildTrans(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        children: [
-          Container(
-            width: double.maxFinite,
-            margin: EdgeInsets.symmetric(horizontal: 16.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Dec 2024",
-                  style: CustomTextStyles.bodySmallErrorContainer,
-                )
-              ],
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Consumer(
-            builder: (context, ref, _) {
-              return ListView.separated(
-                padding: EdgeInsets.zero,
-                physics: NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  TransactionItemModel model = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList[index] ?? TransactionItemModel();
-                  return TransactionItemWidget(
-                    model,
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return SizedBox(height: 8.h);
-                },
-                itemCount: ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList.length ?? 0,
-              );
-            },
-          )
-        ],
-      ),
+    return Consumer(
+      builder: (context, ref, _) {
+        return ListView.separated(
+          padding: EdgeInsets.zero,
+          physics: NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemBuilder: (context, index) {
+            TransactionItemModel model = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList[index] ?? TransactionItemModel();
+            return TransactionItemWidget(
+              model,
+            );
+          },
+          separatorBuilder: (context, index) {
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: 4.0.h),
+              child: Divider(
+                height: 1.h,
+                thickness: 1.h,
+                color: appTheme.gray200,
+              ),
+            );
+          },
+          itemCount: ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList.length ?? 0,
+        );
+      },
     );
   }
 
   // Section Widget
   Widget _buildButtons(BuildContext context) {
     return Container(
-      height: 92.h,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.h,
-        vertical: 24.h
-      ),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: appTheme.blueGray10002,
-            width: 1.h,
-          ),
-        ),
-      ),
       width: double.maxFinite,
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
       child: Row(
         children: [
           Expanded(
             child: CustomElevatedButton(
-              height: 44.h,
               text: "Deposit",
+              leftIcon: Container(
+                padding: EdgeInsets.all(8.h),
+                margin: EdgeInsets.only(right: 8.h),
+                decoration: BoxDecoration(
+                  color: appTheme.deepPurple50,
+                  borderRadius: BorderRadius.circular(16.h)
+                ),
+                child: CustomImageView(
+                  imagePath: ImageConstant.imgPurpleCirclePlus,
+                  height: 14.h,
+                  width: 14.h,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              buttonStyle: CustomButtonStyles.fillGray,
+              buttonTextStyle: CustomTextStyles.titleSmallInterPrimary,
               onPressed: () {
                 NavigatorService.pushNamed(AppRoutes.depositScreen);
               },
             ),
           ),
-          SizedBox(width: 12.h),
+          SizedBox(width: 16.h),
           Expanded(
             child: CustomElevatedButton(
-              height: 44.h,
               text: "Withdraw",
+              leftIcon: Container(
+                padding: EdgeInsets.all(8.h),
+                margin: EdgeInsets.only(right: 8.h),
+                decoration: BoxDecoration(
+                  color: appTheme.indigo5002,
+                  borderRadius: BorderRadius.circular(16.h)
+                ),
+                child: CustomImageView(
+                  imagePath: ImageConstant.imgBlueCirclePLus,
+                  height: 14.h,
+                  width: 14.h,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              buttonStyle: CustomButtonStyles.fillGrayTL8,
+              buttonTextStyle: CustomTextStyles.titleSmallInterPrimaryIndigo500,
+              onPressed: () {
+                NavigatorService.pushNamed(AppRoutes.depositScreen);
+              },
             ),
-          )
+          ),
         ],
       ),
     );

@@ -25,19 +25,22 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Navigator(
-          key: navigatorKey,
-          initialRoute: AppRoutes.homeOneInitialPage,
-          onGenerateRoute: (routeSetting) => PageRouteBuilder(
-            pageBuilder: (ctx, ani, ani1) => getCurrentPage(context, routeSetting.name!),
-            transitionDuration: Duration(seconds: 0),
-          ),
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Navigator(
+        key: navigatorKey,
+        initialRoute: AppRoutes.homeOneInitialPage,
+        onGenerateRoute: (routeSetting) => PageRouteBuilder(
+          pageBuilder: (ctx, ani, ani1) => getCurrentPage(context, routeSetting.name!),
+          transitionDuration: Duration(seconds: 0),
         ),
-        bottomNavigationBar: Container(
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+        child: Container(
           width: double.maxFinite,
-          margin: EdgeInsets.symmetric(horizontal: 16.h),
+          // margin: EdgeInsets.symmetric(horizontal: 16.h),
           child: _buildBottombar(context),
         ),
       ),

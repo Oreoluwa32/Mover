@@ -15,6 +15,8 @@ import 'notifier/sign_in_notifier.dart';
 // Secure storage instance
 final storage = FlutterSecureStorage();
 
+bool _obscurePassword = true;
+
 // Function to handle user sign-in
 Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) async {
   final email = signInNotifier.state.emailController?.text ?? '';
@@ -62,103 +64,122 @@ class SignInScreen extends ConsumerStatefulWidget{
 
 class SignInScreenState extends ConsumerState<SignInScreen> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isFormValid = false;
+
+  void _validateForm(SignInNotifier notifier) {
+    final email = notifier.state.emailController?.text ?? '';
+    final password = notifier.state.passwordController?.text ?? '';
+    final isValid = isValidEmail(email, isRequired: true) && isValidPassword(password, isRequired: true);
+    if (_isFormValid != isValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Form(
-          key: _formKey,
-          child: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.only(
-                    left: 16.h,
-                    top: 48.h,
-                    right: 16.h,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomImageView(
-                        imagePath: ImageConstant.imgLogoWithoutText,
-                        height: 32.h,
-                        width: 50.h,
-                        alignment: Alignment.centerLeft,
+    return Consumer(
+      builder: (context, ref, _) {
+        final notifier = ref.watch(signInNotifier);
+        // Listen to changes in the text fields
+        notifier.emailController?.addListener(() => _validateForm(ref.read(signInNotifier.notifier)));
+        notifier.passwordController?.addListener(() => _validateForm(ref.read(signInNotifier.notifier)));
+
+        return Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: Form(
+              key: _formKey,
+              child: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  children: [
+                    Container(
+                      width: double.maxFinite,
+                      padding: EdgeInsets.only(
+                        left: 16.h,
+                        top: 48.h,
+                        right: 16.h,
                       ),
-                      SizedBox(height: 16.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Welcome back",
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Welcome back! Please enter your details.",
-                          style: CustomTextStyles.titleMediumGray600,
-                        ),
-                      ),
-                      SizedBox(height: 26.h),
-                      _buildColumnemailaddr(context),
-                      SizedBox(height: 22.h),
-                      _buildColumnpassword(context),
-                      SizedBox(height: 22.h),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {onTapForgotPassword(context);},
-                          child: Text(
-                            "Forgot password",
-                            style: CustomTextStyles.titleSmallPrimary,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomImageView(
+                            imagePath: ImageConstant.imgLogoWithoutText,
+                            height: 32.h,
+                            width: 50.h,
+                            alignment: Alignment.centerLeft,
                           ),
-                        ),
-                      ),
-                      SizedBox(height: 20.h),
-                      _buildSignin(context),
-                      SizedBox(height: 16.h),
-                      _buildSigninwith(context),
-                      SizedBox(height: 30.h),
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.only(
-                          left: 64.h,
-                          right: 68.h,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Don't have an account?",
-                              style: CustomTextStyles.bodyMediumGray600,
+                          SizedBox(height: 16.h),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Welcome back",
+                              style: theme.textTheme.headlineSmall,
                             ),
-                            SizedBox(width: 8.h),
-                            GestureDetector(
-                              onTap: () {onTapSignUp(context);},
+                          ),
+                          SizedBox(height: 4.h),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Welcome back! Please enter your details.",
+                              style: CustomTextStyles.titleMediumGray600,
+                            ),
+                          ),
+                          SizedBox(height: 26.h),
+                          _buildColumnemailaddr(context),
+                          SizedBox(height: 22.h),
+                          _buildColumnpassword(context),
+                          SizedBox(height: 22.h),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {onTapForgotPassword(context);},
                               child: Text(
-                                "Sign up",
-                                style: CustomTextStyles.titleSmallPrimary_1,
+                                "Forgot password",
+                                style: CustomTextStyles.titleSmallPrimary,
                               ),
-                            )
-                          ],
-                        ),
+                            ),
+                          ),
+                          SizedBox(height: 20.h),
+                          _buildSignin(context),
+                          SizedBox(height: 16.h),
+                          _buildSigninwith(context),
+                          SizedBox(height: 30.h),
+                          Container(
+                            width: double.maxFinite,
+                            margin: EdgeInsets.only(
+                              left: 64.h,
+                              right: 68.h,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Don't have an account?",
+                                  style: CustomTextStyles.bodyMediumGray600,
+                                ),
+                                SizedBox(width: 3.h),
+                                GestureDetector(
+                                  onTap: () {onTapSignUp(context);},
+                                  child: Text(
+                                    "Sign up",
+                                    style: CustomTextStyles.titleSmallPrimary_1,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 142.h)
+                        ],
                       ),
-                      SizedBox(height: 142.h)
-                    ],
-                  ),
-                )
-              ],
+                    )
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
+          );
+      },
     );
   }
 
@@ -209,7 +230,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           hintText: "Enter your password",
           textInputAction: TextInputAction.done,
           textInputType: TextInputType.visiblePassword,
-          obscureText: true,
+          obscureText: _obscurePassword,
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
           validator: (value) {
             if(value == null || (!isValidPassword(value, isRequired: true))) {
@@ -217,6 +238,18 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
             }
             return null;
           },
+          // Add suffix icon for show/hide password
+          suffix: IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          ),
         );
       }
     );
@@ -245,13 +278,13 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
-  // Section Widget 
+  // Section Widget
   Widget _buildSignin(BuildContext context){
     return Consumer(
       builder: (context, ref, _){
         return CustomElevatedButton(
           text: "Sign in",
-          buttonStyle: CustomButtonStyles.fillBlueGray,
+          buttonStyle: _isFormValid ? CustomButtonStyles.fillPrimaryTL41 : CustomButtonStyles.fillBlueGray,
           buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
           onPressed: () {
             if(_formKey.currentState?.validate() ?? false) {

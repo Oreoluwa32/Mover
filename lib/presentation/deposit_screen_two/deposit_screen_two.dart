@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:new_project/services/paystack_services.dart';
 import '../../models/paystack_auth_response.dart';
@@ -94,57 +93,57 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> _startDeposit(BuildContext context, WidgetRef ref) async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
-    try {
-      final amountText = ref.read(depositTwoNotifier).amountController?.text ?? widget.amount ?? '';
-      final emailText = ref.read(depositTwoNotifier).emailController?.text ?? widget.email ?? '';
-      final referenceText = widget.reference ?? '';
+  // Future<void> _startDeposit(BuildContext context, WidgetRef ref) async {
+  //   setState(() {
+  //     isLoading = true;
+  //     errorMessage = null;
+  //   });
+  //   try {
+  //     final amountText = ref.read(depositTwoNotifier).amountController?.text ?? widget.amount ?? '';
+  //     final emailText = ref.read(depositTwoNotifier).emailController?.text ?? widget.email ?? '';
+  //     final referenceText = widget.reference ?? '';
 
-      // Paystack expects amount in kobo (multiply by 100)
-      final amountDouble = double.tryParse(amountText) ?? 0;
-      final amountInt = (amountDouble * 100).toInt();
+  //     // Paystack expects amount in kobo (multiply by 100)
+  //     final amountDouble = double.tryParse(amountText) ?? 0;
+  //     final amountInt = (amountDouble * 100).toInt();
 
-      // Direct Paystack API call with secret key (for testing only)
-      const String secretKey = 'sk_test_9589d42fc73907f36768aed2f96d4e4ef95b6dcc'; // <-- Replace with your actual secret key
-      const String url = 'https://api.paystack.co/transaction/initialize';
+  //     // Direct Paystack API call with secret key (for testing only)
+  //     const String secretKey = 'sk_test_9589d42fc73907f36768aed2f96d4e4ef95b6dcc'; // <-- Replace with your actual secret key
+  //     // const String url = 'https://api.paystack.co/transaction/initialize';
 
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $secretKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': emailText,
-          'amount': amountInt,
-          'reference': referenceText,
-        }),
-      );
+  //     final response = await http.post(
+  //       Uri.parse(url),
+  //       headers: {
+  //         'Authorization': 'Bearer $secretKey',
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: jsonEncode({
+  //         'email': emailText,
+  //         'amount': amountInt,
+  //         'reference': referenceText,
+  //       }),
+  //     );
 
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        setState(() {
-          paystackResponse = PaystackAuthResponse.fromJson(jsonResponse['data']);
-          showWebView = true;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          errorMessage = 'Failed to initialize transaction: ${response.body}';
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Failed to initialize transaction: $e';
-        isLoading = false;
-      });
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       final jsonResponse = jsonDecode(response.body);
+  //       setState(() {
+  //         paystackResponse = PaystackAuthResponse.fromJson(jsonResponse['data']);
+  //         showWebView = true;
+  //         isLoading = false;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         errorMessage = 'Failed to initialize transaction: ${response.body}';
+  //         isLoading = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       errorMessage = 'Failed to initialize transaction: $e';
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -167,29 +166,29 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
                   SizedBox(height: 70.h),
                   _buildDivider(context),
                   SizedBox(height: 4.h),
-                  if (isLoading)
-                    Center(child: CircularProgressIndicator()),
-                  if (errorMessage != null)
-                    Center(child: Text(errorMessage!, style: TextStyle(color: Colors.red))),
-                  if (showWebView && paystackResponse?.authorizationUrl != null)
-                    Expanded(
-                      child: WebViewWidget(
-                        controller: WebViewController()
-                          ..loadRequest(Uri.parse(paystackResponse!.authorizationUrl!))
-                          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                          ..setNavigationDelegate(
-                            NavigationDelegate(
-                              onPageFinished: (url) {
-                                if (url.contains('success')) {
-                                  widget.onSuccessfulTransaction(paystackResponse);
-                                } else if (url.contains('error')) {
-                                  widget.onFailedTransaction('Transaction failed');
-                                }
-                              },
-                            ),
-                          ),
-                      ),
-                    ),
+                  // if (isLoading)
+                  //   Center(child: CircularProgressIndicator()),
+                  // if (errorMessage != null)
+                  //   Center(child: Text(errorMessage!, style: TextStyle(color: Colors.red))),
+                  // if (showWebView && paystackResponse?.authorizationUrl != null)
+                  //   Expanded(
+                  //     child: WebViewWidget(
+                  //       controller: WebViewController()
+                  //         ..loadRequest(Uri.parse(paystackResponse!.authorizationUrl!))
+                  //         ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                  //         ..setNavigationDelegate(
+                  //           NavigationDelegate(
+                  //             onPageFinished: (url) {
+                  //               if (url.contains('success')) {
+                  //                 widget.onSuccessfulTransaction(paystackResponse);
+                  //               } else if (url.contains('error')) {
+                  //                 widget.onFailedTransaction('Transaction failed');
+                  //               }
+                  //             },
+                  //           ),
+                  //         ),
+                  //     ),
+                  //   ),
                 ],
               ),
             ),
@@ -426,7 +425,7 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
             onPressed: isLoading
                 ? null
                 : () {
-                    _startDeposit(context, ref);
+                    // _startDeposit(context, ref);
                   },
           )
         ],

@@ -14,46 +14,35 @@ class BalanceItemWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 164.h,
+      width: double.maxFinite,
       padding: EdgeInsets.symmetric(
-        horizontal: 14.h,
-        vertical: 10.h
+        vertical: 24.h
       ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(
-          color: appTheme.blueGray10002,
-          width: 1.h
-        ),
-      ),
+      decoration: AppDecoration.fillBlack900.copyWith(borderRadius: BorderRadiusStyle.circleBorder14),
       child: Column(
+        spacing: 10,
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              children: [
-                Text(
-                  balanceItemModelObj.title!,
-                  style: CustomTextStyles.labelLargeGray600,
-                ),
-                CustomImageView(
-                  imagePath: balanceItemModelObj.icon!,
-                  height: 14.h,
-                  width: 14.h,
-                  alignment: Alignment.topCenter,
-                  margin: EdgeInsets.only(left: 4.h),
-                )
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                balanceItemModelObj.title!,
+                style: CustomTextStyles.bodyMediumWhiteA700,
+              ),
+              CustomImageView(
+                imagePath: balanceItemModelObj.icon!,
+                height: 14.h,
+                width: 14.h,
+              )
+            ],
           ),
-          SizedBox(height: 2.h),
           Text(
             balanceItemModelObj.balance!,
-            style: CustomTextStyles.bodyLargeGray80001,
-          )
+            style: CustomTextStyles.headlineLargeOnPrimary,
+          ),
+          SizedBox(height: 15.h,)
         ],
       ),
     );

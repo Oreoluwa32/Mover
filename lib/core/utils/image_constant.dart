@@ -16,7 +16,7 @@ class ImageConstant {
   static String imgSplashScreenFour = '$imagePath/splash_screen_four_image.jpg';
 
   // Movr logo without text
-  static String imgLogoWithoutText = '$imagePath/movr-logo.png';
+  static String imgLogoWithoutText = '$imagePath/movr-logo.svg';
 
   // Google logo
   static String imgGoogleLogo = '$imagePath/google_logo.png';
@@ -374,4 +374,19 @@ class ImageConstant {
 
   // Black chevron right
   static String imgBlackChevronRight = '$imagePath/img_black_chevron_right.svg';
+
+  // Purple circle plus
+  static String imgPurpleCirclePlus = '$imagePath/purple_circle_plus.svg';
+
+  // Blue circle plus
+  static String imgBlueCirclePLus = '$imagePath/blue_circle_plus.svg';
+
+  // Map
+  static String imgMap = '$imagePath/map.png';
+
+  // Red dot 
+  static String imgRedDot = '$imagePath/img_red_dot.svg';
+
+  // Basic plan
+  static String imgBasicPlan = '$imagePath/img_basic_plan.svg';
 }

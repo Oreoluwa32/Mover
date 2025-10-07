@@ -61,12 +61,14 @@ dependencies:
   dio: 5.8.0+1
   file_picker: ^8.0.6
   url_launcher: ^6.3.0
-  webview_flutter: ^4.13.0
-  webview_flutter_android: ^4.8.2
   image_picker: ^1.1.2
   path: ^1.9.1
   location: ^5.0.0
   flutter_polyline_points: ^3.0.1
+  flutter_switch: ^0.3.2
+  timelines_plus: ^1.0.7
+  carousel_slider_plus: ^7.1.1
+  smooth_page_indicator: ^1.2.1
 
 dev_dependencies:
   flutter_test:

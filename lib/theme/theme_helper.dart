@@ -234,6 +234,8 @@ class LightCodeColors{
   Color get gray100 => Color (0XFFF5FBF2);
   Color get gray10001 => Color (0XFFF6F6F6);
   Color get gray10002 => Color (0XFFF5F5F5);
+  Color get gray10003 => Color (0XFFF5FBF2);
+  Color get gray10004 => Color (0XFFF2F5FC);
   Color get gray200 => Color (0XFFEBEBEB);
   Color get gray20001 => Color (0XFFE7E7E7);
   Color get gray20002 => Color (0XFFF0F0F0);
@@ -242,7 +244,7 @@ class LightCodeColors{
   Color get gray400 => Color (0XFFB0B0B0);
   Color get gray40001 => Color (0XFFB4B4B4);
   Color get gray50 => Color (0XFFF6F2FF);
-  Color get gray5001 => Color (0XFFFAFAFA);
+  Color get gray5001 => Color (0XFFF6F2FF);
   Color get gray5002 => Color (0XFFFCFAFF);
   Color get gray600 => Color (0XFF6D6D6D);
   Color get gray700 => Color (0XFFF5D5D5D);
@@ -255,7 +257,9 @@ class LightCodeColors{
   // Indigo
   Color get indigo400 => Color(0XFF597ED7);
   Color get indigo50 => Color(0XFFDDD4FF);
+  Color get indigo500 => Color(0XFF3C52B9);
   Color get indigo5001 => Color(0XFFE4E6EB);
+  Color get indigo5002 => Color(0XFFE1E9F8);
   Color get indigo900 => Color(0XFF172B85);
   // Light green
   Color get lightGreen100 => Color(0XFFD2EDC5);
@@ -279,4 +283,6 @@ class LightCodeColors{
   Color get red900 => Color(0XFFA02724);
   Color get redA100 => Color(0XFFED847E);
   Color get redA700 => Color(0XFFE41212);
+  // White
+  Color get whiteA700 => Color(0XFFFDFDFD);
 }

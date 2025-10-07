@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
+// import 'package:webview_flutter/webview_flutter.dart';
+// import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/app_export.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // For Android, initialize WebView.
-  WebViewPlatform.instance = AndroidWebViewPlatform();
   Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
-    PrefUtils().init()
+    PrefUtils().init(),
+    // Set transparent overlays globally
+    Future(() => SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+    )),
   ]).then((value) {
     runApp(ProviderScope(child: MyApp()));
   });
@@ -20,37 +25,43 @@ void main() {
 
 class MyApp extends ConsumerWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref,){
+  Widget build(BuildContext context, WidgetRef ref,) {
     final themeType = ref.watch(themeNotifier).themeType;
     return Sizer(
-      builder: (context, orientation, deviceType){
-        return MaterialApp(
-          theme: theme,
-          title: 'Movr',
-          builder: (context, child) {
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(1.0)
-              ), 
-              child: child!
-            );
-          },
-          navigatorKey: NavigatorService.navigatorKey,
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: [
-            AppLocalizationDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate
-          ],
-          supportedLocales: [
-            Locale(
-              'en',
-              '',
-            )
-          ],
-          initialRoute: AppRoutes.initialRoute,
-          routes: AppRoutes.routes,
+      builder: (context, orientation, deviceType) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.transparent,
+          ),
+          child: MaterialApp(
+            theme: theme,
+            title: 'Movr',
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(1.0)
+                ), 
+                child: child!
+              );
+            },
+            navigatorKey: NavigatorService.navigatorKey,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: [
+              AppLocalizationDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate
+            ],
+            supportedLocales: [
+              Locale(
+                'en',
+                '',
+              )
+            ],
+            initialRoute: AppRoutes.initialRoute,
+            routes: AppRoutes.routes,
+          ),
         );
       },
     );

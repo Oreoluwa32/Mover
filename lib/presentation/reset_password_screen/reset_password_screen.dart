@@ -69,8 +69,7 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Form(
           key: _formKey,
@@ -159,8 +158,7 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget 

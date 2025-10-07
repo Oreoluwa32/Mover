@@ -38,14 +38,13 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
         body: Container(
           width: double.maxFinite,
           decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary.withOpacity(1),
+            color: theme.colorScheme.onPrimary.withValues(alpha: 1),
           ),
           child: Column(
             children: [
               _buildAppbar(context),
               Expanded(
-                child: Container(
-                  child: TabBarView(
+                child: TabBarView(
                     controller: tabviewController,
                     children: [
                       ActivityProgressTab(),
@@ -53,7 +52,6 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                       ActivityCompletedScreen(),
                     ],
                   ),
-                ),
               )
             ],
           ),
@@ -66,8 +64,9 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
   Widget _buildAppbar(BuildContext context) {
     return Container(
       width: double.maxFinite,
+      height: 170.h,
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           bottom: BorderSide(
             color: appTheme.gray20001,

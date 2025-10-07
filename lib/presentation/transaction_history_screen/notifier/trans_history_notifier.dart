@@ -9,6 +9,7 @@ part 'trans_history_state.dart';
 
 final transHistoryNotifier = StateNotifierProvider.autoDispose<TransHistoryNotifier, TransHistoryState>(
   (ref) => TransHistoryNotifier(TransHistoryState(
+    sliderIndex: 0,
     transactionHistoryModelObj: TransactionHistoryModel(
       balanceList: [
         BalanceItemModel(
@@ -17,9 +18,9 @@ final transHistoryNotifier = StateNotifierProvider.autoDispose<TransHistoryNotif
           balance: "₦10000.00"
         ),
         BalanceItemModel(
-          title: "Unavailable",
-          icon: ImageConstant.imgHelp,
-          balance: "₦3500.00"
+          title: "Unavailable Balance",
+          icon: ImageConstant.imgEye,
+          balance: "₦5000.00"
         )
       ],
       monthTransList: [
@@ -70,7 +71,8 @@ final transHistoryNotifier = StateNotifierProvider.autoDispose<TransHistoryNotif
           status: "Failed",
           id: "3"
         )
-      ]),
+      ]
+      ),
     )
   ),
 );
@@ -78,4 +80,8 @@ final transHistoryNotifier = StateNotifierProvider.autoDispose<TransHistoryNotif
 // A notifier that manages the state of the screen according to the event that is dispatched to it
 class TransHistoryNotifier extends StateNotifier<TransHistoryState>{
   TransHistoryNotifier(TransHistoryState state) : super(state);
+
+  void changeSliderIndex(int index) {
+    state = state.copyWith(sliderIndex: index);
+  }
 }

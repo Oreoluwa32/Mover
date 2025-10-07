@@ -32,17 +32,15 @@ class TransactionItemWidget extends StatelessWidget{
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 8.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              spacing: 4,
+              crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     transactionItemModelObj.transStatus!,
                     overflow: TextOverflow.ellipsis,
                     style: CustomTextStyles.labelLargeMedium,
                   ),
-                  SizedBox(height: 4.h,),
                   SizedBox(
                     width: double.maxFinite,
                     child: Row(
@@ -78,12 +76,9 @@ class TransactionItemWidget extends StatelessWidget{
                   )
                 ],
               ),
-            ),
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 4.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   transactionItemModelObj.amount!,
@@ -95,7 +90,6 @@ class TransactionItemWidget extends StatelessWidget{
                 )
               ],
             ),
-          )
         ],
       ),
     );

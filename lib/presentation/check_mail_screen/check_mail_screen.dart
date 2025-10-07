@@ -145,7 +145,6 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
                             "Didn't receive the email?",
                             style: CustomTextStyles.bodyMediumGray600,
                           ),
-                          SizedBox(width: 8.h),
                           Text(
                             "Click to resend",
                             style: CustomTextStyles.titleSmallPrimary_1,

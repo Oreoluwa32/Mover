@@ -32,17 +32,18 @@ class MonthTransItemWidget extends StatelessWidget{
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: 8.h),
-              child: Column(
+            child: Column(
+                spacing: 4,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    monthTransItemModelObj.transStatus!,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyles.labelLargeMedium,
+                  SizedBox(
+                    width: 108.h,
+                    child: Text(
+                      monthTransItemModelObj.transStatus!,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyles.labelLargeMedium,
+                    ),
                   ),
-                  SizedBox(height: 4.h,),
                   SizedBox(
                     width: double.maxFinite,
                     child: Row(
@@ -78,12 +79,9 @@ class MonthTransItemWidget extends StatelessWidget{
                   )
                 ],
               ),
-            ),
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 4.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   monthTransItemModelObj.amount!,
@@ -94,7 +92,6 @@ class MonthTransItemWidget extends StatelessWidget{
                   style: CustomTextStyles.bodySmallLightGreen900,
                 )
               ],
-            ),
           )
         ],
       ),

@@ -11,6 +11,18 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import 'notifier/select_plan_notifier.dart';
 
+class _PlanOption {
+  final String imagePath;
+  final List<String> features;
+  final String name;
+
+  const _PlanOption({
+    required this.imagePath,
+    required this.features,
+    required this.name,
+  });
+}
+
 class SelectPlanScreen extends ConsumerStatefulWidget{
   const SelectPlanScreen({Key? key})
     : super(key: key,);
@@ -22,6 +34,46 @@ class SelectPlanScreen extends ConsumerStatefulWidget{
 class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
 
   final storage = FlutterSecureStorage();
+  late final PageController _pageController;
+  int _currentPlanIndex = 0;
+
+  final List<_PlanOption> _plans = [
+    _PlanOption(
+      imagePath: 'assets/images/img_basic_plan.svg', // Placeholder image path
+      name: 'Basic',
+      features: [
+        'Includes 10 trip searches per month',
+        'Monetize 20 trips',
+      ],
+    ),
+    _PlanOption(
+      imagePath: 'assets/images/img_rover_plan.svg', // Placeholder image path
+      name: 'Rover',
+      features: [
+        'Offers 35 trips searches per month',
+        'Allows for 50 route additions to accomodate more diverse travel needs',
+        'Advanced scheduling options for convenience',
+      ],
+    ),
+    _PlanOption(
+      imagePath: 'assets/images/img_courier_plan.svg', // Placeholder image path
+      name: 'Courier',
+      features: [
+        'Unlimited trip searches for maximum flexibility',
+        'Ability to manage multiple movers, streamlining logistics operations',
+      ],
+    ),
+    _PlanOption(
+      imagePath: 'assets/images/img_courier_plus.svg', // Placeholder image path
+      name: 'Courier Plus',
+      features: [
+        'Unlimited trip searches for maximum flexibility',
+        'Advanced scheduling options for convenience',
+        'Advanced route editing capabilities',
+        'Ability to manage multiple movers, streamlining logistics operations',
+      ],
+    ),
+  ];
 
   Future<String?> getToken() async {
     return await storage.read(key: 'auth_token');
@@ -62,9 +114,20 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
 }
 
   @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.86);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         appBar: _buildAppbar(context),
         body: SizedBox(
           width: double.maxFinite,
@@ -88,8 +151,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
           ),
         ),
         bottomNavigationBar: _buildColumnduration(context),
-      ),
-    );
+      );
   }
 
   // Section Widget
@@ -122,10 +184,12 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
   Widget _buildColumnselectapl(BuildContext context){
     return Container(
       width: double.maxFinite,
-      margin: EdgeInsets.only(
-        left: 16.h,
-        right: 30.h,
-      ),
+      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      // padding: EdgeInsets.all(16.h),
+      // decoration: BoxDecoration(
+      //   border: Border.all(color: appTheme.deepPurpleA100, width: 1.3),
+      //   borderRadius: BorderRadiusStyle.roundedBorder8,
+      // ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -138,7 +202,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: 'By selecting a plan, you agree to our "',
+                  text: 'By selecting a plan, you agree to our ',
                   style: CustomTextStyles.bodySmallBlack900,
                 ),
                 TextSpan(
@@ -148,7 +212,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
                   ),
                 ),
                 TextSpan(
-                  text: '" and "',
+                  text: ' and ',
                   style: CustomTextStyles.bodySmallBlack900,
                 ),
                 TextSpan(
@@ -157,15 +221,9 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
                     decoration: TextDecoration.underline,
                   ),
                 ),
-                TextSpan(
-                  text: '"',
-                  style: CustomTextStyles.bodySmallBlack900,
-                )
               ],
             ),
             textAlign: TextAlign.left,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           )
         ],
       ),
@@ -174,148 +232,58 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
 
   // Section Widget 
   Widget _buildHorizontalscroll(BuildContext context){
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: IntrinsicWidth(
-          child: SizedBox(
-            width: 1398.h,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 122.h,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 14.h,
-                    vertical: 10.h,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadiusStyle.roundedBorder8,
-                    border: Border.all(
-                      color: appTheme.gray400,
-                      width: 1.h,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomImageView(
-                        imagePath: ImageConstant.imgPurpleCheck,
-                        height: 16.h,
-                        width: 16.h,
-                      ),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              "#0",
-                              style: CustomTextStyles.titleMediumGray80001,
-                            ),
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Text(
-                                "per month",
-                                style: CustomTextStyles.titleSmallGray600Medium,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 4.h)
-                    ],
-                  ),
+    return SizedBox(
+      height: 76.h,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: _plans.length,
+        onPageChanged: (index) {
+          setState(() {
+            _currentPlanIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          final plan = _plans[index];
+          final bool isSelected = index == _currentPlanIndex;
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.h),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                color: appTheme.whiteA700,
+                borderRadius: BorderRadiusStyle.roundedBorder16,
+                border: Border.all(
+                  color: isSelected ? appTheme.deepPurple400 : appTheme.gray400,
+                  width: isSelected ? 2.h : 1.h,
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 8.h),
-                    child: _buildPlanThree(
-                      context,
-                      iconparksolid: ImageConstant.imgPurpleCheck,
-                      basicplanTwo: "Basic",
-                      priceThree: "#1,200",
-                      periodTwo: "per month",
-                      ),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: appTheme.black900.withValues(alpha: 0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 8),
                   ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: 48.h,
-                      margin: EdgeInsets.only(left: 8.h),
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadiusStyle.roundedBorder8,
-                        border: Border.all(
-                          color: appTheme.gray400,
-                          width: 1.h,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 14.h),
-                            child: Text(
-                              "Rover",
-                              style: CustomTextStyles.titleSmallErrorContainer,
-                            ),
-                          ),
-                          SizedBox(width: 14.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 2.h),
-                            decoration: BoxDecoration(
-                              color: appTheme.deepPurple50,
-                            ),
-                            child: Text(
-                              "Popular",
-                              textAlign: TextAlign.left,
-                              style: theme.textTheme.labelSmall,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 270.h),
-                      child: _buildPlanThree(
-                        context,
-                        iconparksolid: ImageConstant.imgPurpleCheck,
-                        basicplanTwo: "Courier",
-                        priceThree: "#9,400",
-                        periodTwo: "per month",
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 8.h),
-                      child: _buildPlanThree(
-                        context,
-                        iconparksolid: ImageConstant.imgPurpleCheck,
-                        basicplanTwo: "Courier plus",
-                        priceThree: "#15,200",
-                        periodTwo: "per month",
-                      ),
-                    ),
-                  )
-              ],
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadiusStyle.roundedBorder16,
+                child: CustomImageView(
+                  imagePath: plan.imagePath,
+                  height: 76.h,
+                  width: 311.h,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
   // Section Widget 
   Widget _buildColumnfeatures(BuildContext context){
+    final plan = _plans[_currentPlanIndex];
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -327,28 +295,15 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
             style: CustomTextStyles.titleSmallErrorContainerBold,
           ),
           SizedBox(height: 12.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                SizedBox(
-                  width: double.maxFinite,
-                  child: _buildRowcheckmark(
-                    context,
-                    monetize20: "Includes 10 trip searches per month",
-                  ),
-                ),
-                SizedBox(height: 14.h),
-                SizedBox(
-                  width: double.maxFinite,
-                  child: _buildRowcheckmark(
-                    context,
-                    monetize20: "Monetize 20 trips",
-                  ),
-                )
-              ],
+          ...plan.features.map(
+            (feature) => Padding(
+              padding: EdgeInsets.only(bottom: 14.h),
+              child: _buildRowcheckmark(
+                context,
+                monetize20: feature,
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -377,8 +332,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
             margin: EdgeInsets.only(bottom: 10.h),
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
             onPressed: () {
-              // updateSubscriptionPlan(context, "Premium");
-              onTapTryForFree(context);
+              updateSubscriptionPlan(context, _plans[_currentPlanIndex].name);
             },
           )
         ],
@@ -481,12 +435,17 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
             ],
           ),
         ),
-        Padding(
-          padding: EdgeInsets.only(left: 8.h),
-          child: Text(
-            monetize20,
-            style: CustomTextStyles.bodyMediumGray600.copyWith(
-              color: appTheme.gray600,
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 8.h),
+            child: Text(
+              monetize20,
+              style: CustomTextStyles.bodyMediumGray600.copyWith(
+                color: appTheme.gray600,
+              ),
+              softWrap: true,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         )

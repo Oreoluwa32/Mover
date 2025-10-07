@@ -53,6 +53,9 @@ class CustomTextStyles {
   static get bodyMediumMulishBlack900 => theme.textTheme.bodyMedium!.mulish.copyWith(
     color: appTheme.black900,
   );
+  static get bodyMediumWhiteA700 => theme.textTheme.bodyMedium!.mulish.copyWith(
+    color: appTheme.whiteA700,
+  );
   static get bodySmall110 => theme.textTheme.bodySmall!.copyWith(
     fontSize: 10.fSize,
   );
@@ -213,11 +216,16 @@ class CustomTextStyles {
     fontWeight: FontWeight.w500,
   );
   static get labelLargeErrorContainer => theme.textTheme.labelLarge!.copyWith(
-    color: theme.colorScheme.errorContainer.withOpacity(0.5),
+    color: theme.colorScheme.errorContainer.withValues(alpha: 0.5),
     fontWeight: FontWeight.w500,
   );
   static get labelLargePrimary => theme.textTheme.labelLarge!.copyWith(
     color: theme.colorScheme.primary,
+    fontWeight: FontWeight.w500,
+  );
+  static get labelLargeIndigo500 => theme.textTheme.labelLarge!.copyWith(
+    color: appTheme.indigo500,
+    fontSize: 13.fSize,
     fontWeight: FontWeight.w500,
   );
   static get labelLargeOnPrimary => theme.textTheme.labelLarge!.copyWith(
@@ -395,6 +403,10 @@ class CustomTextStyles {
     color: theme.colorScheme.primary,
     fontWeight: FontWeight.w500,
   );
+  static get titleSmallInterPrimaryIndigo500 => theme.textTheme.titleSmall!.inter.copyWith(
+    color: appTheme.indigo500,
+    fontWeight: FontWeight.w500,
+  );
   static get titleSmallMedium => theme.textTheme.titleSmall!.copyWith(
     fontWeight: FontWeight.w500
   );
@@ -422,10 +434,17 @@ class CustomTextStyles {
     fontWeight: FontWeight.w500,
   );
   static get titleSmallOnPrimary => theme.textTheme.titleSmall!.copyWith(
-    color: theme.colorScheme.onPrimary.withOpacity(1),
+    color: theme.colorScheme.onPrimary.withValues(alpha: 1),
   );
   static get titleSmallOnPrimaryMedium => theme.textTheme.titleSmall!.copyWith(
-    color: theme.colorScheme.onPrimary.withOpacity(1),
+    color: theme.colorScheme.onPrimary.withValues(alpha: 1),
     fontWeight: FontWeight.w500,
+  );
+
+  // Headline text style
+  static get headlineLargeOnPrimary => theme.textTheme.headlineLarge!.mulish.copyWith(
+    color: theme.colorScheme.onPrimary,
+    fontSize: 30.fSize,
+    fontWeight: FontWeight.w700,
   );
 }

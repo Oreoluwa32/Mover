@@ -1,27 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:new_project/presentation/delivery_pickup_screen_two/notifier/pickup_notifier.dart';
+import 'package:timelines_plus/timelines_plus.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
-// import '../../widgets/custom_radio_button.dart';
+import '../../theme/custom_button_style.dart';
+import 'models/ride_sharing_item_model.dart';
+import 'notifier/ride_sharing_pickup_notifier.dart';
 import 'widgets/pickup_two_one_item_widget.dart'; //ignore for file, must be immutable
 
-class RideSharingPickupTwo extends StatelessWidget{
-  const RideSharingPickupTwo({Key? key})
-    : super(key: key,);
+class RideSharingPickupTwo extends ConsumerStatefulWidget {
+  const RideSharingPickupTwo({Key? key}) : super(key: key);
 
+  @override
+  RideSharingPickupTwoState createState() => RideSharingPickupTwoState();
+}
+
+class RideSharingPickupTwoState extends ConsumerState<RideSharingPickupTwo>{
+ 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: Container(
         width: double.maxFinite,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withOpacity(1),
-          borderRadius: BorderRadiusStyle.customBorderTL24,
+        decoration: AppDecoration.shadowx1.copyWith(
+          borderRadius: BorderRadiusStyle.customBorderTL24
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: 16.h),
-            _buildColumnlineone(context),
+            SizedBox(height: 52.h, child: Divider()),
+            SizedBox(height: 16.h),
+            Text(
+              "Trip in progress",
+              style: CustomTextStyles.titleMediumGray80001,
+            ),
+            SizedBox(height: 18.h),
+            Container(
+              width: double.maxFinite,
+              margin: EdgeInsets.only(
+                left: 24.h,
+                right: 38.h,
+              ),
+              height: 114.h,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  return Timeline.tileBuilder(
+                    shrinkWrap: true,
+                    theme: TimelineThemeData(
+                      nodePosition: 0.5,
+                      indicatorPosition: 0,
+                    ),
+                    builder: TimelineTileBuilder.connected(
+                      connectionDirection: ConnectionDirection.before,
+                      itemCount: ref.watch(rideSharingPickupNotifier).rideSharingPickupModelObj?.rideSharingItemList.length ?? 0,
+                      connectorBuilder: (context, index, type) {
+                        return SolidLineConnector();
+                      }
+                    ),
+                  );
+                }
+              ),
+            ),
+            SizedBox(height: 18.h),
+            _buildUserDetails(context),
+            SizedBox(height: 46.h),
+            _buildActions(context),
             SizedBox(height: 54.h),
             _buildButtonnav(context)
           ],
@@ -31,137 +75,10 @@ class RideSharingPickupTwo extends StatelessWidget{
   }
 
   // Section Widget
-  Widget _buildColumnlineone(BuildContext context){
+  Widget _buildUserDetails(BuildContext context){
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 50.h,
-            child: Divider(),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            "Trip in progress",
-            style: CustomTextStyles.titleMediumGray80001,
-          ),
-          SizedBox(height: 18.h),
-          Container(
-            width: double.maxFinite,
-            margin: EdgeInsets.only(
-              left: 8.h,
-              right: 22.h,
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 24.h,
-                  child: Column(
-                    children: [
-                      // CustomRadioButton(onChange: onChange) //Reserved for the radio button
-                      CustomImageView(
-                        imagePath: ImageConstant.imgSelectedRadio,
-                        height: 24.h,
-                        width: double.maxFinite,
-                      ),
-                      SizedBox(height: 2.h),
-                      Container(
-                        width: double.maxFinite,
-                        margin: EdgeInsets.symmetric(horizontal: 6.h),
-                        padding: EdgeInsets.symmetric(vertical: 2.h),
-                        child: Column(
-                          children: [
-                            Container(
-                              height: 6.h,
-                              width: 6.h,
-                              decoration: BoxDecoration(
-                                color: appTheme.gray20001,
-                                borderRadius: BorderRadius.circular(3.h,),
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Container(
-                              height: 6.h,
-                              width: 6.h,
-                              decoration: BoxDecoration(
-                                color: appTheme.gray20001,
-                                borderRadius: BorderRadius.circular(3.h,),
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Container(
-                              height: 6.h,
-                              width: 6.h,
-                              decoration: BoxDecoration(
-                                color: appTheme.gray20001,
-                                borderRadius: BorderRadius.circular(3.h,),
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Container(
-                              height: 6.h,
-                              width: 6.h,
-                              decoration: BoxDecoration(
-                                color: appTheme.gray20001,
-                                borderRadius: BorderRadius.circular(3.h,),
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Container(
-                              height: 6.h,
-                              width: 6.h,
-                              decoration: BoxDecoration(
-                                color: appTheme.gray20001,
-                                borderRadius: BorderRadius.circular(3.h,),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      // CustomRadioButton(onChange: onChange) //Reserved for the radio button
-                      CustomImageView(
-                        imagePath: ImageConstant.imgSelectedRadio,
-                        height: 24.h,
-                        width: double.maxFinite,
-                      )
-                    ],
-                  ),
-                ),
-                SizedBox(width: 8.h),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Pickup Location",
-                        style: CustomTextStyles.labelLargeBold,
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        "Muritala Mohammed Airport",
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      SizedBox(height: 30.h),
-                      Text(
-                        "Destination",
-                        style: CustomTextStyles.labelLargeBold,
-                      ),
-                      SizedBox(height: 6.h),
-                      Text(
-                        "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                        style: CustomTextStyles.bodySmallGray800,
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-          SizedBox(height: 18.h),
-          SizedBox(
-            width: double.maxFinite,
             child: Row(
               children: [
                 CustomImageView(
@@ -170,16 +87,16 @@ class RideSharingPickupTwo extends StatelessWidget{
                   width: 50.h,
                   radius: BorderRadius.circular(24.h,),
                 ),
-                SizedBox(width: 18.h),
+                SizedBox(width: 16.h),
                 Expanded(
                   child: Column(
+                    spacing: 4,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "John Doe",
                         style: CustomTextStyles.bodyMediumMulishGray800,
                       ),
-                      SizedBox(height: 4.h),
                       SizedBox(
                         width: double.maxFinite,
                         child: Row(
@@ -213,7 +130,6 @@ class RideSharingPickupTwo extends StatelessWidget{
                           ],
                         ),
                       ),
-                      SizedBox(height: 4.h),
                       SizedBox(
                         width: double.maxFinite,
                         child: Row(
@@ -238,29 +154,31 @@ class RideSharingPickupTwo extends StatelessWidget{
                 )
               ],
             ),
-          ),
-          SizedBox(height: 46.h),
-          SizedBox(
-            height: 52.h,
-            width: 282.h,
-            child: ListView.separated(
-              padding: EdgeInsets.only(
-                left: 32.h,
-                right: 26.h,
+          );
+  }
+
+  // Section Widget
+  Widget _buildActions(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(left: 48.h, right: 42.h),
+      width: double.maxFinite,
+      child: Consumer(
+        builder: (context, ref, _) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              direction: Axis.horizontal,
+              spacing: 100.h,
+              children: List.generate(
+                ref.watch(rideSharingPickupNotifier).rideSharingPickupModelObj?.rideSharingItemList.length ?? 0, 
+                (index) {
+                  RideSharingItemModel model = ref.watch(rideSharingPickupNotifier).rideSharingPickupModelObj?.rideSharingItemList[index] ?? RideSharingItemModel();
+                  return PickupTwoOneItemWidget(model);
+                }
               ),
-              scrollDirection: Axis.horizontal,
-              separatorBuilder: (context, index) {
-                return SizedBox(
-                  width: 100.h,
-                );
-              },
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return PickupTwoOneItemWidget();
-              },
             ),
-          )
-        ],
+          );
+        }
       ),
     );
   }
@@ -270,15 +188,7 @@ class RideSharingPickupTwo extends StatelessWidget{
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.fromLTRB(16.h, 22.h, 16.h, 24.h),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
-        border: Border(
-          top: BorderSide(
-            color: appTheme.gray20001,
-            width: 1.h,
-          ),
-        ),
-      ),
+      decoration: AppDecoration.outlineGray20001,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

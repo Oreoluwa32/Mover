@@ -59,8 +59,20 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context){
-    return SafeArea(
-      child: Scaffold(
+    bool _isFormValid = false;
+
+    void _validateForm() {
+      setState(() {
+        final email = ref.watch(forgotPasswordNotifier).emailController?.text ?? '';
+        _isFormValid = isValidEmail(email, isRequired: true);
+      });
+    }
+
+    final forgotNotifier = ref.watch(forgotPasswordNotifier.notifier);
+    forgotNotifier.state.emailController?.addListener(_validateForm);
+    _validateForm(); // Initial validation
+
+    return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Form(
           key: _formKey,
@@ -84,6 +96,8 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         decoration: IconButtonStyleHelper.outlineGray,
                         child: CustomImageView(
                           imagePath: ImageConstant.imgKey,
+                          width: 20.h,
+                          height: 20.h
                         ),
                       ),
                       SizedBox(height: 24.h),
@@ -100,9 +114,9 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       SizedBox(height: 24.h),
                       CustomElevatedButton(
                         text: "Reset password",
-                        buttonStyle: CustomButtonStyles.fillBlueGray,
+                        buttonStyle: _isFormValid ? CustomButtonStyles.fillPrimaryTL41 : CustomButtonStyles.fillBlueGray,
                         buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                        onPressed: () {},
+                        onPressed: _isFormValid ? () => resetPassword(context, forgotNotifier) : null,
                       ),
                       SizedBox(height: 32.h),
                       Row(
@@ -119,7 +133,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             onTap: () {onTapBack(context);},
                             child: Text(
                               "Back to log in",
-                              style: theme.textTheme.titleSmall,
+                              style: CustomTextStyles.bodyMediumGray600,
                             ),
                           )
                         ],
@@ -132,8 +146,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget 

@@ -12,11 +12,39 @@ class SplashScreenThree extends ConsumerStatefulWidget{
   SplashScreenThreeState createState() => SplashScreenThreeState();
 }
 
-class SplashScreenThreeState extends ConsumerState<SplashScreenThree>{
+class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with TickerProviderStateMixin {
+  late AnimationController _progressController;
+  late Animation<double> _progressAnimation;
+  final int screenIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _progressController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_progressController)
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          onTapNext(context);
+        }
+      });
+    _progressController.forward();
+  }
+
+  @override
+  void dispose() {
+    _progressController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context){
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
         body: Container(
@@ -43,34 +71,53 @@ class SplashScreenThreeState extends ConsumerState<SplashScreenThree>{
             ],),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget
   Widget _buildRowline(BuildContext context){
     return SizedBox(
       width: double.maxFinite,
-      child: Row(children: [
-        Expanded(
-          child: SizedBox(
-            height: 6.h,
-            width: 106.h,
-          ),
-        ),
-        SizedBox(width: 12.h),
-        Expanded(
-          child: Divider(
-            color: appTheme.gray700,
-          ),
-        ),
-        SizedBox(width: 12.h),
-        Expanded(
-          child: Divider(
-            color: appTheme.gray700,
-          ),
-        )
-      ],),
+      child: Row(
+        children: List.generate(3, (index) {
+          return Expanded(
+            child: Container(
+              height: 6.h,
+              margin: index < 2 ? EdgeInsets.only(right: 12.h) : null,
+              child: Stack(
+                children: [
+                  Container(
+                    height: 6.h,
+                    decoration: BoxDecoration(
+                      color: appTheme.gray700,
+                      borderRadius: BorderRadius.circular(3.h),
+                    ),
+                  ),
+                  if (index < screenIndex)
+                    Container(
+                      height: 6.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(3.h),
+                      ),
+                    )
+                  else if (index == screenIndex)
+                    FractionallySizedBox(
+                      widthFactor: _progressAnimation.value,
+                      child: Container(
+                        height: 6.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(3.h),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 

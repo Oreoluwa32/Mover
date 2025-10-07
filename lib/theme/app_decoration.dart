@@ -82,7 +82,10 @@ class AppDecoration {
 
   // Fill decorations 
   static BoxDecoration get fillBlack => BoxDecoration(
-    color: appTheme.black900.withOpacity(0.75),
+    color: appTheme.black900.withValues(alpha:0.75),
+  );
+  static BoxDecoration get fillBlack900 => BoxDecoration(
+    color: appTheme.black900,
   );
   static BoxDecoration get fillGray => BoxDecoration(
     color: appTheme.gray20001,
@@ -240,6 +243,9 @@ class AppDecoration {
 
 class BorderRadiusStyle{
     // Circle borders
+    static BorderRadius get circleBorder14 => BorderRadius.circular(
+      14.h,
+    );
     static BorderRadius get CircleBorder20 => BorderRadius.circular(
       20.h,
     );

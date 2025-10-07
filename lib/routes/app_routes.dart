@@ -36,6 +36,7 @@ import '../presentation/delivery_rating_screen_one/delivery_rating_screen_one.da
 import '../presentation/delivery_rating_screen_two/delivery_rating_screen_two.dart';
 import '../presentation/ride_cancel_screen_one/ride_cancel_screen_one.dart';
 import '../presentation/ride_sharing_pickup_one/ride_sharing_pickup_one.dart';
+import '../presentation/ride_sharing_pickup_two/ride_sharing_pickup_two.dart';
 import '../presentation/hire_mover_screen/hire_mover_screen.dart';
 import '../presentation/hire_mover_screen_one/hire_mover_screen_one.dart';
 import '../presentation/no_mover_screen/no_mover_screen.dart';
@@ -62,6 +63,7 @@ import '../presentation/refer_friends_screen/refer_friends_screen.dart';
 import '../presentation/scan_screen/scan_screen.dart';
 import '../presentation/delivery_pickup_screen_two/delivery_pickup_screen_two.dart';
 import '../presentation/scan_screen_one/scan_screen_one.dart';
+import '../presentation/notification_screen/notification_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -135,6 +137,8 @@ class AppRoutes {
 
   static const String rideSharingPickupOne = '/ride_sharing_pickup_one';
 
+  static const String rideSharingPickupTwo = '/ride_sharing_pickup_two';
+
   static const String deliveryRatingScreenOne = '/delivery_rating_screen_one';
 
   static const String deliveryRatingScreenTwo = '/delivery_rating_screen_two';
@@ -198,6 +202,8 @@ class AppRoutes {
   static const String scanScreenOne = 'scan_screen_one';
 
   static const String deliveryPickupScreenTwo = 'delivery_pickup_screen_two';
+
+  static const String notificationScreen = 'notification_screen';
 
 
   static const String initialRoute = '/initialRoute';
@@ -285,6 +291,8 @@ class AppRoutes {
 
     rideSharingPickupOne: (context) => RideSharingPickupOne(),
 
+    rideSharingPickupTwo: (context) => RideSharingPickupTwo(),
+
     deliveryDetailsScreen: (context) => DeliveryDetailsScreen(),
 
     deliveryPickupScreenOne: (context) => DeliveryPickupScreenOne(),
@@ -335,6 +343,8 @@ class AppRoutes {
 
     scanScreenOne: (context) => ScanScreenOne(),
 
-    initialRoute: (context) => HomeOneScreen(),
+    notificationScreen: (context) => NotificationScreen(),
+
+    initialRoute: (context) => SelectPlanScreen()
   };
 }

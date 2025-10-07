@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
+import '../models/ride_sharing_item_model.dart';
 
+// ignore for file, class must be immutable
 class PickupTwoOneItemWidget extends StatelessWidget{
-  const PickupTwoOneItemWidget({Key? key})
-    : super(key: key,);
+  PickupTwoOneItemWidget(this.rideSharingItemModelObj, {Key? key})
+    : super(key: key);
+
+  RideSharingItemModel rideSharingItemModelObj;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 26.h,
-      child: Column(
+    return Column(
+      spacing: 6,
         children: [
           CustomImageView(
-            imagePath: ImageConstant.imgChat,
+            imagePath: rideSharingItemModelObj.icon!,
             height: 24.h,
-            width: double.maxFinite,
+            width: 24.h,
           ),
-          SizedBox(height: 6.h),
           Text(
-            "Chat",
+            rideSharingItemModelObj.title!,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodySmall,
           )
         ],
-      ),
-    );
+      );
   }
 }

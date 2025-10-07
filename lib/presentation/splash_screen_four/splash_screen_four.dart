@@ -13,18 +13,41 @@ class SplashScreenFour extends ConsumerStatefulWidget{
   SplashScreenFourState createState() => SplashScreenFourState();
 }
 
-class SplashScreenFourState extends ConsumerState<SplashScreenFour>{
+class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerProviderStateMixin {
+  late AnimationController _progressController;
+  late Animation<double> _progressAnimation;
+  final int screenIndex = 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _progressController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_progressController)
+      ..addListener(() {
+        setState(() {});
+      });
+    _progressController.forward();
+  }
+
+  @override
+  void dispose() {
+    _progressController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context){
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
         body: Container(
           width: double.maxFinite,
           height: SizeUtils.height,
           decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary.withOpacity(1),
+            color: theme.colorScheme.onPrimary.withValues(alpha: 1),
             image: DecorationImage(
               image: AssetImage(
                 ImageConstant.imgSplashScreenFour,
@@ -77,7 +100,7 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour>{
             ],),
           ),
         ),
-      ),);
+      );
   }
 
   // Section Widget
@@ -85,25 +108,37 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour>{
     return SizedBox(
       width: double.maxFinite,
       child: Row(
-        children: [
-          Expanded(
-            child: Divider(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
-            )
-          ),
-          SizedBox(width: 12.h),
-          Expanded(
-            child: Divider(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
-            )
-          ),
-          SizedBox(width: 12.h),
-          Expanded(
-            child: Divider(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
+        children: List.generate(3, (index) {
+          return Expanded(
+            child: Container(
+              height: 6.h,
+              margin: index < 2 ? EdgeInsets.only(right: 12.h) : null,
+              child: Stack(
+                children: [
+                  Container(
+                    height: 6.h,
+                    decoration: BoxDecoration(
+                      color: index <= screenIndex ? Colors.white : Colors.grey[600]!,
+                      borderRadius: BorderRadius.circular(3.h),
+                    ),
+                  ),
+                  if (index == screenIndex)
+                    FractionallySizedBox(
+                      widthFactor: _progressAnimation.value,
+                      child: Container(
+                        height: 6.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(3.h),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          )
-      ],),
+          );
+        }),
+      ),
     );
   }
 

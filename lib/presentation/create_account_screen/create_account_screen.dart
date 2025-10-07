@@ -97,8 +97,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
         notifier.emailController?.addListener(() => _validateForm(ref.read(createAccountNotifier.notifier)));
         notifier.passwordController?.addListener(() => _validateForm(ref.read(createAccountNotifier.notifier)));
 
-        return SafeArea(
-          child: Scaffold(
+        return Scaffold(
             resizeToAvoidBottomInset: false,
             body: Form(
               key: _formKey,
@@ -155,7 +154,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
                                   "Already have an account?",
                                   style: CustomTextStyles.bodyMediumGray600,
                                 ),
-                                SizedBox(width: 8.h),
+                                SizedBox(width: 4.h),
                                 GestureDetector(
                                   onTap: () {onTapSignIn(context);},
                                   child: Text(
@@ -174,8 +173,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
                 ),
               ),
             ),
-          ),
-        );
+          );
       },
     );
   }

@@ -35,7 +35,7 @@ typedef ResponsiveBuild = Widget Function(
     Widget build(BuildContext context){
       return LayoutBuilder(builder: (context, constraints){
         return OrientationBuilder(builder: (context, orientation){
-          SizeUtils.setScreenSize(constraints, orientation);
+          SizeUtils.setScreenSize(context, constraints, orientation);
           return builder(context, orientation, SizeUtils.deviceType);
         }); //OrientationBuilder
       }); //LayoutBuilder
@@ -60,19 +60,19 @@ class SizeUtils {
   static late double width;
 
   static void setScreenSize(
+    BuildContext context,
     BoxConstraints constraints,
     Orientation currentOrientation,
-  ){
+  ) {
     boxConstraints = constraints;
     orientation = currentOrientation;
-    if(orientation == Orientation.portrait){
-      width = boxConstraints.maxWidth.isNonZero(defaultValue: FIGMA_DESIGN_WIDTH);
-      height = boxConstraints.maxHeight.isNonZero();
-    }
-    else{
-      width = boxConstraints.maxHeight.isNonZero(defaultValue: FIGMA_DESIGN_WIDTH);
-      height = boxConstraints.maxWidth.isNonZero();
-    }
+
+    final mediaQuery = MediaQuery.of(context);
+
+    // Use MediaQuery to get full width/height minus safe areas
+    width = mediaQuery.size.width;
+    height = mediaQuery.size.height;
+
     deviceType = DeviceType.mobile;
   }
 }

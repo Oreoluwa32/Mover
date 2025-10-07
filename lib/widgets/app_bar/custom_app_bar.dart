@@ -8,6 +8,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
     {
       Key? key,
       this.height,
+      this.shape,
       this.styleType,
       this.leadingWidth,
       this.leading,
@@ -18,6 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   ) : super(key: key,);
 
   final double? height;
+  final ShapeBorder? shape;
   final Style? styleType;
   final double? leadingWidth;
   final Widget? leading;
@@ -29,6 +31,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 0,
+      shape: shape,
       toolbarHeight: height ?? 24.h,
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
@@ -54,7 +57,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
           height: 92.h,
           width: 374.h,
           decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary.withOpacity(1),
+            color: theme.colorScheme.onPrimary,
             border: Border(
               bottom: BorderSide(
                 color: appTheme.gray20001,

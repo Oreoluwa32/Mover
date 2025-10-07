@@ -2,27 +2,29 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 
 class AppbarLeadingImage extends StatelessWidget{
-  AppbarLeadingImage({Key? key, this.imagePath, this.margin, this.onTap})
+  AppbarLeadingImage({Key? key, this.imagePath, this.height, this.width, this.margin, this.onTap})
     : super(key: key,);
 
+  final double? height;
+  final double? width;
   final String? imagePath;
   final EdgeInsetsGeometry? margin;
   final Function? onTap;
 
   @override
   Widget build(BuildContext context){
-    return InkWell(
-      onTap: () {
-        onTap?.call();
-      },
-      child: Padding(
-        padding: margin ?? EdgeInsets.zero,
+    return Padding(
+      padding: margin ?? EdgeInsets.zero,
+      child: InkWell(
+        onTap: () {
+          onTap?.call();
+        },
         child: CustomImageView(
-          imagePath: imagePath!,
-          height: 24.h,
-          width: 24.h,
-          fit: BoxFit.contain,
-        ),
+            imagePath: imagePath!,
+            height: height ?? 24.h,
+            width: width ?? 24.h,
+            fit: BoxFit.contain,
+          ),
       ),
     );
   }

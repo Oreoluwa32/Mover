@@ -34,6 +34,7 @@ class CustomBottomBarState extends State<CustomBottomBar>{
       icon: ImageConstant.imgNavCardinal,
       activeIcon: ImageConstant.imgNavCardinal,
       type: BottomBarEnum.Move,
+      isCircle: true,
     ),
     BottomMenuMode1(
       icon: ImageConstant.imgNavActivity,
@@ -50,141 +51,118 @@ class CustomBottomBarState extends State<CustomBottomBar>{
   ];
 
   @override
-  Widget build (BuildContext context){
-    return SizedBox(
-      height: 61.h,
-      width: 343.h,
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        selectedFontSize: 0,
-        elevation: 0,
-        currentIndex: selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        items: List.generate(bottomMenuList.length, (index) {
-          if(bottomMenuList[index].isCircle){
-            return BottomNavigationBarItem(
-              icon: SizedBox(
-                height: 88.17.h,
-                width: 69.h,
-                child: Stack(
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      constraints: BoxConstraints(
-                        minHeight: 49.83.h,
-                        minWidth: 49.83.h,
-                      ),
-                      padding: EdgeInsets.all(0),
-                      icon: Container(
-                        width: 49.83.h,
-                        height: 49.83.h,
-                        decoration: BoxDecoration(
-                          color: Color(0XFF6A19D3),
-                          borderRadius: BorderRadius.circular(
-                            24.915.h,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0X26000000),
-                              spreadRadius: 2.h,
-                              blurRadius: 2.h,
-                              offset: Offset(
-                                0, 
-                                3.833333730697632,
-                              ),
-                            )
-                          ],
-                        ),
-                        padding: EdgeInsets.all(13.410004.h),
-                        child: CustomImageView(
-                          imagePath: bottomMenuList[index].icon,
-                          color: Color(0XFF6D6D6D),
-                        ),
-                      ),
-                    ),
-                    CustomImageView(
-                      imagePath: bottomMenuList[index].icon,
-                      height: 61.33.h,
-                      width: 69.h,
-                      color: Color(0XFF6D6D6D),
-                    )
-                  ],
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80.h,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Main bottom bar container with cutout
+          Positioned(
+            bottom: 20.h,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 60.h,
+              margin: EdgeInsets.symmetric(horizontal: 16.h),
+              child: CustomPaint(
+                painter: BottomBarPainter(),
+                child: Container(
+                  height: 60.h,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Home
+                      _buildBottomBarItem(0),
+                      // Route
+                      _buildBottomBarItem(1),
+                      // Empty space for center button
+                      SizedBox(width: 60.h),
+                      // Activity
+                      _buildBottomBarItem(3),
+                      // Profile
+                      _buildBottomBarItem(4),
+                    ],
+                  ),
                 ),
               ),
-              label: '',
-            );
-          }
-          return BottomNavigationBarItem(
-            icon: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.h,
-                vertical: 10.h,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary.withOpacity(1),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomImageView(
-                    imagePath: bottomMenuList[index].icon,
-                    height: 18.h,
-                    width: 18.h,
-                    color: Color(0XFF6D6D6D),
+            ),
+          ),
+          // Center circular button (Move) - positioned over the cutout
+          Positioned(
+            bottom: 55.h, // Adjusted to sit perfectly in the cutout
+            left: 0,
+            right: 0,
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  selectedIndex = 2;
+                  widget.onChanged?.call(BottomBarEnum.Move);
+                  setState(() {});
+                },
+                child: Container(
+                  width: 50.h,
+                  height: 50.h,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF6A19D3),
+                    shape: BoxShape.circle,
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: Color(0xFF6A19D3).withValues(alpha: 0.3),
+                    //     blurRadius: 15.h,
+                    //     offset: Offset(0, 5),
+                    //   ),
+                    // ],
                   ),
-                  SizedBox(height: 2.h,),
-                  Text(
-                    bottomMenuList[index].title ?? "",
-                    style: CustomTextStyles.bodySmallGray400!.copyWith(
-                      color: Color(0XFF6D6D6D),
+                  child: Center(
+                    child: CustomImageView(
+                      imagePath: bottomMenuList[2].icon,
+                      height: 24.h,
+                      width: 24.h,
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              ),
-            ),
-            activeIcon: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.h,
-                vertical: 10.h,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary.withOpacity(1),
-                borderRadius: BorderRadius.horizontal(
-                  left: Radius.circular(12.h),
                 ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CustomImageView(
-                    imagePath: bottomMenuList[index].activeIcon,
-                    height: 18.h,
-                    width: 18.h,
-                    color: Color(0XFF6A19D3),
-                  ),
-                  Text(
-                    bottomMenuList[index].title ?? "",
-                    style: CustomTextStyles.bodySmallGray400!.copyWith(
-                      color: Color(0XFF6A19D3),
-                    ),
-                  )
-                ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBarItem(int index) {
+    bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () {
+        selectedIndex = index;
+        widget.onChanged?.call(bottomMenuList[index].type);
+        setState(() {});
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomImageView(
+              imagePath: isSelected 
+                  ? bottomMenuList[index].activeIcon 
+                  : bottomMenuList[index].icon,
+              height: 20.h,
+              width: 20.h,
+              color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              bottomMenuList[index].title ?? "",
+              style: TextStyle(
+                fontSize: 10.h,
+                color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
-            label: '',
-          );
-        }),
-        onTap: (index) {
-          selectedIndex = index;
-          widget.onChanged?.call(bottomMenuList[index].type);
-          setState(() {});
-        },
+          ],
+        ),
       ),
     );
   }
@@ -248,4 +226,66 @@ class DefaultWidget extends StatelessWidget{
       ),
     );
   }
+}
+
+// Custom painter to create the bottom bar with cutout effect
+class BottomBarPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Save layer for blend mode to work properly
+    canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
+
+    // First, draw the shadow
+    Paint shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.1)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
+
+    // Create shadow path (full rectangle with rounded corners)
+    Path shadowPath = _createFullBarPath(size);
+    canvas.drawPath(shadowPath.shift(Offset(0, 2)), shadowPaint);
+
+    // Draw the main bar (full rectangle with white color)
+    Paint backgroundPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    Path fullBarPath = _createFullBarPath(size);
+    canvas.drawPath(fullBarPath, backgroundPaint);
+
+    // Now create the transparent cutout by using BlendMode.clear
+    Paint cutoutPaint = Paint()
+      ..color = Colors.white // Color doesn't matter with BlendMode.clear
+      ..style = PaintingStyle.fill
+      ..blendMode = BlendMode.clear;
+
+    // Draw the cutout circle to make it transparent
+    double cutoutRadius = 35.0;
+    double cutoutCenterX = size.width / 2;
+    canvas.drawCircle(
+      Offset(cutoutCenterX, 0),
+      cutoutRadius,
+      cutoutPaint,
+    );
+
+    // Restore the layer
+    canvas.restore();
+  }
+
+  Path _createFullBarPath(Size size) {
+    Path path = Path();
+    double cornerRadius = 20.0;
+
+    // Create a rounded rectangle for the full bar
+    path.addRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Radius.circular(cornerRadius),
+      ),
+    );
+    
+    return path;
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
