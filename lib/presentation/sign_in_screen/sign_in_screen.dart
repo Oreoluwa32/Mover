@@ -10,6 +10,8 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../../widgets/loading_dialog.dart';
+import '../../services/device_memory_service.dart';
 import 'notifier/sign_in_notifier.dart';
 
 // Secure storage instance
@@ -28,6 +30,9 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
     return;
   }
 
+  // Show loading dialog
+  LoadingDialog.show(context, message: 'Signing in...');
+
   try {
     final response = await http.post(
       url,
@@ -35,14 +40,26 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       body: json.encode({'email': email, 'password': password}),
     );
 
+    // Hide loading dialog
+    if (context.mounted) {
+      LoadingDialog.hide(context);
+    }
+
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
       String token = responseData['token']['key'];
       // Store token securely
       await storage.write(key: 'auth_token', value: token);
+      
+      // Remember device
+      final deviceMemory = DeviceMemoryService();
+      await deviceMemory.rememberDevice(userEmail: email);
+      
       Fluttertoast.showToast(msg: "Sign-in successful");
-      // Store token securely and navigate to the next screen
-      Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+      // Navigate to the next screen
+      if (context.mounted) {
+        Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+      }
     } 
     else {
       final errorData = json.decode(response.body);
@@ -50,6 +67,10 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       Fluttertoast.showToast(msg: errorMessage);
     }
   } catch (e) {
+    // Hide loading dialog
+    if (context.mounted) {
+      LoadingDialog.hide(context);
+    }
     Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
   }
 }

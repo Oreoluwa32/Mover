@@ -11,6 +11,7 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../../widgets/loading_dialog.dart';
 import 'notifier/create_account_notifier.dart';
 import '../../core/utils/progress_dialog_utils.dart';
 
@@ -40,6 +41,9 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     return;
   }
 
+  // Show loading dialog
+  LoadingDialog.show(context, message: 'Creating account...');
+
   // Prepare the request data
   try{
     final response = await http.post(
@@ -51,14 +55,21 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       }),
     );
 
+    // Hide loading dialog
+    if (context.mounted) {
+      LoadingDialog.hide(context);
+    }
+
     // Handle the response
     if(response.statusCode == 200 || response.statusCode == 201){
-      // Registration successful, navigate to the nesxt screen
+      // Registration successful, navigate to the next screen
       Fluttertoast.showToast(msg: "Registration successful");
-      Navigator.push(context, MaterialPageRoute(
-        builder: (context) => CheckMailScreen(email: email),
-        ),
-      );
+      if (context.mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => CheckMailScreen(email: email),
+          ),
+        );
+      }
     }
     else if (response.statusCode == 400 || response.statusCode == 409) {
     // Show error message if email already exists
@@ -72,6 +83,10 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     }
   }
   catch (e) {
+    // Hide loading dialog
+    if (context.mounted) {
+      LoadingDialog.hide(context);
+    }
     // Handle network or JSON parsing errors
     Fluttertoast.showToast(msg: "An error occured. Please check your internet connection and try again.");
   }

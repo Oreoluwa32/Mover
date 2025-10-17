@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 // import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/app_export.dart';
+import 'services/device_memory_service.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() {
@@ -13,6 +14,7 @@ void main() {
   Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     PrefUtils().init(),
+    DeviceMemoryService().init(),
     Future(() => SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,

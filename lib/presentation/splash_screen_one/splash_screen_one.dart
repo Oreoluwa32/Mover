@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../services/device_memory_service.dart';
 import 'notifier/splash_screen_one_notifier.dart';
 
 class SplashScreenOne extends ConsumerStatefulWidget{
@@ -16,8 +17,25 @@ class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
   @override
   void initState(){
     super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Initialize device memory service
+    final deviceMemory = DeviceMemoryService();
+    await deviceMemory.init();
+    
+    // Check if device is remembered (user already logged in)
+    final isDeviceRemembered = await deviceMemory.isDeviceRemembered();
+    
     _timer = Timer(const Duration(seconds: 3), () {
-      NavigatorService.pushNamed(AppRoutes.splashScreenTwo);
+      if (isDeviceRemembered) {
+        // User is already logged in, navigate to home
+        NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+      } else {
+        // User is not logged in, show onboarding
+        NavigatorService.pushNamed(AppRoutes.splashScreenTwo);
+      }
     });
   }
 

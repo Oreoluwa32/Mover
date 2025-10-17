@@ -17,6 +17,7 @@ class HomeScreenDialogState extends ConsumerState<HomeScreenDialog> {
   @override
   Widget build(BuildContext context) {
     return Material(
+      type: MaterialType.transparency,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
