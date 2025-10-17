@@ -92,8 +92,7 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         appBar: _buildAppbar(context),
         body: Form(
           key: _formKey,
@@ -187,8 +186,7 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
             ),
           )
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget 

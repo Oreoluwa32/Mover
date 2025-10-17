@@ -345,6 +345,6 @@ class AppRoutes {
 
     notificationScreen: (context) => NotificationScreen(),
 
-    initialRoute: (context) => SelectPlanScreen()
+    initialRoute: (context) => SplashScreenOne()
   };
 }

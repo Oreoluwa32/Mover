@@ -104,6 +104,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     if (response.statusCode == 200) {
       final message = jsonDecode(response.body)['message'] ?? 'Subscription updated successfully';
       Fluttertoast.showToast(msg: message);
+      Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
     } else {
       final error = jsonDecode(response.body)['error'] ?? 'Failed to update subscription plan';
       Fluttertoast.showToast(msg: error);
@@ -166,7 +167,9 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
           top: 44.h,
           bottom: 22.h,
         ),
-        onTap: () {},
+        onTap: () {
+          Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
+        },
       ),
       centerTitle: true,
       title: AppbarSubtitle(

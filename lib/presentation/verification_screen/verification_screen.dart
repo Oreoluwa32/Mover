@@ -16,8 +16,7 @@ class VerificationScreen extends ConsumerStatefulWidget{
 class VerificationScreenState extends ConsumerState<VerificationScreen> {
   @override
   Widget build(BuildContext context){
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         appBar: _buildAppbar(context),
         body: Container(
           width: double.maxFinite,
@@ -64,8 +63,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget
