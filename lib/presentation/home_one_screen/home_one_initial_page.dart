@@ -23,14 +23,14 @@ class HomeOneInitialPage extends StatefulWidget{
 
 // ignore for file: must be immutabel
 class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProviderStateMixin {
-  Location locationController = Location();
+  final Location locationController = Location();
   LatLng? currentPosition;
 
   static const LatLng sourceLocation = LatLng(6.6085, 3.2881);
   static const LatLng destinationLocation = LatLng(6.5243, 3.3792);
 
-  Completer<GoogleMapController> googleMapController = Completer();
-  Completer<GoogleMapController> googleMapController1 = Completer();
+  late Completer<GoogleMapController> googleMapController;
+  late Completer<GoogleMapController> googleMapController1;
 
   static const googleMapsApiKey = Constants.GOOGLE_MAPS_API_KEY;
 
@@ -40,26 +40,32 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   late Animation<Offset> _sidebarSlideAnimation;
   late Animation<double> _filterButtonRotationAnimation;
   bool _isSidebarVisible = false;
+  
+  // Location stream subscription
+  StreamSubscription? _locationSubscription;
 
   @override
   void initState() {
     super.initState();
     
-    // Initialize animation controllers
+    googleMapController = Completer();
+    googleMapController1 = Completer();
+    
+    // Initialize animation controllers with reduced durations for better performance
     _sidebarAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
       vsync: this,
     );
     
     _filterButtonAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
     
     // Initialize animations
     _sidebarSlideAnimation = Tween<Offset>(
-      begin: const Offset(-3.0, 0.0), // Start off-screen to the left
-      end: Offset.zero, // End at normal position
+      begin: const Offset(-3.0, 0.0),
+      end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _sidebarAnimationController,
       curve: Curves.easeInOut,
@@ -67,24 +73,29 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
     
     _filterButtonRotationAnimation = Tween<double>(
       begin: 0.0,
-      end: 0.25, // 90 degrees rotation (0.25 * 2π)
+      end: 0.25,
     ).animate(CurvedAnimation(
       parent: _filterButtonAnimationController,
       curve: Curves.easeInOut,
     ));
     
-    getLocationUpdates().then(
-      (_) => {
-        getPolylinePoints().then((coordinates) => 
-          print(coordinates)),
-      },
-    );
+    _initializeLocationAndPolyline();
+  }
+
+  Future<void> _initializeLocationAndPolyline() async {
+    try {
+      await getLocationUpdates();
+      await getPolylinePoints();
+    } catch (e) {
+      print('Error initializing location: $e');
+    }
   }
 
   @override
   void dispose() {
     _sidebarAnimationController.dispose();
     _filterButtonAnimationController.dispose();
+    _locationSubscription?.cancel();
     super.dispose();
   }
 
@@ -189,9 +200,10 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
       }
     }
 
-    locationController.onLocationChanged.listen((LocationData currentLocation) {
+    _locationSubscription?.cancel();
+    _locationSubscription = locationController.onLocationChanged.listen((LocationData currentLocation) {
       // Handle location updates here
-      if (currentLocation.latitude != null && currentLocation.longitude != null) {
+      if (currentLocation.latitude != null && currentLocation.longitude != null && mounted) {
         setState(() {
           currentPosition = LatLng(
             currentLocation.latitude!,
@@ -200,6 +212,8 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           cameraToPosition(currentPosition!);
         });
       }
+    }, onError: (e) {
+      print('Location error: $e');
     });
   }
 

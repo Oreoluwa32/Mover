@@ -8,29 +8,34 @@ import 'core/app_export.dart';
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Disable animations on lower-end devices
   Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     PrefUtils().init(),
-    // Set transparent overlays globally
     Future(() => SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
+      const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: Colors.transparent,
       ),
     )),
   ]).then((value) {
-    runApp(ProviderScope(child: MyApp()));
+    runApp(const ProviderScope(child: MyApp()));
   });
 }
 
 class MyApp extends ConsumerWidget {
+  const MyApp();
+  
   @override
-  Widget build(BuildContext context, WidgetRef ref,) {
-    final themeType = ref.watch(themeNotifier).themeType;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Only watch theme changes, not the entire notifier
+    ref.watch(themeNotifier).themeType;
+    
     return Sizer(
       builder: (context, orientation, deviceType) {
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle(
+          value: const SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             systemNavigationBarColor: Colors.transparent,
           ),
@@ -47,17 +52,14 @@ class MyApp extends ConsumerWidget {
             },
             navigatorKey: NavigatorService.navigatorKey,
             debugShowCheckedModeBanner: false,
-            localizationsDelegates: [
+            localizationsDelegates: const [
               AppLocalizationDelegate(),
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate
             ],
-            supportedLocales: [
-              Locale(
-                'en',
-                '',
-              )
+            supportedLocales: const [
+              Locale('en', '')
             ],
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,

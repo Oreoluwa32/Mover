@@ -203,7 +203,7 @@ class AppRoutes {
 
   static const String deliveryPickupScreenTwo = 'delivery_pickup_screen_two';
 
-  static const String notificationScreen = 'notification_screen';
+  static const String notificationScreen = '/notification_screen';
 
 
   static const String initialRoute = '/initialRoute';

@@ -7,7 +7,7 @@ import 'models/list_item_model.dart';
 import 'notifier/notification_notifier.dart';
 import 'widgets/list_item_widget.dart';
 
-class NotificationScreen extends ConsumerStatefulWidget{
+class NotificationScreen extends ConsumerStatefulWidget {
   const NotificationScreen({Key? key}) : super(key: key);
 
   @override
