@@ -1,7 +1,7 @@
 # Multi-stage build
 
 # Stage 1: Builder
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
 WORKDIR /tmp
 
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements.txt .
+COPY backend/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --user --no-cache-dir -r requirements.txt
@@ -37,7 +37,7 @@ ENV PATH=/root/.local/bin:$PATH \
     PORT=8000
 
 # Copy application code
-COPY . .
+COPY backend /app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
