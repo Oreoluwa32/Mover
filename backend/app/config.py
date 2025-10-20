@@ -11,9 +11,6 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/movr"
     
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
-    
     # JWT
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"

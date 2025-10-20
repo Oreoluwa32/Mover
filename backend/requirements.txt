@@ -38,7 +38,3 @@ flake8==7.1.1
 
 # Monitoring
 sentry-sdk==2.0.0
-
-# Task Queue (optional for MVP)
-redis==5.1.1
-celery==5.4.0

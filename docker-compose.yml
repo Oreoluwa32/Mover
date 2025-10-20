@@ -15,7 +15,6 @@ services:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-movr_db}
-      - REDIS_URL=redis://redis:6379/0
       - PORT=8000
       - MONNIFY_API_KEY=${MONNIFY_API_KEY:-}
       - MONNIFY_SECRET_KEY=${MONNIFY_SECRET_KEY:-}
@@ -28,7 +27,6 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-["http://localhost:3000","http://localhost:8000"]}
     depends_on:
       - db
-      - redis
     volumes:
       - ./backend:/app
     command: sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
@@ -60,24 +58,8 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - movr-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
 volumes:
   postgres_data:
-  redis_data:
 
 networks:
   movr-network:

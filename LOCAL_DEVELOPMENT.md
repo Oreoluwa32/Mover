@@ -17,7 +17,6 @@ docker-compose up -d
 Services started:
 - ✅ FastAPI Backend (http://localhost:8000)
 - ✅ PostgreSQL (localhost:5432)
-- ✅ Redis (localhost:6379)
 
 ### 2. Verify
 ```bash
@@ -51,8 +50,6 @@ DB_PASSWORD=postgres
 DB_NAME=movr_db
 DB_PORT=5432
 
-REDIS_PORT=6379
-
 MONNIFY_API_KEY=
 MONNIFY_SECRET_KEY=
 MONNIFY_CONTRACT_CODE=
@@ -81,9 +78,6 @@ docker-compose restart backend
 # Access database
 docker-compose exec db psql -U postgres -d movr_db
 
-# Access Redis
-docker-compose exec redis redis-cli
-
 # Stop everything
 docker-compose down
 
@@ -106,4 +100,4 @@ docker-compose down -v
 
 ## **Next: Deploy to Production**
 
-When ready: `DEPLOYMENT_DIGITALOCEAN.md`
+When ready: `DEPLOYMENT_RENDER.md`
