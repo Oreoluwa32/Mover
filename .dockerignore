@@ -1,0 +1,56 @@
+# Flutter/Dart (frontend)
+lib/
+test/
+web/
+android/
+ios/
+linux/
+macos/
+windows/
+pubspec.yaml
+pubspec.lock
+*.lock
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation
+*.md
+docs/
+
+# Node/npm
+node_modules/
+npm-debug.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Project files
+.env
+.env.local
+*.log
+build/
+.dart_tool/
+
+# Other
+.zencoder/
+codemagic.yaml
+devtools_options.yaml
