@@ -18,24 +18,23 @@ class FileManager {
   }
 
   // Retrieves a list of image paths selected from the gallery
-  Future<List<String?>> _getImagesFromGallery(
+  Future<List<String?>> getImagesFromGallery(
     int maxFileSize,
     List<String>? allowedExtensions,
   ) async {
     List<String?> files = [];
     final picker = ImagePicker();
-    List<XFile>? res1 = await picker.pickMultiImage();
+    // Use pickImage instead of pickMultiImage to avoid ImageReader buffer exhaustion
+    XFile? res1 = await picker.pickImage(source: ImageSource.gallery);
     if (res1 != null) {
-      for (var element in res1) {
-        final fileExtension = path.extension(element.path).replaceFirst('.', '');
-        final fileSize = await element.length();
-        if (allowedExtensions != null && allowedExtensions.isNotEmpty) {
-          if (allowedExtensions.contains(fileExtension) && fileSize <= maxFileSize) {
-            files.add(element.path);
-          }
-        } else if (fileSize <= maxFileSize) {
-          files.add(element.path);
+      final fileExtension = path.extension(res1.path).replaceFirst('.', '');
+      final fileSize = await res1.length();
+      if (allowedExtensions != null && allowedExtensions.isNotEmpty) {
+        if (allowedExtensions.contains(fileExtension) && fileSize <= maxFileSize) {
+          files.add(res1.path);
         }
+      } else if (fileSize <= maxFileSize) {
+        files.add(res1.path);
       }
     }
     return files;

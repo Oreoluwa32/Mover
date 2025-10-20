@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:io';
 import '../core/app_export.dart';
+import '../core/utils/pref_utils.dart';
 
 enum BottomBarEnum {Home, Route, Move, Activity, Profile}
 
+// Provider to watch profile image path
+final profileImagePathProvider = FutureProvider.autoDispose<String?>((ref) async {
+  return await PrefUtils().getProfileImagePath();
+});
+
 // Ignore for file: must be immutable
-class CustomBottomBar extends StatefulWidget{
+class CustomBottomBar extends ConsumerStatefulWidget {
   CustomBottomBar({this.onChanged});
 
   Function(BottomBarEnum)? onChanged;
@@ -14,8 +22,9 @@ class CustomBottomBar extends StatefulWidget{
 }
 
 // Ignore for file: must be immutable
-class CustomBottomBarState extends State<CustomBottomBar>{
+class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
   int selectedIndex = 0;
+  late Future<void> _refreshProfileImageFuture;
 
   List<BottomMenuMode1> bottomMenuList = [
     BottomMenuMode1(
@@ -47,6 +56,7 @@ class CustomBottomBarState extends State<CustomBottomBar>{
       activeIcon: ImageConstant.imgProfile,
       title: "Profile",
       type: BottomBarEnum.Profile,
+      isProfileImage: true,
     ),
   ];
 
@@ -133,6 +143,38 @@ class CustomBottomBarState extends State<CustomBottomBar>{
 
   Widget _buildBottomBarItem(int index) {
     bool isSelected = selectedIndex == index;
+    final menuItem = bottomMenuList[index];
+
+    // Special handling for profile image
+    if (menuItem.isProfileImage) {
+      return GestureDetector(
+        onTap: () {
+          selectedIndex = index;
+          widget.onChanged?.call(bottomMenuList[index].type);
+          setState(() {});
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 8.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildProfileImageCircle(isSelected),
+              SizedBox(height: 4.h),
+              Text(
+                bottomMenuList[index].title ?? "",
+                style: TextStyle(
+                  fontSize: 10.h,
+                  color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Regular menu items
     return GestureDetector(
       onTap: () {
         selectedIndex = index;
@@ -166,6 +208,97 @@ class CustomBottomBarState extends State<CustomBottomBar>{
       ),
     );
   }
+
+  /// Builds a perfect circle for the profile image
+  Widget _buildProfileImageCircle(bool isSelected) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final profileImagePath = ref.watch(profileImagePathProvider);
+
+        return profileImagePath.when(
+          loading: () => Container(
+            height: 32.h,
+            width: 32.h,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey[200],
+            ),
+            child: Center(
+              child: SizedBox(
+                height: 12.h,
+                width: 12.h,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          error: (error, stack) => Container(
+            height: 32.h,
+            width: 32.h,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey[200],
+            ),
+            child: CustomImageView(
+              imagePath: bottomMenuList[4].icon,
+              height: 16.h,
+              width: 16.h,
+              color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+            ),
+          ),
+          data: (imagePath) {
+            // If no image path stored, show default icon
+            if (imagePath == null || imagePath.isEmpty) {
+              return Container(
+                height: 32.h,
+                width: 32.h,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[200],
+                ),
+                child: CustomImageView(
+                  imagePath: bottomMenuList[4].icon,
+                  height: 16.h,
+                  width: 16.h,
+                  color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+                ),
+              );
+            }
+
+            // Display the actual profile image in a circle
+            return Container(
+              height: 32.h,
+              width: 32.h,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: Image.file(
+                  File(imagePath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: CustomImageView(
+                        imagePath: bottomMenuList[4].icon,
+                        height: 16.h,
+                        width: 16.h,
+                        color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 // Ignore for file, must be immutable
@@ -176,7 +309,8 @@ class BottomMenuMode1{
       required this.activeIcon,
       this.title,
       required this.type,
-      this.isCircle = false
+      this.isCircle = false,
+      this.isProfileImage = false,
     }
   );
 
@@ -185,6 +319,7 @@ class BottomMenuMode1{
   String? title;
   BottomBarEnum type;
   bool isCircle;
+  bool isProfileImage;
 }
 
 class DefaultWidget extends StatelessWidget{

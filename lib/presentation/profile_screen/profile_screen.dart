@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../../core/app_export.dart';
 import '../../core/utils/file_upload_helper.dart';
 import '../../core/utils/permission_manager.dart';
@@ -14,6 +15,8 @@ import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../home_one_screen/home_one_initial_page.dart';
 import '../my_route_page/my_route_page.dart';
 import 'notifier/profile_screen_notifier.dart';
+// Import the profile image path provider
+import '../../widgets/custom_bottom_bar.dart' show profileImagePathProvider;
 
 // Secure storage instance
 final storage = FlutterSecureStorage();
@@ -35,6 +38,12 @@ class ProfileScreen extends ConsumerStatefulWidget {
 // ignore for file, class must be immutable
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
   GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize notifier if needed
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -238,49 +247,157 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // Section Widget
   Widget _buildProfileDetails(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                CustomImageView(
-                  imagePath: ImageConstant.imgProfile,
-                  width: 50.h,
-                  height: 50.h,
-                  radius: BorderRadius.circular(24.h),
-                  onTap: () {
-                    requestCameraGalleryPermission(context);
-                  },
-                ),
-                SizedBox(width: 16.h,),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "John Doe",
-                        style: CustomTextStyles.titleMediumGray80001Medium,
+    return Consumer(
+      builder: (context, ref, child) {
+        final profileState = ref.watch(profileScreenNotifier);
+        final isUploading = profileState.isUploadingProfileImage;
+        final profileImagePath = ref.watch(profileImagePathProvider);
+
+        return SizedBox(
+          width: double.maxFinite,
+          child: Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Display uploaded profile image or default
+                        profileImagePath.when(
+                          loading: () => Container(
+                            width: 50.h,
+                            height: 50.h,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(24.h),
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: 20.h,
+                                height: 20.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          error: (_, __) => CustomImageView(
+                            imagePath: ImageConstant.imgProfile,
+                            width: 50.h,
+                            height: 50.h,
+                            radius: BorderRadius.circular(24.h),
+                            onTap: isUploading ? null : () {
+                              requestCameraGalleryPermission(context);
+                            },
+                          ),
+                          data: (imagePath) {
+                            if (imagePath != null && imagePath.isNotEmpty) {
+                              return GestureDetector(
+                                onTap: isUploading ? null : () {
+                                  requestCameraGalleryPermission(context);
+                                },
+                                child: Container(
+                                  width: 50.h,
+                                  height: 50.h,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24.h),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(24.h),
+                                    child: Image.file(
+                                      File(imagePath),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return CustomImageView(
+                                          imagePath: ImageConstant.imgProfile,
+                                          width: 50.h,
+                                          height: 50.h,
+                                          radius: BorderRadius.circular(24.h),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return CustomImageView(
+                                imagePath: ImageConstant.imgProfile,
+                                width: 50.h,
+                                height: 50.h,
+                                radius: BorderRadius.circular(24.h),
+                                onTap: isUploading ? null : () {
+                                  requestCameraGalleryPermission(context);
+                                },
+                              );
+                            }
+                          },
+                        ),
+                        
+                        // Loading indicator overlay
+                        if (isUploading)
+                          Container(
+                            width: 50.h,
+                            height: 50.h,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(24.h),
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: 20.h,
+                                height: 20.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(width: 16.h,),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "John Doe",
+                            style: CustomTextStyles.titleMediumGray80001Medium,
+                          ),
+                          SizedBox(height: 2.h,),
+                          Text(
+                            "Profile Information",
+                            style: CustomTextStyles.bodySmall110,
+                          ),
+                          // Show error message if any
+                          if (profileState.profileImageError != null && profileState.profileImageError!.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(top: 4.h),
+                              child: Text(
+                                profileState.profileImageError!,
+                                style: CustomTextStyles.bodySmall110.copyWith(
+                                  color: Colors.red,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
                       ),
-                      SizedBox(height: 2.h,),
-                      Text(
-                        "Profile Information",
-                        style: CustomTextStyles.bodySmall110,
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
+                    )
+                  ],
+                ),
+              ),
+              CustomImageView(
+                imagePath: ImageConstant.imgChevronRightBlack,
+                width: 16.h,
+                height: 16.h,
+              )
+            ],
           ),
-          CustomImageView(
-            imagePath: ImageConstant.imgChevronRightBlack,
-            width: 16.h,
-            height: 16.h,
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -357,15 +474,91 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   //   }
   // }
 
-  // Requests permission to access the camera and storage, and displays a model sheet for selecting images
-  // Throws an error if permission is denied or an error occures while selecting images
+  // Requests permission to access the camera and storage, and displays a dialog for selecting images
+  // Allows user to choose between camera and gallery
   requestCameraGalleryPermission(BuildContext context) async {
+    // Request permissions
     await PermissionManager.requestPermission(Permission.camera);
     await PermissionManager.requestPermission(Permission.storage);
-    List<String?>? imageList = [];
-    await FileManager().showModelSheetForImage(getImages: (value) async {
-      imageList = value;
-    });
+
+    // Show dialog to choose between camera and gallery
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Change Profile Picture'),
+          content: Text('Choose how you want to upload your profile picture:'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _uploadFromCamera(context);
+              },
+              child: Text('Camera'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _uploadFromGallery(context);
+              },
+              child: Text('Gallery'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Upload profile image from camera
+  Future<void> _uploadFromCamera(BuildContext context) async {
+    final notifier = ref.read(profileScreenNotifier.notifier);
+    final success = await notifier.selectAndUploadProfileImage(useCamera: true);
+    
+    if (mounted) {
+      if (success) {
+        // Refresh the profile image provider so the bottom bar updates
+        ref.invalidate(profileImagePathProvider);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile picture updated successfully!')),
+        );
+      } else {
+        final error = ref.read(profileScreenNotifier).profileImageError;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Failed to upload profile picture')),
+        );
+      }
+    }
+  }
+
+  // Upload profile image from gallery
+  Future<void> _uploadFromGallery(BuildContext context) async {
+    final notifier = ref.read(profileScreenNotifier.notifier);
+    final success = await notifier.selectAndUploadProfileImage(useCamera: false);
+    
+    if (mounted) {
+      if (success) {
+        // Refresh the profile image provider so the bottom bar updates
+        ref.invalidate(profileImagePathProvider);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile picture updated successfully!')),
+        );
+      } else {
+        final error = ref.read(profileScreenNotifier).profileImageError;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Failed to upload profile picture')),
+        );
+      }
+    }
   }
 
   onTapWallet(BuildContext context) {

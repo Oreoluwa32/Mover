@@ -35,4 +35,21 @@ class PrefUtils {
       return 'primary';
     }
   }
+
+  // Profile image path storage methods
+  Future<void> setProfileImagePath(String path) {
+    return _sharedPreferences!.setString('profileImagePath', path);
+  }
+
+  Future<String?> getProfileImagePath() async {
+    try {
+      return _sharedPreferences!.getString('profileImagePath');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> clearProfileImagePath() {
+    return _sharedPreferences!.remove('profileImagePath');
+  }
 }
