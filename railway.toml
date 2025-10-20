@@ -1,11 +1,12 @@
 # Railway Configuration for Monorepo
-# Explicitly skip Railpack and use Dockerfile directly
-# https://docs.railway.app/guides/monorepo
+# Use Dockerfile for backend deployment only
+# Requires manual setup: Set build command to "docker build -f backend/Dockerfile -t app:latest ."
 
-[[services]]
-name = "backend"
+[build]
 builder = "dockerfile"
-
-[services.build]
 dockerfile = "backend/Dockerfile"
-context = "backend"
+
+# Note: Railway monorepo support requires either:
+# 1. Manual UI configuration to use this Dockerfile, OR
+# 2. Railway CLI deployment, OR  
+# 3. GitHub Actions to build and push Docker image to Railway
