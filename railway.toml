@@ -1,0 +1,7 @@
+# Railway Configuration for Monorepo
+# This tells Railway to deploy only the backend directory
+# https://docs.railway.app/guides/monorepo
+
+[build]
+dockerfile = "backend/Dockerfile"
+context = "backend"
