@@ -1,9 +1,10 @@
 # Railway Configuration for Monorepo
-# This tells Railway to deploy only the backend service
+# Explicitly skip Railpack and use Dockerfile directly
 # https://docs.railway.app/guides/monorepo
 
 [[services]]
 name = "backend"
+builder = "dockerfile"
 
 [services.build]
 dockerfile = "backend/Dockerfile"
