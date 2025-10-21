@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt .
 
 # Install Python dependencies
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --user --no-cache-dir --no-warn-script-location -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.10-slim
