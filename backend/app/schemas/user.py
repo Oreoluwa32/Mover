@@ -6,10 +6,10 @@ from app.models.user import UserRole
 # Request Schemas
 class UserCreate(BaseModel):
     email: EmailStr
-    phone: str = Field(..., min_length=10, max_length=15)
     password: str = Field(..., min_length=8, max_length=72, description="Password (max 72 characters, longer passwords will be truncated)")
-    first_name: str = Field(..., min_length=2, max_length=100)
-    last_name: str = Field(..., min_length=2, max_length=100)
+    phone: Optional[str] = Field(None, min_length=10, max_length=15)
+    first_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    last_name: Optional[str] = Field(None, min_length=2, max_length=100)
     role: UserRole = UserRole.CUSTOMER
 
 class UserLogin(BaseModel):

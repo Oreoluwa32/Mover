@@ -17,10 +17,10 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     Register a new user
     
     - **email**: User's email address (must be unique)
-    - **phone**: User's phone number (must be unique)
     - **password**: User's password (minimum 8 characters)
-    - **first_name**: User's first name
-    - **last_name**: User's last name
+    - **phone**: User's phone number (optional, must be unique if provided)
+    - **first_name**: User's first name (optional)
+    - **last_name**: User's last name (optional)
     - **role**: User role (customer/driver/admin)
     """
     # Check if email exists
@@ -31,13 +31,14 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
-    # Check if phone exists
-    existing_phone = db.query(User).filter(User.phone == user_data.phone).first()
-    if existing_phone:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Phone number already registered"
-        )
+    # Check if phone exists (only if phone is provided)
+    if user_data.phone:
+        existing_phone = db.query(User).filter(User.phone == user_data.phone).first()
+        if existing_phone:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Phone number already registered"
+            )
     
     # Create new user
     user = User(

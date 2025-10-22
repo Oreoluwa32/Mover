@@ -63,7 +63,6 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       body: json.encode({
         'email': email,
         'password': password,
-        'role': 'customer',
       }),
     );
 
