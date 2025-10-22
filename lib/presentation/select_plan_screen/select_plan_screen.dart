@@ -86,7 +86,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     return;
   }
 
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-subscription/');
+  final url = Uri.parse('https://movr-api.onrender.com/api/v1/subscription');
   final requestBody = {
     "plan_name": planName,
   };

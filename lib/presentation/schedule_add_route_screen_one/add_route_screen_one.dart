@@ -41,7 +41,7 @@ Future<void> createRoute(BuildContext context) async {
   }
 
   final notifierState = ref.read(addRouteOneNotifier);
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
+  final url = Uri.parse('https://movr-api.onrender.com/api/v1/routes/schedule');
   final requestBody = {
     "location": notifierState.radioGroup, 
     "destination": destinationController.text,

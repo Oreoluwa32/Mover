@@ -39,9 +39,9 @@ class Payment(BaseModel):
     related_id = Column(String, nullable=True)  # ride_id, delivery_id, etc.
     related_type = Column(String, nullable=True)  # ride, delivery, refund, etc.
     
-    # Monnify Payment Details
-    monnify_reference = Column(String, nullable=True, index=True)
-    monnify_payment_reference = Column(String, nullable=True)
+    # Paystack Payment Details
+    paystack_reference = Column(String, nullable=True, index=True)
+    paystack_access_code = Column(String, nullable=True)
     
     # Metadata
     meta = Column(Text, nullable=True)  # JSON string

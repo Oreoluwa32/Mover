@@ -43,7 +43,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
     final notifierState = ref.read(addRouteOneNotifier);
     final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
+        Uri.parse('https://movr-api.onrender.com/api/v1/routes/instant');
     final requestBody = {
       "location": notifierState.radioGroup,
       "destination": destinationController.text,

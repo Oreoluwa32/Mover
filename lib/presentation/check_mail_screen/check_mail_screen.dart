@@ -11,7 +11,7 @@ import '../../widgets/custom_pin_code_text_field.dart';
 
   // Function to verify OTP with backend
   Future<void> verifyOtp(BuildContext context, CheckMailNotifier checkMailNotifier, String email) async {
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp/'); // API endpoint
+    final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/verify-otp'); // API endpoint
 
     // Send POST request with email and OTP
     final response = await http.post(

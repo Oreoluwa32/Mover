@@ -33,7 +33,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
 Future<void> registerUser(BuildContext context, CreateAccountNotifier createAccountNotifier) async {
   final email = createAccountNotifier.state.emailController?.text ?? '';
   final password = createAccountNotifier.state.passwordController?.text ?? '';
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/register/'); // API endpoint
+  final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/register'); // API endpoint
 
   // Check if the fields are not empty
   if (email.isEmpty || password.isEmpty) {

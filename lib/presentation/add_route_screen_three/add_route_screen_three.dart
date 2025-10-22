@@ -58,7 +58,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final destination = notifierState.destinationController?.text;
 
     final url = Uri.parse(
-        'https://demosystem.pythonanywhere.com/create-scheduled-route/');
+        'https://movr-api.onrender.com/api/v1/routes/scheduled');
     final requestBody = {
       "location": location,
       "stop": stop,

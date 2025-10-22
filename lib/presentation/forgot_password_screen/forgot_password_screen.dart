@@ -32,7 +32,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/forgot-password/');
+    final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/forgot-password');
     try {
       final response = await http.post(
         url,

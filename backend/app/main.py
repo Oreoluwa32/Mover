@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 import sentry_sdk
 from app.config import settings
 from app.database import create_tables
@@ -29,13 +30,48 @@ app = FastAPI(
     description="Movr - Transportation Platform API"
 )
 
+# Add OpenAPI security scheme for JWT
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=settings.API_TITLE,
+        version=settings.API_VERSION,
+        description="Movr - Transportation Platform API",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    
+    # Apply security to protected endpoints
+    for path, path_item in openapi_schema.get("paths", {}).items():
+        for operation in path_item.values():
+            if isinstance(operation, dict):
+                # Mark ALL payment, wallet, and transaction endpoints as protected
+                # These all require authentication
+                if any(protected in path for protected in ["/payments/", "/wallet/", "/transactions", "/movements", "/rides"]):
+                    if "security" not in operation:
+                        operation["security"] = [{"bearerAuth": []}]
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["Content-Type", "Authorization"],
+    max_age=600,
 )
 
 # Create tables on startup
@@ -70,7 +106,9 @@ async def root():
     }
 
 # Include API routers
-from app.api.routes import auth
+from app.api.routes import auth, payments, webhooks
 app.include_router(auth.router)
+app.include_router(payments.router)
+app.include_router(webhooks.router)
 
 logger.info(f"Movr API v{settings.API_VERSION} initialized in {settings.ENVIRONMENT} mode")

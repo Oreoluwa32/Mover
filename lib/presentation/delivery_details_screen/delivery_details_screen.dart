@@ -61,7 +61,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
     final destination = state.destinationController?.text;
 
     final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/submit-package');
+        Uri.parse('https://movr-api.onrender.com/api/v1/deliveries');
     // Gather details
     final requestBody = {
       "location": location,

@@ -2,8 +2,10 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends, Header
+from sqlalchemy.orm import Session
 from app.config import settings
+from app.database import get_db
 import bcrypt
 
 # Password hashing
@@ -127,3 +129,63 @@ def raise_conflict(detail: str):
         status_code=status.HTTP_409_CONFLICT,
         detail=detail,
     )
+
+async def get_current_user(
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    db: Session = Depends(get_db)
+):
+    """
+    FastAPI dependency to get the current authenticated user from JWT token.
+    
+    Args:
+        authorization: Authorization header containing "Bearer <token>"
+        db: Database session
+    
+    Returns:
+        User object if valid token, raises HTTPException otherwise
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Auth header received: {authorization is not None}")
+    
+    if not authorization:
+        logger.error("No authorization header provided")
+        raise_unauthorized()
+    
+    # Extract token from "Bearer <token>" format
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            logger.error(f"Invalid scheme: {scheme}")
+            raise_unauthorized()
+    except ValueError as e:
+        logger.error(f"Failed to parse authorization header: {e}")
+        raise_unauthorized()
+    
+    # Verify token and get payload
+    logger.debug(f"Verifying token: {token[:20]}...")
+    payload = verify_token(token)
+    if not payload:
+        logger.error("Token verification failed")
+        raise_unauthorized()
+    
+    # Get user ID from token
+    user_id = payload.get("sub")
+    if not user_id:
+        raise_unauthorized()
+    
+    # Fetch user from database
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise_unauthorized()
+    
+    # Check if user is active
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive",
+        )
+    
+    return user

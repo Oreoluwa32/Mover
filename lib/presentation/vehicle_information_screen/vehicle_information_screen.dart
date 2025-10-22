@@ -66,7 +66,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
             File(notifierState.vehicleInsurancePath!).readAsBytesSync())
         : null;
 
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-vehicle/');
+  final url = Uri.parse('https://movr-api.onrender.com/api/v1/users/vehicle');
   final requestBody = {
     "vehicle_plate_number": notifierState.firstNameController?.text,
     "vehicle_type": notifierState.selectedDropDownValue?.title,

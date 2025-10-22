@@ -6,7 +6,6 @@ from app.utils.auth import (
     verify_token,
     get_user_id_from_token,
 )
-from app.utils.payments import monnify
 
 __all__ = [
     "hash_password",
@@ -15,5 +14,4 @@ __all__ = [
     "create_refresh_token",
     "verify_token",
     "get_user_id_from_token",
-    "monnify",
 ]

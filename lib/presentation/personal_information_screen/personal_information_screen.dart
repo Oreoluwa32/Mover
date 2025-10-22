@@ -53,7 +53,7 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
     final selectedCountry = personalInfoNotifier.state.selectedCountry?.phoneCode ?? '1';
 
     if (_formKey.currentState?.validate() ?? false) {
-      final url = Uri.parse('https://demosystem.pythonanywhere.com/update-personal-info/');
+      final url = Uri.parse('https://movr-api.onrender.com/api/v1/users/profile');
       try {
         final response = await http.post(
           url,

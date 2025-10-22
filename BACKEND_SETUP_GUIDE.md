@@ -149,10 +149,9 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
-# Monnify Payment
-MONNIFY_API_KEY=your-monnify-api-key
-MONNIFY_SECRET_KEY=your-monnify-secret-key
-MONNIFY_CONTRACT_CODE=your-monnify-contract-code
+# Paystack Payment
+PAYSTACK_PUBLIC_KEY=pk_test_your_public_key
+PAYSTACK_SECRET_KEY=sk_test_your_secret_key
 
 # Cloudinary (File Storage)
 CLOUDINARY_CLOUD_NAME=your-cloud-name
@@ -188,9 +187,8 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
-MONNIFY_API_KEY=test_key
-MONNIFY_SECRET_KEY=test_secret
-MONNIFY_CONTRACT_CODE=test_code
+PAYSTACK_PUBLIC_KEY=pk_test_your_key
+PAYSTACK_SECRET_KEY=sk_test_your_key
 
 CLOUDINARY_CLOUD_NAME=test
 CLOUDINARY_API_KEY=test
@@ -311,10 +309,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # Monnify
-    MONNIFY_API_KEY: str
-    MONNIFY_SECRET_KEY: str
-    MONNIFY_CONTRACT_CODE: str
+    # Paystack
+    PAYSTACK_PUBLIC_KEY: str
+    PAYSTACK_SECRET_KEY: str
     
     # Cloudinary
     CLOUDINARY_CLOUD_NAME: str
@@ -711,15 +708,18 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ## Step 9: Setup Monnify Integration
 
-### Get Free Monnify Test Account
+### Get Paystack Test Keys
 
-1. Go to https://app.monnify.com/register
-2. Sign up with your details
-3. Get API keys from dashboard
+1. Go to https://dashboard.paystack.com (create account if needed)
+2. Navigate to Settings → API Keys & Webhooks
+3. Copy your TEST keys:
+   - Public Key (pk_test_...)
+   - Secret Key (sk_test_...)
 4. Copy to `.env`:
-   - `MONNIFY_API_KEY`
-   - `MONNIFY_SECRET_KEY`
-   - `MONNIFY_CONTRACT_CODE`
+   - `PAYSTACK_PUBLIC_KEY`
+   - `PAYSTACK_SECRET_KEY`
+
+> **Note:** Use LIVE keys (pk_live_..., sk_live_...) in production
 
 **File: `backend/app/utils/payments.py`**
 

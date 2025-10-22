@@ -75,9 +75,8 @@ PORT=8080
 
 DATABASE_URL=<paste-internal-postgres-url-from-step-1>
 
-MONNIFY_API_KEY=your_key
-MONNIFY_SECRET_KEY=your_secret
-MONNIFY_CONTRACT_CODE=your_code
+PAYSTACK_PUBLIC_KEY=pk_live_your_key
+PAYSTACK_SECRET_KEY=sk_live_your_key
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_key
 CLOUDINARY_API_SECRET=your_secret
