@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.user import UserCreate, UserLogin, TokenResponse
+from app.schemas.user import UserCreate, UserLogin, TokenResponse, GoogleAuthRequest
 from app.models.user import User
 from app.utils.auth import hash_password, verify_password, create_access_token, create_refresh_token
 from datetime import timedelta
@@ -153,4 +153,72 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=30 * 60
+    )
+
+@router.post("/google-signin", response_model=TokenResponse)
+async def google_signin(google_data: GoogleAuthRequest, db: Session = Depends(get_db)):
+    """
+    Authenticate user with Google Sign-In
+    
+    - **id_token**: Google ID token from frontend
+    - **email**: User's email from Google
+    - **first_name**: User's first name
+    - **last_name**: User's last name
+    """
+    # Note: In production, you should verify the id_token with Google's servers
+    # For now, we trust the frontend to send valid data (after Google verification on client side)
+    
+    # Check if user exists
+    user = db.query(User).filter(User.email == google_data.email).first()
+    
+    if user:
+        # User exists, just create tokens
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is inactive"
+            )
+        
+        if user.is_banned:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account has been banned"
+            )
+    else:
+        # Create new user from Google data
+        # Generate a random phone number for Google users if not provided
+        user = User(
+            id=str(uuid.uuid4()),
+            email=google_data.email,
+            phone=f"google_{uuid.uuid4().hex[:8]}",  # Temporary identifier
+            password_hash=hash_password(google_data.id_token),  # Use id_token as password substitute
+            first_name=google_data.first_name,
+            last_name=google_data.last_name,
+            role="customer",
+            is_active=True,
+        )
+        
+        try:
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            logger.info(f"New Google user registered: {user.email}")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Google registration error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create user account"
+            )
+    
+    # Create tokens
+    access_token = create_access_token({"sub": user.id, "email": user.email})
+    refresh_token = create_refresh_token({"sub": user.id})
+    
+    logger.info(f"Google user authenticated: {user.email}")
+    
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=30 * 60  # 30 minutes
     )

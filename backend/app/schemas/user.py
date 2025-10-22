@@ -77,6 +77,13 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=8, max_length=72, description="Password (max 72 characters)")
 
+# Google OAuth
+class GoogleAuthRequest(BaseModel):
+    id_token: str = Field(..., description="Google ID token from frontend")
+    email: str = EmailStr
+    first_name: str = Field(..., min_length=1)
+    last_name: str = Field(..., min_length=1)
+
 # Pagination
 class PaginationParams(BaseModel):
     skip: int = Field(0, ge=0)

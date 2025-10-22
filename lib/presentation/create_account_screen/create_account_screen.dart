@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:new_project/domain/googleauth/google_auth_helper.dart';
 import 'package:new_project/presentation/check_mail_screen/check_mail_screen.dart';
@@ -27,7 +28,17 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   bool _obscurePassword = true;
-  bool _isFormValid = false; // Add this state variable
+  bool _isFormValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   // Function to register user
 Future<void> registerUser(BuildContext context, CreateAccountNotifier createAccountNotifier) async {
@@ -37,7 +48,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
 
   // Check if the fields are not empty
   if (email.isEmpty || password.isEmpty) {
-    Fluttertoast.showToast(msg: "Email and password cannot be empty");
+    Fluttertoast.showToast(msg: "Email and password are required");
     return;
   }
 
@@ -52,6 +63,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       body: json.encode({
         'email': email,
         'password': password,
+        'role': 'customer',
       }),
     );
 
@@ -62,8 +74,8 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
 
     // Handle the response
     if(response.statusCode == 200 || response.statusCode == 201){
-      // Registration successful, navigate to the next screen
-      Fluttertoast.showToast(msg: "Registration successful");
+      // Registration successful, navigate to the next screen for OTP verification
+      Fluttertoast.showToast(msg: "Registration successful. Check your email for OTP");
       if (context.mounted) {
         Navigator.push(context, MaterialPageRoute(
           builder: (context) => CheckMailScreen(email: email),
@@ -95,7 +107,10 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
   void _validateForm(CreateAccountNotifier notifier) {
     final email = notifier.state.emailController?.text ?? '';
     final password = notifier.state.passwordController?.text ?? '';
-    final isValid = isValidEmail(email, isRequired: true) && isValidPassword(password, isRequired: true);
+    
+    final isValid = isValidEmail(email, isRequired: true) && 
+                    isValidPassword(password, isRequired: true);
+    
     if (_isFormValid != isValid) {
       setState(() {
         _isFormValid = isValid;
@@ -231,6 +246,8 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     );
   }
 
+
+
   // Section Widget 
   Widget _buildPassword(BuildContext context){
     return Consumer(
@@ -332,14 +349,32 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
   }
 
   googleSignIn(BuildContext context) async {
-    await GoogleAuthHelper().googleSignInProcess().then((googleUser) {
+    LoadingDialog.show(context, message: 'Signing up with Google...');
+    
+    await GoogleAuthHelper().googleSignInProcess().then((googleUser) async {
       if (googleUser != null) {
-        onSuccessGoogleAuthResponse(googleUser, context);
-      }
-      else {
+        // Authenticate with backend
+        final authResponse = await GoogleAuthHelper().authenticateWithBackend(googleUser);
+        
+        if (context.mounted) {
+          LoadingDialog.hide(context);
+        }
+        
+        if (authResponse != null) {
+          onSuccessGoogleAuthResponse(googleUser, context, authResponse);
+        } else {
+          onErrorGoogleAuthResponse(context);
+        }
+      } else {
+        if (context.mounted) {
+          LoadingDialog.hide(context);
+        }
         onErrorGoogleAuthResponse(context);
       }
     }).catchError((onError) {
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
       onErrorGoogleAuthResponse(context);
     });
   }
@@ -350,8 +385,14 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
   }
 
   // Navigates to the select plan screen when the action is triggered
-  onSuccessGoogleAuthResponse(GoogleSignInAccount googleUser, BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.signInScreen);
+  onSuccessGoogleAuthResponse(GoogleSignInAccount googleUser, BuildContext context, Map<String, dynamic> authResponse) async {
+    // Store tokens securely
+    final storage = FlutterSecureStorage();
+    await storage.write(key: 'auth_token', value: authResponse['access_token']);
+    await storage.write(key: 'refresh_token', value: authResponse['refresh_token']);
+    
+    Fluttertoast.showToast(msg: "Sign-up successful");
+    Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
   }
 
   // Displays a snackbar with a custom message

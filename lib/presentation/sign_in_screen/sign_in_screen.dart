@@ -47,9 +47,12 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
-      String token = responseData['token']['key'];
-      // Store token securely
-      await storage.write(key: 'auth_token', value: token);
+      String accessToken = responseData['access_token'];
+      String refreshToken = responseData['refresh_token'];
+      
+      // Store tokens securely
+      await storage.write(key: 'auth_token', value: accessToken);
+      await storage.write(key: 'refresh_token', value: refreshToken);
       
       // Remember device
       final deviceMemory = DeviceMemoryService();
@@ -62,9 +65,13 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       }
     } 
     else {
-      final errorData = json.decode(response.body);
-      final errorMessage = errorData['error'] ?? 'Sign-in failed. Please try again.';
-      Fluttertoast.showToast(msg: errorMessage);
+      try {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['detail'] ?? 'Sign-in failed. Please try again.';
+        Fluttertoast.showToast(msg: errorMessage);
+      } catch (e) {
+        Fluttertoast.showToast(msg: 'Sign-in failed. Please try again.');
+      }
     }
   } catch (e) {
     // Hide loading dialog
@@ -352,13 +359,45 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   onTapSigninwithGoogle(BuildContext context) async {
-    await GoogleAuthHelper().googleSignInProcess().then((googleUser) {
-      if(googleUser != null) {}
-      else{
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User data is empty')));
+    LoadingDialog.show(context, message: 'Signing in with Google...');
+    
+    await GoogleAuthHelper().googleSignInProcess().then((googleUser) async {
+      if(googleUser != null) {
+        // Authenticate with backend
+        final authResponse = await GoogleAuthHelper().authenticateWithBackend(googleUser);
+        
+        if (context.mounted) {
+          LoadingDialog.hide(context);
+        }
+        
+        if (authResponse != null) {
+          // Store tokens securely
+          await storage.write(key: 'auth_token', value: authResponse['access_token']);
+          await storage.write(key: 'refresh_token', value: authResponse['refresh_token']);
+          
+          // Remember device
+          final deviceMemory = DeviceMemoryService();
+          await deviceMemory.rememberDevice(userEmail: googleUser.email);
+          
+          Fluttertoast.showToast(msg: "Sign-in successful");
+          
+          if (context.mounted) {
+            Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+          }
+        } else {
+          Fluttertoast.showToast(msg: "Failed to sign in. Please try again.");
+        }
+      } else {
+        if (context.mounted) {
+          LoadingDialog.hide(context);
+        }
+        Fluttertoast.showToast(msg: 'Sign-in cancelled');
       }
     }).catchError((onError) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(onError.toString())));
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      Fluttertoast.showToast(msg: 'Error: ${onError.toString()}');
     });
   }
 }
