@@ -13,12 +13,12 @@ class User(BaseModel):
     
     # Authentication
     email = Column(String, unique=True, index=True, nullable=False)
-    phone = Column(String, unique=True, index=True, nullable=False)
+    phone = Column(String, unique=True, index=True, nullable=True)
     password_hash = Column(String, nullable=False)
     
     # Profile Information
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
     profile_image_url = Column(String, nullable=True)
     
     # Role & Status
