@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:new_project/services/paystack_services.dart';
 import '../../models/paystack_auth_response.dart';
 import '../../models/transactions.dart';
@@ -425,11 +426,59 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
             onPressed: isLoading
                 ? null
                 : () {
-                    // _startDeposit(context, ref);
+                    _handleDeposit(context, ref);
                   },
           )
         ],
       ),
+    );
+  }
+
+  /// Handle deposit button press and navigate to payment screen
+  void _handleDeposit(BuildContext context, WidgetRef ref) {
+    final amountController = ref.read(depositTwoNotifier).amountController;
+    final emailController = ref.read(depositTwoNotifier).emailController;
+    
+    final amount = amountController?.text.trim() ?? '';
+    final email = emailController?.text.trim() ?? '';
+    
+    // Validate inputs
+    if (amount.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please enter an amount',
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      return;
+    }
+    
+    if (email.isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please enter your email',
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      return;
+    }
+    
+    // Validate email format
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      Fluttertoast.showToast(
+        msg: 'Please enter a valid email',
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      return;
+    }
+    
+    // Generate reference if not provided
+    final reference = widget.reference ?? 'TXN-${DateTime.now().millisecondsSinceEpoch}';
+    
+    // Navigate to payment screen
+    NavigatorService.pushNamed(
+      AppRoutes.paystackPaymentScreen,
+      arguments: {
+        'amount': amount,
+        'email': email,
+        'reference': reference,
+      },
     );
   }
 

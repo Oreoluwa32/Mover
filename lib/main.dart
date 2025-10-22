@@ -65,6 +65,7 @@ class MyApp extends ConsumerWidget {
             ],
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,
+            onGenerateRoute: AppRoutes.onGenerateRoute,
           ),
         );
       },

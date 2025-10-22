@@ -64,6 +64,7 @@ import '../presentation/scan_screen/scan_screen.dart';
 import '../presentation/delivery_pickup_screen_two/delivery_pickup_screen_two.dart';
 import '../presentation/scan_screen_one/scan_screen_one.dart';
 import '../presentation/notification_screen/notification_screen.dart';
+import '../presentation/paystack_payment_screen/paystack_payment_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -205,6 +206,7 @@ class AppRoutes {
 
   static const String notificationScreen = '/notification_screen';
 
+  static const String paystackPaymentScreen = '/paystack_payment_screen';
 
   static const String initialRoute = '/initialRoute';
 
@@ -347,4 +349,22 @@ class AppRoutes {
 
     initialRoute: (context) => SplashScreenOne()
   };
+
+  /// Handle routes with parameters
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final args = settings.arguments as Map<String, dynamic>?;
+    
+    switch (settings.name) {
+      case paystackPaymentScreen:
+        return MaterialPageRoute(
+          builder: (context) => PaystackPaymentScreen(
+            amount: args?['amount'] ?? '',
+            email: args?['email'] ?? '',
+            reference: args?['reference'] ?? '',
+          ),
+        );
+      default:
+        return null;
+    }
+  }
 }
