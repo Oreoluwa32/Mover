@@ -5,24 +5,24 @@ WebView-based Paystack payment integration has been implemented for the Movr Flu
 
 ## Architecture
 
-### Flow
+### ✅ NEW SIMPLIFIED Flow
 ```
 Transaction History Screen (Wallet)
         ↓
   Click "Deposit" button
         ↓
-Deposit Screen (Plan Selection)
+Quick Deposit Bottom Sheet (Amount & Email Input)
         ↓
-Deposit Screen Two (Amount & Email Input)
-        ↓
-Click "Deposit" button
+Click "Pay Now" button
         ↓
 Paystack Payment Screen (WebView)
         ↓
   Payment Completion
         ↓
-Back to previous screen
+Back to Wallet
 ```
+
+**KEY IMPROVEMENT:** The payment WebView initializes immediately! No need to go through multiple screens anymore.
 
 ## Components Implemented
 
@@ -30,7 +30,22 @@ Back to previous screen
 - Added `webview_flutter: ^4.8.0` for WebView support
 - Removed outdated `flutter_paystack` package dependency
 
-### 2. **Payment Screen** (`lib/presentation/paystack_payment_screen/`)
+### 2. **Quick Deposit Bottom Sheet** (`lib/presentation/quick_deposit_bottomsheet/`) ✅ NEW
+Fast deposit entry point shown immediately when user clicks "Deposit".
+
+**Files:**
+- `quick_deposit_bottomsheet.dart` - Bottom sheet with amount & email input
+- `notifier/quick_deposit_notifier.dart` - State management for form
+- `notifier/quick_deposit_state.dart` - State class definition
+
+**Key Features:**
+- Shows immediately after clicking "Deposit" button
+- Collects amount and email from user
+- Validates input before proceeding
+- Navigates directly to payment WebView (no intermediate screens)
+- Auto-generates unique transaction reference
+
+### 3. **Payment Screen** (`lib/presentation/paystack_payment_screen/`)
 Main WebView payment interface.
 
 **Files:**
@@ -77,19 +92,23 @@ Updated to handle payment initiation:
 
 ## How It Works
 
-### Step 1: User Initiates Deposit
-User clicks "Deposit" button on Transaction History Screen → navigates to Deposit Screen
+### Step 1: User Initiates Deposit ⚡ INSTANT
+User clicks "Deposit" button on Transaction History Screen → **Quick Deposit Bottom Sheet appears immediately**
 
-### Step 2: User Selects Plan and Enters Details
-User enters amount and email on Deposit Screen Two
+### Step 2: User Enters Amount & Email
+Bottom sheet displays:
+- Amount input field (numeric validation)
+- Email input field (email format validation)
+- "Pay Now" button
 
 ### Step 3: Payment Initialization
-When "Deposit" button is pressed:
+When "Pay Now" button is pressed:
 ```dart
 1. Validates amount (not empty, valid number)
 2. Validates email (not empty, valid format)
-3. Generates transaction reference (if not provided)
-4. Navigates to PaystackPaymentScreen with:
+3. Generates unique transaction reference: TXN-{timestamp}
+4. Closes bottom sheet
+5. Navigates directly to PaystackPaymentScreen with:
    - amount: Transaction amount in NGN
    - email: Customer email
    - reference: Unique transaction reference
@@ -99,17 +118,23 @@ When "Deposit" button is pressed:
 PaystackPaymentScreen:
 ```dart
 1. Initializes payment via PaystackServices.getPaymentUrl()
+   ├─ Frontend calls backend endpoint (secure)
+   ├─ Backend calls Paystack API with secret key
+   └─ Returns authorization URL to frontend
 2. Shows loading indicator while API call completes
-3. Receives authorization URL from Paystack API
-4. Loads URL in WebView
-5. Monitors URL changes for success/failure
-6. Handles payment completion
+3. Loads authorization URL in WebView
+4. Monitors URL changes for success/failure
+5. Shows success toast on completion
+6. Auto-navigates back to Wallet
 ```
 
 ### Step 5: Payment Verification
+Backend verifies transaction:
 ```dart
-// PaystackServices handles verification
-Future<String> verifyTransaction(String reference, ...)
+// Backend keeps transaction data secure
+- Verifies payment status with Paystack
+- Updates user wallet balance
+- Logs transaction for audit trail
 ```
 
 ## Configuration Required
@@ -248,32 +273,45 @@ WebViewController.enableDebugging(true);
 
 ## Testing Checklist
 
-- [ ] Deposit button navigates to deposit screen
-- [ ] Amount and email validation works
-- [ ] Invalid email shows error toast
-- [ ] Valid inputs navigate to payment screen
+### ✅ NEW SIMPLIFIED FLOW TESTS
+- [ ] Click "Deposit" button in Wallet screen
+- [ ] Quick Deposit Bottom Sheet appears immediately
+- [ ] Amount input accepts only numbers
+- [ ] Email input shows keyboard for email
+- [ ] "Pay Now" with empty amount → "Please enter an amount" toast
+- [ ] "Pay Now" with empty email → "Please enter your email" toast
+- [ ] "Pay Now" with invalid email → "Please enter a valid email" toast
+- [ ] Valid amount + email → navigates directly to WebView
 - [ ] WebView loads Paystack payment page
-- [ ] Test payment completes successfully
+- [ ] Test payment completes successfully (use test card: 4111 1111 1111 1111)
 - [ ] Success toast appears
-- [ ] Navigation back works
+- [ ] Navigation back to Wallet works
 - [ ] Error handling displays properly
-- [ ] Loading state shows during initialization
+- [ ] Loading state shows during payment initialization
+- [ ] Multiple deposits work correctly (reference is unique each time)
 
 ## File Structure
 ```
 lib/
 ├── presentation/
+│   ├── quick_deposit_bottomsheet/ ✅ NEW
+│   │   ├── notifier/
+│   │   │   ├── quick_deposit_notifier.dart
+│   │   │   └── quick_deposit_state.dart
+│   │   └── quick_deposit_bottomsheet.dart
 │   ├── paystack_payment_screen/
 │   │   ├── notifier/
 │   │   │   ├── paystack_payment_notifier.dart
 │   │   │   └── paystack_payment_state.dart
 │   │   └── paystack_payment_screen.dart
-│   ├── deposit_screen_two/
-│   │   └── deposit_screen_two.dart (updated)
-│   └── transaction_history_screen/
-│       └── transaction_history_screen.dart
+│   ├── transaction_history_screen/
+│   │   └── transaction_history_screen.dart (updated)
+│   └── deposit_screen_two/
+│       └── deposit_screen_two.dart (legacy - can be deprecated)
 ├── services/
-│   └── paystack_services.dart (updated)
+│   └── paystack_services.dart (updated - now calls backend)
+├── core/utils/
+│   └── keys.dart (updated - secret key removed)
 ├── routes/
 │   └── app_routes.dart (updated)
 ├── main.dart (updated)

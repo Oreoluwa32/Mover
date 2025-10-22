@@ -7,6 +7,7 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../presentation/quick_deposit_bottomsheet/quick_deposit_bottomsheet.dart';
 import 'models/balance_item_model.dart';
 import 'models/month_trans_item_model.dart';
 import 'models/transaction_item_model.dart';
@@ -251,7 +252,8 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
               buttonStyle: CustomButtonStyles.fillGray,
               buttonTextStyle: CustomTextStyles.titleSmallInterPrimary,
               onPressed: () {
-                NavigatorService.pushNamed(AppRoutes.depositScreen);
+                // ✅ NEW: Show quick deposit bottom sheet immediately
+                _showQuickDepositSheet(context);
               },
             ),
           ),
@@ -288,5 +290,17 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   // Navigates back to the previous screen
   onTapBack(BuildContext context) {
     NavigatorService.goBack();
+  }
+
+  /// ✅ NEW: Show quick deposit bottom sheet
+  /// Displays amount and email input, then navigates directly to payment WebView
+  void _showQuickDepositSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => const QuickDepositBottomsheet(),
+      isScrollControlled: true,
+      isDismissible: true,
+      backgroundColor: Colors.transparent,
+    );
   }
 }
