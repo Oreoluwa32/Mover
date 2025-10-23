@@ -4,10 +4,11 @@ import '../../../core/app_export.dart';
 import '../models/reset_password_model.dart';
 part 'reset_password_state.dart';
 
-final resetPasswordNotifier = StateNotifierProvider.autoDispose<ResetPasswordNotifier, ResetPasswordState>(
-  (ref) => ResetPasswordNotifier(ResetPasswordState(
+final resetPasswordNotifier = StateNotifierProvider.autoDispose.family<ResetPasswordNotifier, ResetPasswordState, String?>(
+  (ref, resetToken) => ResetPasswordNotifier(ResetPasswordState(
     passwordController: TextEditingController(),
     confirmpasswordController: TextEditingController(),
+    resetToken: resetToken,
   )),
 );
 

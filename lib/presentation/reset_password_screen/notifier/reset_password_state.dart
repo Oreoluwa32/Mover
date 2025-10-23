@@ -7,24 +7,28 @@ class ResetPasswordState extends Equatable{
   ResetPasswordState({
     this.passwordController,
     this.confirmpasswordController,
-    this.resetPasswordModelObj
+    this.resetPasswordModelObj,
+    this.resetToken
   });
 
   TextEditingController? passwordController;
   TextEditingController? confirmpasswordController;
   ResetPasswordModel? resetPasswordModelObj;
+  String? resetToken;
 
   @override
-  List<Object?> get props => [passwordController, confirmpasswordController, resetPasswordModelObj];
+  List<Object?> get props => [passwordController, confirmpasswordController, resetPasswordModelObj, resetToken];
   ResetPasswordState copyWith({
     TextEditingController? passwordController,
     TextEditingController? confirmpasswordController,
     ResetPasswordModel? resetPasswordModelObj,
+    String? resetToken,
   }) {
     return ResetPasswordState(
       passwordController: passwordController ?? this.passwordController,
       confirmpasswordController: confirmpasswordController ?? this.confirmpasswordController,
-      resetPasswordModelObj: resetPasswordModelObj ?? this.resetPasswordModelObj
+      resetPasswordModelObj: resetPasswordModelObj ?? this.resetPasswordModelObj,
+      resetToken: resetToken ?? this.resetToken
     );
   }
 }

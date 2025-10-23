@@ -4,7 +4,9 @@ import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 
 class PasswordCheckMailScreen extends StatelessWidget{
-  const PasswordCheckMailScreen({Key? key})
+  final String? email;
+
+  const PasswordCheckMailScreen({Key? key, this.email})
     : super(key: key,);
 
   @override
@@ -48,7 +50,7 @@ class PasswordCheckMailScreen extends StatelessWidget{
                               style: theme.textTheme.bodyLarge,
                             ),
                             TextSpan(
-                              text: "johnsmith99@gmail.com",
+                              text: email ?? "your email",
                               style: CustomTextStyles.titleMediumGray600_1,
                             )
                           ],
@@ -124,7 +126,11 @@ class PasswordCheckMailScreen extends StatelessWidget{
 
   // Reloads the password check mail screen when the action is triggered
   onTapResend(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.passwordCheckMailScreen);
+    Navigator.pushNamed(
+      context,
+      AppRoutes.forgotPasswordScreen,
+      arguments: {'email': email},
+    );
   }
 
   // Navigates to the sign in screen when the action is triggered

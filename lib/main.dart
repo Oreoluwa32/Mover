@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/app_export.dart';
 import 'services/device_memory_service.dart';
+import 'services/deep_link_service.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
 void main() {
@@ -45,6 +46,12 @@ class MyApp extends ConsumerWidget {
             theme: theme,
             title: 'Movr',
             builder: (context, child) {
+              // Initialize deep link service with context
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                DeepLinkService().setContext(context);
+                DeepLinkService().init();
+              });
+              
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   textScaler: TextScaler.linear(1.0)

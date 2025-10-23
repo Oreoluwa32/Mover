@@ -12,7 +12,9 @@ import 'notifier/reset_password_notifier.dart';
 
 // Class must be immutable
 class ResetPasswordScreen extends ConsumerStatefulWidget{
-  const ResetPasswordScreen({Key? key})
+  final String? resetToken;
+
+  const ResetPasswordScreen({Key? key, this.resetToken})
     : super(key: key,
   );
 
@@ -28,6 +30,12 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   Future<void> resetPassword(BuildContext context, ResetPasswordNotifier resetPasswordNotifier) async {
     final password = resetPasswordNotifier.state.passwordController?.text.trim() ?? '';
     final confirmPassword = resetPasswordNotifier.state.confirmpasswordController?.text.trim() ?? '';
+    final token = resetPasswordNotifier.state.resetToken ?? '';
+
+    if (token.isEmpty) {
+      Fluttertoast.showToast(msg: "Invalid or expired reset token. Please try again.");
+      return;
+    }
 
     if (password.isEmpty || confirmPassword.isEmpty) {
       Fluttertoast.showToast(msg: "Please fill in all fields.");
@@ -43,7 +51,10 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     try {
       final response = await http.post(
         url,
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
+        },
         body: json.encode({
           "new_password": password,
           "confirm_password": confirmPassword,
@@ -56,7 +67,7 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           backgroundColor: appTheme.green50,
           textColor: Colors.white,
         );
-        Navigator.pushNamed(context, AppRoutes.passwordSuccessScreen);
+        Navigator.pushNamedAndRemoveUntil(context, AppRoutes.signInScreen, (route) => false);
       } else {
         final errorData = json.decode(response.body);
         final errorMessage = errorData['error'] ?? "Failed to reset password.";
@@ -122,7 +133,7 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
                             onPressed: () {
                               if(_formKey.currentState?.validate() ?? false) {
-                                resetPassword(context, ref.read(resetPasswordNotifier.notifier));
+                                resetPassword(context, ref.read(resetPasswordNotifier(widget.resetToken).notifier));
                               }
                             },
                           );
@@ -163,20 +174,20 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   // Section Widget 
   Widget _buildColumnpassword(BuildContext context){
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Password",
-            style: CustomTextStyles.titleSmallGray600,
-          ),
-          SizedBox(height: 6.h),
-          Consumer(
-            builder: (context, ref, _) {
-              return CustomTextFormField(
-                controller: ref.watch(resetPasswordNotifier).passwordController,
+    return Consumer(
+      builder: (context, ref, _) {
+        return SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Password",
+                style: CustomTextStyles.titleSmallGray600,
+              ),
+              SizedBox(height: 6.h),
+              CustomTextFormField(
+                controller: ref.watch(resetPasswordNotifier(widget.resetToken)).passwordController,
                 hintText: "Create a password",
                 textInputType: TextInputType.visiblePassword,
                 obscureText: true,
@@ -187,36 +198,36 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   }
                   return null;
                 },
-              );
-            },
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                "Must be at least 8 characters.",
+                style: CustomTextStyles.bodyMediumGray600,
+              )
+            ],
           ),
-          SizedBox(height: 6.h),
-          Text(
-            "Must be at least 8 characters.",
-            style: CustomTextStyles.bodyMediumGray600,
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 
   // Section Widget 
 
   Widget _buildColumnconfirm(BuildContext context){
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Confirm password",
-            style: CustomTextStyles.titleSmallGray600,
-          ),
-          SizedBox(height: 4.h),
-          Consumer(
-            builder: (context, ref, _) {
-              return CustomTextFormField(
-                controller: ref.watch(resetPasswordNotifier).confirmpasswordController,
+    return Consumer(
+      builder: (context, ref, _) {
+        return SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Confirm password",
+                style: CustomTextStyles.titleSmallGray600,
+              ),
+              SizedBox(height: 4.h),
+              CustomTextFormField(
+                controller: ref.watch(resetPasswordNotifier(widget.resetToken)).confirmpasswordController,
                 hintText: "Confirm password",
                 textInputAction: TextInputAction.done,
                 textInputType: TextInputType.visiblePassword,
@@ -228,11 +239,11 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   }
                   return null;
                 },
-              );
-            },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

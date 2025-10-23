@@ -46,7 +46,11 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           backgroundColor: appTheme.green50,
           textColor: Colors.white,
         );
-        Navigator.pushNamed(context, AppRoutes.passwordCheckMailScreen);
+        Navigator.pushNamed(
+          context,
+          AppRoutes.passwordCheckMailScreen,
+          arguments: {'email': email},
+        );
       } else {
         final errorData = json.decode(response.body);
         final errorMessage = errorData['error'] ?? "Failed to send reset instructions.";

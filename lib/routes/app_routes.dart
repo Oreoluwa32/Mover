@@ -231,13 +231,21 @@ class AppRoutes {
 
     forgotPasswordScreen: (context) => ForgotPasswordScreen(),
 
-    passwordCheckMailScreen: (context) => PasswordCheckMailScreen(),
+    passwordCheckMailScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final email = args?['email'] as String?;
+      return PasswordCheckMailScreen(email: email);
+    },
 
     homeOneScreen: (context) => HomeOneScreen(),
 
     passwordSuccessScreen: (context) => PasswordSuccessScreen(),
 
-    resetPasswordScreen: (context) => ResetPasswordScreen(),
+    resetPasswordScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final resetToken = args?['resetToken'] as String?;
+      return ResetPasswordScreen(resetToken: resetToken);
+    },
 
     signInScreen: (context) => SignInScreen(),
 
@@ -367,8 +375,34 @@ class AppRoutes {
             reference: args?['reference'] ?? '',
           ),
         );
+      case resetPasswordScreen:
+        final resetToken = args?['resetToken'] as String?;
+        return MaterialPageRoute(
+          builder: (context) => ResetPasswordScreen(resetToken: resetToken),
+        );
       default:
         return null;
     }
+  }
+
+  /// Handle deep links (e.g., movr://reset-password?token=xyz)
+  static Route<dynamic>? onDeepLinkRoute(String? deepLink) {
+    if (deepLink == null || deepLink.isEmpty) {
+      return null;
+    }
+
+    final uri = Uri.parse(deepLink);
+    
+    // Handle password reset deep link: movr://reset-password?token=xyz
+    if (uri.scheme == 'movr' && uri.host == 'reset-password') {
+      final token = uri.queryParameters['token'];
+      if (token != null && token.isNotEmpty) {
+        return MaterialPageRoute(
+          builder: (context) => ResetPasswordScreen(resetToken: token),
+        );
+      }
+    }
+
+    return null;
   }
 }

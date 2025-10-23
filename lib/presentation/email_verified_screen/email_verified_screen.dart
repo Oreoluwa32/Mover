@@ -17,8 +17,7 @@ class EmailVerifiedScreen extends ConsumerStatefulWidget{
 class EmailVerifiedScreenState extends ConsumerState<EmailVerifiedScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         body: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -89,8 +88,7 @@ class EmailVerifiedScreenState extends ConsumerState<EmailVerifiedScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Navigates to the sign in screen when the action is triggered

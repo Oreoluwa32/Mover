@@ -82,8 +82,8 @@ class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
         children: [
           CustomImageView(
             imagePath: ImageConstant.imgSplashScreenOne,
-            height: 40.h,
-            width: 64.h,
+            height: 97.h,
+            width: 156.h,
           ),
         ],
       ),
