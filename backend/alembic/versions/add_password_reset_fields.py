@@ -1,7 +1,7 @@
 """add_password_reset_fields
 
 Revision ID: add_password_reset_fields
-Revises: make_optional_001
+Revises: add_email_verification_otp
 Create Date: 2024-01-01 00:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_password_reset_fields'
-down_revision = 'make_optional_001'
+down_revision = 'add_email_verification_otp'
 branch_labels = None
 depends_on = None
 
