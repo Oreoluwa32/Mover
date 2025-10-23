@@ -48,5 +48,10 @@ class User(BaseModel):
     otp_created_at = Column(DateTime, nullable=True)  # Track OTP expiration
     otp_attempts = Column(Integer, default=0)  # Track failed OTP attempts
     
+    # Password Reset
+    reset_token = Column(String, nullable=True, unique=True, index=True)  # Unique reset token
+    reset_token_created_at = Column(DateTime, nullable=True)  # Track token expiration
+    reset_token_used = Column(Boolean, default=False)  # Track if token was already used
+    
     def __repr__(self):
         return f"<User {self.email}>"

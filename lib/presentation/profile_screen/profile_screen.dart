@@ -23,8 +23,22 @@ final storage = FlutterSecureStorage();
 
 // Function to handle to log out the user 
 Future<void> logoutUser(BuildContext context) async {
-  await storage.deleteAll();
-  Navigator.pushNamed(context, AppRoutes.signInScreen);
+  try {
+    await storage.deleteAll();
+    if (context.mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.signInScreen,
+        (route) => false,
+      );
+    }
+  } catch (e) {
+    print('Logout error: $e');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error during logout: $e')),
+      );
+    }
+  }
 }
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -210,35 +224,22 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: ImageConstant.imgLanguage,
                     title: "Language (English)",
                   ),
-                )
+                ),
+                SizedBox(height: 8.h,),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: _buildCard(
+                    context,
+                    icon: ImageConstant.imgLogout,
+                    title: "Log out",
+                    onTapCard: () {
+                      logoutUser(context);
+                    }
+                  ),
+                ),
+                SizedBox(height: 50.h,),
               ],
             ),
-          ),
-          SizedBox(height: 20.h,),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  logoutUser(context);
-                },
-                child: Row(
-                  children: [
-                    Text(
-                    "Log out",
-                    style: CustomTextStyles.bodySmallRedA700,
-                  ),
-                  SizedBox(width: 4.h,),
-                  CustomImageView(
-                    imagePath: ImageConstant.imgLogout,
-                    width: 15.h,
-                    height: 15.h,
-                  ),
-                  ],
-                )
-              ),
-            ],
           ),
         ],
       ),

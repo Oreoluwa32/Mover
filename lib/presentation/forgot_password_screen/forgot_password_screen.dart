@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
+import '../../core/utils/keys.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
@@ -32,15 +33,23 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
-    final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/forgot-password');
+    final url = Uri.parse('${Keys.backendBaseUrl}/api/v1/auth/forgot-password');
+    print('Sending forgot password request to: $url');
+    
     try {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: json.encode({"email": email}),
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          throw Exception('Request timeout - server not responding');
+        },
       );
 
       if (response.statusCode == 200) {
+        print('Reset password request successful');
         Fluttertoast.showToast(
           msg: "Reset instructions sent to your email.",
           backgroundColor: appTheme.green50,
@@ -52,12 +61,19 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           arguments: {'email': email},
         );
       } else {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['error'] ?? "Failed to send reset instructions.";
-        Fluttertoast.showToast(msg: errorMessage);
+        print('Error status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        try {
+          final errorData = json.decode(response.body);
+          final errorMessage = errorData['error'] ?? errorData['message'] ?? "Failed to send reset instructions.";
+          Fluttertoast.showToast(msg: errorMessage);
+        } catch (e) {
+          Fluttertoast.showToast(msg: "Error (${response.statusCode}): ${response.body}");
+        }
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: "An error occurred. Please try again.");
+      print('Error during password reset: $e');
+      Fluttertoast.showToast(msg: "An error occurred: ${e.toString()}");
     }
   }
 

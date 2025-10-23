@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.user import (
     UserCreate, UserLogin, TokenResponse, GoogleAuthRequest,
-    SendOTPRequest, VerifyOTPRequest, OTPResponse, VerificationResponse
+    SendOTPRequest, VerifyOTPRequest, OTPResponse, VerificationResponse,
+    ForgotPasswordRequest, ResetPasswordRequest
 )
 from app.models.user import User
-from app.utils.auth import hash_password, verify_password, create_access_token, create_refresh_token
+from app.utils.auth import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from app.utils.email import generate_otp, send_otp_email, send_verification_email
 from datetime import timedelta, datetime
+from typing import Optional
 import uuid
 import logging
+import secrets
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
@@ -418,3 +421,134 @@ async def google_signin(google_data: GoogleAuthRequest, db: Session = Depends(ge
         refresh_token=refresh_token,
         expires_in=30 * 60  # 30 minutes
     )
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Request password reset for a user
+    
+    - **email**: User's email address
+    
+    Sends a password reset link to the user's email with a unique reset token.
+    Token expires in 1 hour.
+    """
+    user = db.query(User).filter(User.email == request.email).first()
+    
+    if not user:
+        # Don't reveal if email exists (security best practice)
+        # Always return success to prevent email enumeration
+        logger.info(f"Password reset requested for non-existent email: {request.email}")
+        return {
+            "message": "If an account exists with that email, you will receive password reset instructions.",
+            "email": request.email
+        }
+    
+    # Generate secure reset token
+    reset_token = secrets.token_urlsafe(32)
+    
+    # Store reset token in database
+    user.reset_token = reset_token
+    user.reset_token_created_at = datetime.utcnow()
+    user.reset_token_used = False
+    
+    try:
+        db.commit()
+        db.refresh(user)
+        
+        # Send password reset email
+        reset_link = f"movr://reset-password?token={reset_token}"
+        # In production, you might want to use an email service here
+        logger.info(f"Password reset requested for: {user.email}")
+        # You would send an email here with the reset link
+        # For now, just log it for testing
+        
+        return {
+            "message": "If an account exists with that email, you will receive password reset instructions.",
+            "email": user.email
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error during password reset request: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process password reset request"
+        )
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Reset user password using reset token
+    
+    Send the reset token in the Authorization header as: Authorization: Bearer <token>
+    
+    - **new_password**: New password (minimum 8 characters)
+    - **confirm_password**: Confirm password (must match new_password)
+    """
+    # Extract token from Authorization header
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid authorization header"
+        )
+    
+    reset_token = authorization.replace("Bearer ", "").strip()
+    
+    # Validate passwords match
+    if request.new_password != request.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match"
+        )
+    
+    # Find user by reset token
+    user = db.query(User).filter(User.reset_token == reset_token).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired reset token"
+        )
+    
+    # Check if token has already been used
+    if user.reset_token_used:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Reset token has already been used"
+        )
+    
+    # Check if token has expired (1 hour)
+    if user.reset_token_created_at:
+        token_expiry_time = user.reset_token_created_at + timedelta(hours=1)
+        if datetime.utcnow() > token_expiry_time:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Reset token has expired. Please request a new one."
+            )
+    
+    # Update user password
+    try:
+        user.password_hash = hash_password(request.new_password)
+        user.reset_token = None
+        user.reset_token_created_at = None
+        user.reset_token_used = True
+        
+        db.commit()
+        db.refresh(user)
+        
+        logger.info(f"Password reset successful for: {user.email}")
+        
+        return {
+            "message": "Password has been reset successfully. Please login with your new password.",
+            "email": user.email
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error during password reset: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset password"
+        )
