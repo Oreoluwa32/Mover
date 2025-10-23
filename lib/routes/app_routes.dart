@@ -219,7 +219,11 @@ class AppRoutes {
 
     splashScreenFour: (context) => SplashScreenFour(),
 
-    checkMailScreen: (context) => CheckMailScreen(email: ''),
+    checkMailScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final email = args?['email'] as String? ?? '';
+      return CheckMailScreen(email: email);
+    },
 
     createAccountScreen: (context) => CreateAccountScreen(),
 

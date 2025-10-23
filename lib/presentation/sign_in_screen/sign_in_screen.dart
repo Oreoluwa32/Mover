@@ -64,6 +64,30 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
         Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
       }
     } 
+    else if (response.statusCode == 403) {
+      // Check if the error is email not verified
+      try {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['detail'] ?? 'Sign-in failed. Please try again.';
+        
+        if (errorMessage == 'email_not_verified') {
+          // Navigate to check mail screen with email
+          Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
+          if (context.mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.checkMailScreen,
+              (route) => route.isFirst,
+              arguments: {'email': email},
+            );
+          }
+        } else {
+          Fluttertoast.showToast(msg: errorMessage);
+        }
+      } catch (e) {
+        Fluttertoast.showToast(msg: 'Sign-in failed. Please try again.');
+      }
+    }
     else {
       try {
         final errorData = json.decode(response.body);

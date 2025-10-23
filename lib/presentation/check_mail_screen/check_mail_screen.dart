@@ -44,6 +44,50 @@ import '../../widgets/custom_pin_code_text_field.dart';
     }
   }
 
+  // Function to resend OTP
+  Future<void> resendOtp(BuildContext context, String email) async {
+    final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/send-otp'); // Resend OTP endpoint
+
+    try {
+      // Show loading
+      Fluttertoast.showToast(msg: "Resending OTP...");
+      
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"email": email.trim()}),
+      );
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "OTP resent to your email",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: appTheme.green50,
+          textColor: Colors.white,
+        );
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['detail'] ?? 'Failed to resend OTP';
+        Fluttertoast.showToast(
+          msg: errorMessage,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: appTheme.red50,
+          textColor: Colors.white,
+        );
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Error resending OTP: $e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: appTheme.red50,
+        textColor: Colors.white,
+      );
+    }
+  }
+
 class CheckMailScreen extends ConsumerStatefulWidget{
   final String email;
   const CheckMailScreen({Key? key, required this.email}) : super(key: key);
@@ -132,24 +176,27 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
                       }, // Call verifyOtp
                     ),
                     SizedBox(height: 30.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.only(
-                        left: 38.h,
-                        right: 42.h,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Didn't receive the email?",
-                            style: CustomTextStyles.bodyMediumGray600,
-                          ),
-                          Text(
-                            "Click to resend",
-                            style: CustomTextStyles.titleSmallPrimary_1,
-                          )
-                        ],
+                    GestureDetector(
+                      onTap: () => resendOtp(context, widget.email),
+                      child: Container(
+                        width: double.maxFinite,
+                        margin: EdgeInsets.only(
+                          left: 38.h,
+                          right: 42.h,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Didn't receive the email?",
+                              style: CustomTextStyles.bodyMediumGray600,
+                            ),
+                            Text(
+                              "Click to resend",
+                              style: CustomTextStyles.titleSmallPrimary_1,
+                            )
+                          ],
+                        ),
                       ),
                     ),
                     SizedBox(height: 30.h),
