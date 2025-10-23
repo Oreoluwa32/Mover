@@ -11,8 +11,7 @@ class PasswordCheckMailScreen extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         body: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -120,8 +119,7 @@ class PasswordCheckMailScreen extends StatelessWidget{
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Reloads the password check mail screen when the action is triggered

@@ -49,6 +49,19 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
       if (!mounted) return;
 
+      // Debug: Check if URL is empty
+      if (paymentUrl.isEmpty) {
+        final errorMsg = 'Payment URL is empty - backend may not have returned authorization URL';
+        ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
+        ref.read(paystackPaymentNotifier.notifier).setLoading(false);
+        
+        Fluttertoast.showToast(
+          msg: errorMsg,
+          toastLength: Toast.LENGTH_LONG,
+        );
+        return;
+      }
+
       ref.read(paystackPaymentNotifier.notifier).setPaymentUrl(paymentUrl);
       ref.read(paystackPaymentNotifier.notifier).setLoading(false);
 
@@ -77,8 +90,22 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
             _handleUrlNavigation(url);
           },
           onWebResourceError: (WebResourceError error) {
+            String errorMsg = error.description ?? 'Unknown error loading payment page';
+            
+            // Check for SSL certificate errors on Android
+            if (errorMsg.contains('SSL') || errorMsg.contains('certificate')) {
+              errorMsg = 'SSL Certificate Error - Please check your internet connection and try again';
+            }
+            
+            // Check for network errors
+            if (errorMsg.contains('net::ERR')) {
+              errorMsg = 'Network Error - Please check your internet connection and try again';
+            }
+            
+            ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
+            
             Fluttertoast.showToast(
-              msg: 'Payment page error: ${error.description}',
+              msg: 'Payment page error: $errorMsg',
               toastLength: Toast.LENGTH_LONG,
             );
           },

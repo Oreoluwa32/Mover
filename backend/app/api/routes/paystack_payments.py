@@ -151,8 +151,8 @@ async def initialize_paystack_transaction(
             "status": True,
             "message": "Authorization URL created",
             "data": {
-                "authorizationUrl": paystack_data.get("authorization_url"),
-                "accessCode": paystack_data.get("access_code"),
+                "authorization_url": paystack_data.get("authorization_url"),
+                "access_code": paystack_data.get("access_code"),
                 "reference": request.reference
             }
         }

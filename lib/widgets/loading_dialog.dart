@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../core/app_export.dart';
 
-/// Loading dialog with Lottie animation
+/// Loading dialog with optimized Lottie animation
+/// Prevents ImageReader buffer exhaustion on Android by limiting frame rate
 class LoadingDialog extends StatelessWidget {
   final String? message;
   final bool isCancellable;
@@ -43,6 +44,7 @@ class LoadingDialog extends StatelessWidget {
                   height: 80.h,
                   width: 80.h,
                   repeat: true,
+                  frameRate: FrameRate(60),
                 ),
                 SizedBox(height: 16.h),
                 // Loading message

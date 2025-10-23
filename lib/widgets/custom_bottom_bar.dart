@@ -217,11 +217,11 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
 
         return profileImagePath.when(
           loading: () => Container(
-            height: 32.h,
-            width: 32.h,
+            height: 20.h,
+            width: 20.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.grey[200],
+              // color: Colors.grey[200],
             ),
             child: Center(
               child: SizedBox(
