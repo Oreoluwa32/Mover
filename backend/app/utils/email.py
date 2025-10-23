@@ -35,34 +35,33 @@ def send_otp_email(email: str, otp: str, first_name: str = None) -> bool:
         <html>
             <head>
                 <style>
-                    body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
+                    body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }}
                     .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
                     .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }}
-                    .content {{ background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }}
-                    .otp-code {{ font-size: 32px; font-weight: bold; color: #4CAF50; text-align: center; letter-spacing: 5px; margin: 20px 0; font-family: 'Courier New', monospace; }}
-                    .footer {{ font-size: 12px; color: #999; text-align: center; margin-top: 20px; }}
-                    .warning {{ color: #ff9800; font-size: 14px; margin: 10px 0; }}
+                    .content {{ background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }}
+                    .otp-code {{ font-size: 28px; font-weight: bold; color: #4CAF50; text-align: center; letter-spacing: 8px; margin: 30px 0; font-family: 'Courier New', monospace; border: 2px dashed #4CAF50; padding: 15px; }}
+                    .footer {{ font-size: 12px; color: #999; text-align: center; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px; }}
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>Movr Email Verification</h1>
+                        <h1 style="margin: 0;">Email Verification</h1>
                     </div>
                     <div class="content">
                         <p>Hello {user_name},</p>
-                        <p>Thank you for registering with Movr! To complete your email verification, please use the OTP code below:</p>
+                        <p>Your verification code is:</p>
                         
                         <div class="otp-code">{otp}</div>
                         
-                        <p>This OTP code will expire in <strong>10 minutes</strong>.</p>
+                        <p>This code expires in 10 minutes.</p>
+                        <p>If you didn't request this code, you can safely ignore this email.</p>
                         
-                        <p class="warning">⚠️ If you didn't request this code, please ignore this email. Never share your OTP with anyone.</p>
-                        
-                        <p>Best regards,<br>The Movr Team</p>
+                        <p>—<br>Movr Support Team</p>
                     </div>
                     <div class="footer">
                         <p>© 2024 Movr. All rights reserved.</p>
+                        <p><a href="https://movr.app/contact" style="color: #999; text-decoration: none;">Contact Support</a></p>
                     </div>
                 </div>
             </body>
@@ -70,18 +69,17 @@ def send_otp_email(email: str, otp: str, first_name: str = None) -> bool:
         """
         
         plain_text_content = f"""
-        Hello {user_name},
-        
-        Thank you for registering with Movr! To complete your email verification, please use the OTP code below:
-        
-        {otp}
-        
-        This OTP code will expire in 10 minutes.
-        
-        If you didn't request this code, please ignore this email. Never share your OTP with anyone.
-        
-        Best regards,
-        The Movr Team
+Hello {user_name},
+
+Your verification code is: {otp}
+
+This code expires in 10 minutes.
+
+If you didn't request this code, you can safely ignore this email.
+
+—
+Movr Support Team
+© 2024 Movr. All rights reserved.
         """
         
         message = Mail(
