@@ -42,5 +42,11 @@ class User(BaseModel):
     # Authentication
     last_login = Column(DateTime, nullable=True)
     
+    # Email Verification
+    email_verified_at = Column(DateTime, nullable=True)
+    verification_otp = Column(String, nullable=True)  # 6-digit OTP
+    otp_created_at = Column(DateTime, nullable=True)  # Track OTP expiration
+    otp_attempts = Column(Integer, default=0)  # Track failed OTP attempts
+    
     def __repr__(self):
         return f"<User {self.email}>"

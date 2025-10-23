@@ -84,6 +84,24 @@ class GoogleAuthRequest(BaseModel):
     first_name: str = Field(..., min_length=1)
     last_name: str = Field(..., min_length=1)
 
+# Email Verification & OTP
+class SendOTPRequest(BaseModel):
+    email: EmailStr
+
+class VerifyOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=4, max_length=4, description="4-digit OTP code")
+
+class OTPResponse(BaseModel):
+    message: str
+    email: str
+    otp_expires_in: int = 600  # 10 minutes in seconds
+
+class VerificationResponse(BaseModel):
+    message: str
+    email: str
+    is_verified: bool
+
 # Pagination
 class PaginationParams(BaseModel):
     skip: int = Field(0, ge=0)
