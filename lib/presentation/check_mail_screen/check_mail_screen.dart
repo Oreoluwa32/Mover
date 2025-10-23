@@ -19,7 +19,7 @@ import '../../widgets/custom_pin_code_text_field.dart';
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "email": email.trim(), // Use the passed email directly
-        "code": checkMailNotifier.state.otpController?.text.trim(),    // OTP code from user input
+        "otp": checkMailNotifier.state.otpController?.text.trim(),    // OTP code from user input
       }),
     );
 
@@ -99,8 +99,7 @@ class CheckMailScreen extends ConsumerStatefulWidget{
 class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         resizeToAvoidBottomInset: false,
         body: SizedBox(
           width: double.maxFinite,
@@ -226,8 +225,7 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Navigates to the password success screen when the action is triggered
