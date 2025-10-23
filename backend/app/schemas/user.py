@@ -30,9 +30,9 @@ class UpdateLocationRequest(BaseModel):
 class UserResponse(BaseModel):
     id: str
     email: str
-    first_name: str
-    last_name: str
-    phone: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
     profile_image_url: Optional[str] = None
     average_rating: float
     is_verified: bool
@@ -45,9 +45,9 @@ class UserResponse(BaseModel):
 class UserProfileResponse(BaseModel):
     id: str
     email: str
-    phone: str
-    first_name: str
-    last_name: str
+    phone: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     profile_image_url: Optional[str] = None
     role: UserRole
     average_rating: float
