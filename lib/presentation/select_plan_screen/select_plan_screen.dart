@@ -179,7 +179,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
           bottom: 20.h,
         ),
       ),
-      styleType: Style.bgOutline,
+      styleType: Style.bgFill,
     );
   }
 

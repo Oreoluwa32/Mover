@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:new_project/services/paystack_services.dart';
 import '../../models/paystack_auth_response.dart';
 import '../../models/transactions.dart';
@@ -93,6 +94,25 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
   PaystackAuthResponse? paystackResponse;
   bool isLoading = false;
   String? errorMessage;
+  final storage = FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _preLoadUserEmail();
+  }
+
+  /// Load user email from secure storage and pre-fill the email controller
+  Future<void> _preLoadUserEmail() async {
+    try {
+      final storedEmail = await storage.read(key: 'user_email');
+      if (storedEmail != null && storedEmail.isNotEmpty) {
+        ref.read(depositTwoNotifier).emailController?.text = storedEmail;
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: 'Could not load email');
+    }
+  }
 
   // Future<void> _startDeposit(BuildContext context, WidgetRef ref) async {
   //   setState(() {
@@ -271,6 +291,7 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
                 hintText: "Enter your email",
                 hintStyle: theme.textTheme.bodySmall!,
                 textInputAction: TextInputAction.done,
+                readOnly: true,
                 contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
               );
             },

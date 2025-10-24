@@ -389,6 +389,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     final storage = FlutterSecureStorage();
     await storage.write(key: 'auth_token', value: authResponse['access_token']);
     await storage.write(key: 'refresh_token', value: authResponse['refresh_token']);
+    await storage.write(key: 'user_email', value: googleUser.email);
     
     Fluttertoast.showToast(msg: "Sign-up successful");
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);

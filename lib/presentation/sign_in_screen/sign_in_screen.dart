@@ -53,6 +53,7 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       // Store tokens securely
       await storage.write(key: 'auth_token', value: accessToken);
       await storage.write(key: 'refresh_token', value: refreshToken);
+      await storage.write(key: 'user_email', value: email);
       
       // Remember device
       final deviceMemory = DeviceMemoryService();
