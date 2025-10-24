@@ -79,7 +79,7 @@ class PasswordCheckMailScreen extends StatelessWidget{
                             "Didn't receive the email?",
                             style: CustomTextStyles.bodyMediumMulishGray600,
                           ),
-                          SizedBox(width: 8.h),
+                          SizedBox(width: 1.h),
                           GestureDetector(
                             onTap: () {onTapResend(context);},
                             child: Text(

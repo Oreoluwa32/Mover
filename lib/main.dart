@@ -8,6 +8,10 @@ import 'services/device_memory_service.dart';
 import 'services/deep_link_service.dart';
 
 var globalMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+// Track if deep link service has been initialized
+bool _deepLinkInitialized = false;
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -46,11 +50,14 @@ class MyApp extends ConsumerWidget {
             theme: theme,
             title: 'Movr',
             builder: (context, child) {
-              // Initialize deep link service with context
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                DeepLinkService().setContext(context);
-                DeepLinkService().init();
-              });
+              // Initialize deep link service with context (only once)
+              if (!_deepLinkInitialized) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  DeepLinkService().setContext(context);
+                  DeepLinkService().init();
+                  _deepLinkInitialized = true;
+                });
+              }
               
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
