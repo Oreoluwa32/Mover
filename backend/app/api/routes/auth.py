@@ -457,10 +457,20 @@ async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(
         
         # Send password reset email
         reset_link = f"movr://reset-password?token={reset_token}"
-        # In production, you might want to use an email service here
-        logger.info(f"Password reset requested for: {user.email}")
-        # You would send an email here with the reset link
-        # For now, just log it for testing
+        
+        # Import here to avoid circular imports
+        from app.utils.email import send_password_reset_email
+        
+        email_sent = send_password_reset_email(
+            email=user.email,
+            reset_link=reset_link,
+            first_name=user.first_name
+        )
+        
+        if not email_sent:
+            logger.warning(f"Failed to send password reset email to {user.email}")
+        else:
+            logger.info(f"Password reset email sent successfully to {user.email}")
         
         return {
             "message": "If an account exists with that email, you will receive password reset instructions.",
