@@ -237,16 +237,16 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
             ),
           ),
           error: (error, stack) => Container(
-            height: 32.h,
-            width: 32.h,
+            height: 24.h,
+            width: 24.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.grey[200],
             ),
             child: CustomImageView(
               imagePath: bottomMenuList[4].icon,
-              height: 16.h,
-              width: 16.h,
+              height: 12.h,
+              width: 12.h,
               color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
             ),
           ),
@@ -254,16 +254,16 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
             // If no image path stored, show default icon
             if (imagePath == null || imagePath.isEmpty) {
               return Container(
-                height: 32.h,
-                width: 32.h,
+                height: 24.h,
+                width: 24.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.grey[200],
                 ),
                 child: CustomImageView(
                   imagePath: bottomMenuList[4].icon,
-                  height: 16.h,
-                  width: 16.h,
+                  height: 12.h,
+                  width: 12.h,
                   color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
                 ),
               );
@@ -271,8 +271,8 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
 
             // Display the actual profile image in a circle
             return Container(
-              height: 32.h,
-              width: 32.h,
+              height: 24.h,
+              width: 24.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
               ),
@@ -285,8 +285,8 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
                       color: Colors.grey[200],
                       child: CustomImageView(
                         imagePath: bottomMenuList[4].icon,
-                        height: 16.h,
-                        width: 16.h,
+                        height: 12.h,
+                        width: 12.h,
                         color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
                       ),
                     );

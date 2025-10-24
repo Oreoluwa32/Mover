@@ -27,10 +27,11 @@ class User(BaseModel):
     is_verified = Column(Boolean, default=False)
     is_banned = Column(Boolean, default=False)
     
-    # Location (for drivers)
+    # Location & Live Status (for drivers)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     last_location_update = Column(DateTime, nullable=True)
+    is_live = Column(Boolean, default=False)  # Whether user is actively sharing location
     
     # Ratings
     average_rating = Column(Float, default=5.0)

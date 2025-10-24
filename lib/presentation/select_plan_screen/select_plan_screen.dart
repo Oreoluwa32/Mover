@@ -164,7 +164,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
         imagePath: ImageConstant.imgCancel,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 44.h,
+          top: 35.h,
           bottom: 22.h,
         ),
         onTap: () {
@@ -175,7 +175,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
       title: AppbarSubtitle(
         text: "Select a Plan",
         margin: EdgeInsets.only(
-          top: 45.h,
+          top: 35.h,
           bottom: 20.h,
         ),
       ),

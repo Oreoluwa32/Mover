@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_project/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
@@ -125,11 +126,22 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           // Static UI overlays
           _buildTopNotificationBar(context),
           _buildTopRightNotificationButton(context),
+          _buildIsLiveToggleSwitch(context),
           _buildLeftSidebar(context),
           _buildFilterButton(context),
           // _buildTaskNotification(context),
           // _buildBottomNavigation(context),
           _buildFloatingactionb(context),
+          // Temporary notification for isLive status
+          Consumer(
+            builder: (context, ref, child) {
+              final homeState = ref.watch(homeNotifier);
+              if (homeState.showLiveNotification) {
+                return _buildLiveRouteNotification(context, homeState.isLive);
+              }
+              return SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );
@@ -209,7 +221,6 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
             currentLocation.latitude!,
             currentLocation.longitude!,
           );
-          cameraToPosition(currentPosition!);
         });
       }
     }, onError: (e) {
@@ -387,6 +398,106 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
               // ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // IsLive toggle switch positioned below notification button
+  Widget _buildIsLiveToggleSwitch(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        return Positioned(
+          top: 110.h,
+          right: 20.h,
+          child: Container(
+            width: 50.h,
+            height: 32.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.h),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4.h,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16.h),
+              child: Switch(
+                value: homeState.isLive,
+                onChanged: homeState.isToggling 
+                  ? null // Disable while toggling
+                  : (value) {
+                    ref.read(homeNotifier.notifier).toggleIsLive(value);
+                  },
+                activeColor: Color(0xFF6A19D3),
+                inactiveThumbColor: Colors.white,
+                trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                activeTrackColor: Color(0xFF6A19D3).withValues(alpha: 0.3),
+                inactiveTrackColor: Colors.grey.withValues(alpha: 0.2),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Live route notification card that displays temporarily
+  Widget _buildLiveRouteNotification(BuildContext context, bool isLive) {
+    final message = isLive ? "Your route is now live" : "Your route is now disabled";
+    
+    return Positioned(
+      top: 150.h,
+      left: 20.h,
+      right: 80.h,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadiusStyle.roundedBorder12,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              spreadRadius: 1.h,
+              blurRadius: 4.h,
+              offset: Offset(0, 2),
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 32.h,
+              width: 32.h,
+              decoration: BoxDecoration(
+                color: isLive ? Color(0xFFD4EDDA) : Color(0xFFFFE5E5),
+                borderRadius: BorderRadius.circular(16.h),
+              ),
+              child: Center(
+                child: CustomImageView(
+                  imagePath: isLive 
+                    ? ImageConstant.imgCheckCircle
+                    : ImageConstant.imgCancel,
+                  height: 16.h,
+                  width: 16.h,
+                ),
+              ),
+            ),
+            SizedBox(width: 10.h),
+            Expanded(
+              child: Text(
+                message,
+                style: CustomTextStyles.titleSmallInter,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -656,11 +767,17 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
       child: CustomFloatingButton(
         height: 48,
         width: 48,
+        onTap: () {
+          // Reset map to current location when floating button is tapped
+          if (currentPosition != null) {
+            cameraToPosition(currentPosition!);
+          }
+        },
         // backgroundColor: theme.colorScheme.primary,
         child: CustomImageView(
           imagePath: ImageConstant.imgLocationPrimary,
-          height: 25.0.h,
-          width: 25.0.h,
+          height: 48.0.h,
+          width: 48.0.h,
         ),
       ),
     );

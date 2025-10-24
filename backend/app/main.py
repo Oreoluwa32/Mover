@@ -106,10 +106,11 @@ async def root():
     }
 
 # Include API routers
-from app.api.routes import auth, payments, webhooks, paystack_payments
+from app.api.routes import auth, payments, webhooks, paystack_payments, user
 app.include_router(auth.router)
 app.include_router(payments.router)
 app.include_router(webhooks.router)
 app.include_router(paystack_payments.router)
+app.include_router(user.router)
 
 logger.info(f"Movr API v{settings.API_VERSION} initialized in {settings.ENVIRONMENT} mode")

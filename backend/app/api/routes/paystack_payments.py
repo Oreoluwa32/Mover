@@ -52,6 +52,7 @@ class VerifyTransactionResponse(BaseModel):
 @router.post("/initialize-transaction")
 async def initialize_paystack_transaction(
     request: InitializeTransactionRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -84,9 +85,11 @@ async def initialize_paystack_transaction(
                 detail="Missing required fields: amount, email, reference"
             )
         
-        # Try to find user by email (optional, for logging)
-        user = db.query(User).filter(User.email == request.email).first()
-        user_id = user.id if user else None
+        # Use authenticated user's ID
+        user_id = current_user.id
+        
+        # Use authenticated user's email (security: prevent email spoofing)
+        email = current_user.email
         
         # Convert amount to float
         try:
@@ -101,7 +104,7 @@ async def initialize_paystack_transaction(
         # This is kept safe in .env and NEVER exposed to frontend
         paystack_response = paystack.initialize_transaction(
             amount=amount_float,
-            email=request.email,
+            email=email,
             currency=request.currency,
             metadata={
                 "user_id": user_id,
@@ -135,7 +138,7 @@ async def initialize_paystack_transaction(
             paystack_access_code=paystack_data.get("access_code"),
             meta=json.dumps({
                 "channels": request.channels,
-                "email": request.email,
+                "email": email,
                 "source": "flutter_webview"
             })
         )
@@ -144,7 +147,7 @@ async def initialize_paystack_transaction(
         db.commit()
         db.refresh(payment)
         
-        logger.info(f"✅ Payment initialized: {request.reference} - {amount_float}NGN for {request.email}")
+        logger.info(f"✅ Payment initialized: {request.reference} - {amount_float}NGN for {email}")
         
         # Return response in format Flutter expects
         return {
