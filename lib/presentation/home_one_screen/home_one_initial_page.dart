@@ -10,6 +10,7 @@ import '../../core/utils/constants.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../widgets/custom_live_toggle_switch.dart';
 import 'models/home_initial_model.dart';
 import 'notifier/home_notifier.dart';
 
@@ -132,14 +133,15 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           // _buildTaskNotification(context),
           // _buildBottomNavigation(context),
           _buildFloatingactionb(context),
-          // Temporary notification for isLive status
+          // Temporary notification for isLive status with fade animation
           Consumer(
             builder: (context, ref, child) {
               final homeState = ref.watch(homeNotifier);
-              if (homeState.showLiveNotification) {
-                return _buildLiveRouteNotification(context, homeState.isLive);
-              }
-              return SizedBox.shrink();
+              return AnimatedOpacity(
+                opacity: homeState.showLiveNotification ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: _buildLiveRouteNotification(context, homeState.isLive),
+              );
             },
           ),
         ],
@@ -411,90 +413,99 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
         return Positioned(
           top: 110.h,
           right: 20.h,
-          child: Container(
-            width: 50.h,
-            height: 32.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.h),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4.h,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16.h),
-              child: Switch(
-                value: homeState.isLive,
-                onChanged: homeState.isToggling 
-                  ? null // Disable while toggling
-                  : (value) {
-                    ref.read(homeNotifier.notifier).toggleIsLive(value);
-                  },
-                activeColor: Color(0xFF6A19D3),
-                inactiveThumbColor: Colors.white,
-                trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-                activeTrackColor: Color(0xFF6A19D3).withValues(alpha: 0.3),
-                inactiveTrackColor: Colors.grey.withValues(alpha: 0.2),
-              ),
-            ),
+          child: CustomLiveToggleSwitch(
+            value: homeState.isLive,
+            isDisabled: homeState.isToggling,
+            onChanged: (value) {
+              ref.read(homeNotifier.notifier).toggleIsLive(value);
+            },
           ),
         );
       },
     );
   }
 
-  // Live route notification card that displays temporarily
+  // Live route notification card that displays temporarily with fade effect
   Widget _buildLiveRouteNotification(BuildContext context, bool isLive) {
     final message = isLive ? "Your route is now live" : "Your route is now disabled";
+    final backgroundColor = isLive ? const Color(0xFFD4EDDA) : const Color(0xFFFFE5E5);
+    final iconColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
+    final messageColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
     
     return Positioned(
       top: 150.h,
       left: 20.h,
       right: 80.h,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadiusStyle.roundedBorder12,
+          borderRadius: BorderRadius.circular(12.h),
+          border: Border.all(
+            color: backgroundColor,
+            width: 1.5.h,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              spreadRadius: 1.h,
+              color: Colors.black.withValues(alpha: 0.12),
+              spreadRadius: 0,
+              blurRadius: 8.h,
+              offset: const Offset(0, 2),
+            ),
+            BoxShadow(
+              color: messageColor.withValues(alpha: 0.15),
+              spreadRadius: 0,
               blurRadius: 4.h,
-              offset: Offset(0, 2),
-            )
+              offset: const Offset(0, 0),
+            ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 32.h,
-              width: 32.h,
+              height: 36.h,
+              width: 36.h,
               decoration: BoxDecoration(
-                color: isLive ? Color(0xFFD4EDDA) : Color(0xFFFFE5E5),
-                borderRadius: BorderRadius.circular(16.h),
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(18.h),
               ),
               child: Center(
-                child: CustomImageView(
-                  imagePath: isLive 
-                    ? ImageConstant.imgCheckCircle
-                    : ImageConstant.imgCancel,
-                  height: 16.h,
-                  width: 16.h,
+                child: Icon(
+                  isLive ? Icons.check_circle : Icons.cancel_rounded,
+                  color: iconColor,
+                  size: 18.h,
                 ),
               ),
             ),
-            SizedBox(width: 10.h),
+            SizedBox(width: 12.h),
             Expanded(
-              child: Text(
-                message,
-                style: CustomTextStyles.titleSmallInter,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: messageColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    isLive ? 'You are now sharing your location' : 'Location sharing disabled',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ],
@@ -776,8 +787,8 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
         // backgroundColor: theme.colorScheme.primary,
         child: CustomImageView(
           imagePath: ImageConstant.imgLocationPrimary,
-          height: 48.0.h,
-          width: 48.0.h,
+          height: 24.0.h,
+          width: 24.0.h,
         ),
       ),
     );
