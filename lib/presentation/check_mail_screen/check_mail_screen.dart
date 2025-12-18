@@ -46,7 +46,7 @@ import '../../widgets/custom_pin_code_text_field.dart';
 
   // Function to resend OTP
   Future<void> resendOtp(BuildContext context, String email) async {
-    final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/send-otp'); // Resend OTP endpoint
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp'); // Resend OTP endpoint
 
     try {
       // Show loading

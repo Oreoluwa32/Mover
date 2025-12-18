@@ -23,7 +23,7 @@ bool _obscurePassword = true;
 Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) async {
   final email = signInNotifier.state.emailController?.text ?? '';
   final password = signInNotifier.state.passwordController?.text ?? '';
-  final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/login'); // Login endpoint
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/login'); // Login endpoint
 
   if (email.isEmpty || password.isEmpty) {
     Fluttertoast.showToast(msg: "Email and password cannot be empty.");

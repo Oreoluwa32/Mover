@@ -98,10 +98,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Profile",
-        margin: EdgeInsets.only(
-          top: 46.h,
-          bottom: 19.h,
-        ),
       ),
       styleType: Style.bgOutline,
     );

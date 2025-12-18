@@ -93,6 +93,10 @@ class CustomCheckboxButton extends StatelessWidget {
           visualDensity: VisualDensity(vertical: -4, horizontal: -4),
           value: value ?? false,
           checkColor: theme.colorScheme.primary,
+          activeColor: appTheme.gray40001,
+          side: WidgetStateBorderSide.resolveWith(
+            (states) => BorderSide(color: appTheme.gray40001)
+          ),
           onChanged: (value) {
             onChange(value!);
           },

@@ -11,7 +11,9 @@ import 'widgets/savedroute_item_widget.dart';
 
 // ignore for file, must be immutable
 class MyRoutePage extends ConsumerStatefulWidget {
-  const MyRoutePage({Key? key})
+  final Function(bool)? onOverlayChanged;
+  
+  const MyRoutePage({Key? key, this.onOverlayChanged})
       : super(
           key: key,
         );
@@ -20,23 +22,76 @@ class MyRoutePage extends ConsumerStatefulWidget {
   MyRoutePageState createState() => MyRoutePageState();
 }
 
-class MyRoutePageState extends ConsumerState<MyRoutePage> {
+class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+  late AnimationController _animationController;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _rotationAnimation = Tween<double>(begin: 0, end: 0.50).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+    widget.onOverlayChanged?.call(_isExpanded);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
-          width: double.maxFinite,
-          padding: EdgeInsets.symmetric(horizontal: 16.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [SizedBox(height: 28.h), _buildSavedroute(context)],
+    return Stack(
+      children: [
+        SafeArea(
+          child: Scaffold(
+            appBar: _buildAppbar(context),
+            body: Container(
+              width: double.maxFinite,
+              padding: EdgeInsets.symmetric(horizontal: 16.h),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [SizedBox(height: 28.h), _buildSavedroute(context)],
+              ),
+            ),
+            floatingActionButton: _buildFloatingactionb(context),
           ),
         ),
-        floatingActionButton: _buildFloatingactionb(context),
-      ),
+        if (_isExpanded)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _toggleExpanded,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+        if (_isExpanded)
+          Positioned(
+            right: 16.h,
+            bottom: 80.h,
+            child: _buildOverlayButtons(context),
+          ),
+      ],
     );
   }
 
@@ -48,10 +103,6 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "My Route",
-        margin: EdgeInsets.only(
-          top: 46.h,
-          bottom: 19.h,
-        ),
       ),
       styleType: Style.bgOutline,
     );
@@ -90,97 +141,146 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> {
   // Section Widget
   Widget _buildFloatingactionb(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 80.h),
-      child: CustomFloatingButton(
-        height: 48,
-        width: 48,
-        backgroundColor: theme.colorScheme.primary,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(100.h),
-          
+      padding: EdgeInsets.only(bottom: 43.h, right: 1.5.h),
+      child: RotationTransition(
+        turns: _rotationAnimation,
+        child: CustomFloatingButton(
+          height: 48,
+          width: 48,
+          backgroundColor: theme.colorScheme.primary,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100.h),
+          ),
+          child: Icon(
+            _isExpanded ? Icons.close : Icons.add,
+            color: Colors.white,
+            size: 24.h,
+          ),
+          onTap: _toggleExpanded,
         ),
-        child: CustomImageView(
-          imagePath: ImageConstant.imgPlus,
-          height: 24.0.h,
-          width: 24.0.h,
-        ),
-        onTap: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (BuildContext context) {
-              return _buildOverlayContent();
-            },
-          );
-        },
       ),
     );
   }
 
-  Widget _buildOverlayContent() {
-    return Container(
-      height: 300, // Set the desired height of the overlay
-      decoration: BoxDecoration(
-        // Example background color
-        borderRadius: BorderRadius.circular(25.h),
-      ),
-      child: Column(
-        children: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
+  Widget _buildOverlayButtons(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 30.h,
               padding: EdgeInsets.symmetric(
-                horizontal: 22.h,
-                vertical: 23.h
+                horizontal: 14.h,
+                vertical: 6.h,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadiusStyle.roundedBorder4,
+              ),
+              child: Text(
+                'Instant route',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12.fSize,
+                ),
               ),
             ),
-            child: Text(
-              'Instant route',
-              style: CustomTextStyles.labelLargeGray400?.copyWith(color: Colors.black87)
-            ),
-            onPressed: () {
-              // Handle "Instant route" button press
-              onTapInstant(context);
-            },
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(
-                horizontal: 22.h,
-                vertical: 23.h
+            SizedBox(width: 12.h),
+            GestureDetector(
+              onTap: () {
+                _toggleExpanded();
+                onTapInstant(context);
+              },
+              child: Container(
+                height: 40.h,
+                width: 40.h,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgInstantRoute,
+                    height: 19.37.h,
+                    width: 19.37.h,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ),
             ),
-            child: Text(
-              'Schedule route',
-              style: CustomTextStyles.labelLargeGray400?.copyWith(color: Colors.black87)
+          ],
+        ),
+        SizedBox(height: 12.h),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 30.h,
+              padding: EdgeInsets.symmetric(
+                horizontal: 16.h,
+                vertical: 6.h,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadiusStyle.roundedBorder4,
+              ),
+              child: Text(
+                'Schedule route',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12.fSize,
+                ),
+              ),
             ),
-            onPressed: () {
-              // Handle "Schedule route" button press
-              onTapSchedule(context);
-            },
-          ),
-          const SizedBox(height: 20),
-          CustomFloatingButton(
+            SizedBox(width: 12.h),
+            GestureDetector(
+              onTap: () {
+                _toggleExpanded();
+                onTapSchedule(context);
+              },
+              child: Container(
+                height: 40.h,
+                width: 40.h,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgCalendarAdd,
+                    height: 19.37.h,
+                    width: 19.37.h,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        RotationTransition(
+          turns: _rotationAnimation,
+          child: CustomFloatingButton(
             height: 48,
             width: 48,
             backgroundColor: theme.colorScheme.primary,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100.h)
+              borderRadius: BorderRadius.circular(100.h),
             ),
-            child: CustomImageView(
-              imagePath: ImageConstant.imgWhiteCancel,
-              height: 24.0.h,
-              width: 24.0.h,
+            child: Icon(
+              Icons.close,
+              color: Colors.white,
+              size: 24.h,
             ),
-            onTap: () {
-              Navigator.of(context).pop(); // Close the overlay
-            },
-          )
-        ],
-      ),
+            onTap: _toggleExpanded,
+          ),
+        ),
+      ],
     );
   }
 

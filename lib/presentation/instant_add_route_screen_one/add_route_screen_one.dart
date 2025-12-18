@@ -15,7 +15,6 @@ import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/add_route_one_item_model.dart';
 import 'notifier/add_route_one_notifier.dart';
-import '../home_screen_dialog/home_screen_dialog.dart';
 
 // ignore for file, class must be immutable
 class AddRouteScreenOne extends ConsumerStatefulWidget {
@@ -97,8 +96,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         body: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -121,8 +119,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
           ),
         ),
         bottomNavigationBar: _buildButtonnav(context),
-      ),
-    );
+      );
   }
 
   // Section Widget

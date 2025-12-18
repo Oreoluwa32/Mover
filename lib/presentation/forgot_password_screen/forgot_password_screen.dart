@@ -33,7 +33,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
-    final url = Uri.parse('${Keys.backendBaseUrl}/api/v1/auth/forgot-password');
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/forgot-password');
     print('Sending forgot password request to: $url');
     
     try {

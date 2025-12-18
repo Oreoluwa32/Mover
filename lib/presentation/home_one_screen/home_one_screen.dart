@@ -22,6 +22,13 @@ class HomeOneScreen extends ConsumerStatefulWidget{
 // ignore for file, must be immutable
 class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
   GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+  bool _hideBottomBar = false;
+
+  void _setBottomBarVisibility(bool hide) {
+    setState(() {
+      _hideBottomBar = hide;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +43,10 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
           transitionDuration: Duration(seconds: 0),
         ),
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: _hideBottomBar ? null : Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
         child: Container(
           width: double.maxFinite,
-          // margin: EdgeInsets.symmetric(horizontal: 16.h),
           child: _buildBottombar(context),
         ),
       ),
@@ -83,7 +89,9 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
       case AppRoutes.homeOneInitialPage:
         return HomeOneInitialPage();
       case AppRoutes.myRoutePage:
-        return MyRoutePage();
+        return MyRoutePage(
+          onOverlayChanged: _setBottomBarVisibility,
+        );
       case AppRoutes.userMoveScreen:
         return UserMoveScreen();
       case AppRoutes.activityInProgressPage:

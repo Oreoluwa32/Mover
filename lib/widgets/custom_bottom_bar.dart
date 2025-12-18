@@ -69,7 +69,7 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
         children: [
           // Main bottom bar container with cutout
           Positioned(
-            bottom: 20.h,
+            bottom: 0,
             left: 0,
             right: 0,
             child: Container(
@@ -100,7 +100,7 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
           ),
           // Center circular button (Move) - positioned over the cutout
           Positioned(
-            bottom: 55.h, // Adjusted to sit perfectly in the cutout
+            bottom: 35.h,
             left: 0,
             right: 0,
             child: Center(
@@ -116,13 +116,6 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
                   decoration: BoxDecoration(
                     color: Color(0xFF6A19D3),
                     shape: BoxShape.circle,
-                    // boxShadow: [
-                    //   BoxShadow(
-                    //     color: Color(0xFF6A19D3).withValues(alpha: 0.3),
-                    //     blurRadius: 15.h,
-                    //     offset: Offset(0, 5),
-                    //   ),
-                    // ],
                   ),
                   child: Center(
                     child: CustomImageView(
@@ -370,14 +363,14 @@ class BottomBarPainter extends CustomPainter {
     // Save layer for blend mode to work properly
     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
-    // First, draw the shadow
+    // First, draw the shadow with blur
     Paint shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.1)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5);
+      ..color = Colors.black.withValues(alpha: 0.15)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10);
 
     // Create shadow path (full rectangle with rounded corners)
     Path shadowPath = _createFullBarPath(size);
-    canvas.drawPath(shadowPath.shift(Offset(0, 2)), shadowPaint);
+    canvas.drawPath(shadowPath.shift(Offset(0, -3)), shadowPaint);
 
     // Draw the main bar (full rectangle with white color)
     Paint backgroundPaint = Paint()
@@ -389,7 +382,7 @@ class BottomBarPainter extends CustomPainter {
 
     // Now create the transparent cutout by using BlendMode.clear
     Paint cutoutPaint = Paint()
-      ..color = Colors.white // Color doesn't matter with BlendMode.clear
+      ..color = Colors.white
       ..style = PaintingStyle.fill
       ..blendMode = BlendMode.clear;
 

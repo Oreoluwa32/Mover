@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_project/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_bottom_bar.dart';
-import '../../widgets/custom_live_toggle_switch.dart';
+import '../../widgets/custom_switch.dart';
 import 'models/home_initial_model.dart';
 import 'notifier/home_notifier.dart';
 
@@ -125,24 +124,30 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           _buildMaps(context),
           
           // Static UI overlays
-          _buildTopNotificationBar(context),
           _buildTopRightNotificationButton(context),
           _buildIsLiveToggleSwitch(context),
           _buildLeftSidebar(context),
           _buildFilterButton(context),
+          _buildTopNotificationBar(context),
           // _buildTaskNotification(context),
           // _buildBottomNavigation(context),
           _buildFloatingactionb(context),
           // Temporary notification for isLive status with fade animation
-          Consumer(
-            builder: (context, ref, child) {
-              final homeState = ref.watch(homeNotifier);
-              return AnimatedOpacity(
-                opacity: homeState.showLiveNotification ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: _buildLiveRouteNotification(context, homeState.isLive),
-              );
-            },
+          IgnorePointer(
+            child: Consumer(
+              builder: (context, ref, child) {
+                final homeState = ref.watch(homeNotifier);
+                return Positioned(
+                  top: 160.h,
+                  left: 16.h,
+                  child: AnimatedOpacity(
+                    opacity: homeState.showLiveNotification ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildLiveRouteNotificationContent(context, homeState.isLive),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -153,33 +158,33 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   Widget _buildMaps(BuildContext context){
     return currentPosition == null 
       ? const Center(child: CircularProgressIndicator()) 
-      : GoogleMap(
-          mapType: MapType.normal,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(6.6085, 3.2881),
-            zoom: 20.0,
+      : RepaintBoundary(
+          child: GoogleMap(
+            mapType: MapType.normal,
+            initialCameraPosition: CameraPosition(
+              target: LatLng(6.6085, 3.2881),
+              zoom: 20.0,
+            ),
+            markers: {
+              Marker(
+                markerId: MarkerId('currentLocation'),
+                position: currentPosition!
+              ),
+            },
+            onMapCreated: (GoogleMapController controller){
+              if (!googleMapController.isCompleted) {
+                googleMapController.complete(controller);
+              }
+            },
+            zoomControlsEnabled: false,
+            zoomGesturesEnabled: true,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: true,
+            compassEnabled: false,
+            mapToolbarEnabled: false,
+            tiltGesturesEnabled: false,
+            rotateGesturesEnabled: false,
           ),
-          markers: {
-            Marker(
-              markerId: MarkerId('currentLocation'),
-              position: currentPosition!
-            ),
-            Marker(
-              markerId: MarkerId('sourceLocation'),
-              position: sourceLocation
-            ),
-            Marker(
-              markerId: MarkerId('destinationLocation'),
-              position: destinationLocation
-            )
-          },
-          onMapCreated: (GoogleMapController controller){
-            googleMapController.complete(controller);
-          },
-          zoomControlsEnabled: false, // Disable default controls
-          zoomGesturesEnabled: true,
-          myLocationButtonEnabled: false, // We'll add custom button
-          myLocationEnabled: true,
         );
   }
 
@@ -216,14 +221,25 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
 
     _locationSubscription?.cancel();
     _locationSubscription = locationController.onLocationChanged.listen((LocationData currentLocation) {
-      // Handle location updates here
       if (currentLocation.latitude != null && currentLocation.longitude != null && mounted) {
-        setState(() {
-          currentPosition = LatLng(
-            currentLocation.latitude!,
-            currentLocation.longitude!,
-          );
-        });
+        final newPosition = LatLng(
+          currentLocation.latitude!,
+          currentLocation.longitude!,
+        );
+        
+        final bool isFirstLocation = currentPosition == null;
+        
+        if (isFirstLocation || 
+            (currentPosition!.latitude - newPosition.latitude).abs() > 0.0001 ||
+            (currentPosition!.longitude - newPosition.longitude).abs() > 0.0001) {
+          setState(() {
+            currentPosition = newPosition;
+          });
+          
+          if (isFirstLocation) {
+            cameraToPosition(newPosition);
+          }
+        }
       }
     }, onError: (e) {
       print('Location error: $e');
@@ -250,42 +266,44 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
 
   // Top notification bar with "1000+ routes are live"
   Widget _buildTopNotificationBar(BuildContext context) {
-    return Positioned(
-      top: 65.h,
-      left: 70.h,
-      // right: 20.h,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
-        decoration: BoxDecoration(
-          color: appTheme.gray10001,
-          borderRadius: BorderRadiusStyle.CircleBorder20,
-          boxShadow: [
-            BoxShadow(
-              color: appTheme.black900.withValues(alpha: 0.08),
-              spreadRadius: 2.h,
-              blurRadius: 2.h,
-              offset: Offset(0, 0),
-            )
-          ]
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 6.h,
-              width: 6.h,
-              decoration: BoxDecoration(
-                color: appTheme.redA700,
-                borderRadius: BorderRadius.circular(3.h),
+    return IgnorePointer(
+      child: Positioned(
+        top: 65.h,
+        left: 70.h,
+        // right: 20.h,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: appTheme.gray10001,
+            borderRadius: BorderRadiusStyle.CircleBorder20,
+            boxShadow: [
+              BoxShadow(
+                color: appTheme.black900.withValues(alpha: 0.08),
+                spreadRadius: 2.h,
+                blurRadius: 2.h,
+                offset: Offset(0, 0),
+              )
+            ]
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 6.h,
+                width: 6.h,
+                decoration: BoxDecoration(
+                  color: appTheme.redA700,
+                  borderRadius: BorderRadius.circular(3.h),
+                ),
               ),
-            ),
-            SizedBox(width: 6.h),
-            Text(
-              "1000+ routes are live",
-              style: CustomTextStyles.labelMediumInterPrimary,
-            )
-          ],
+              SizedBox(width: 6.h),
+              Text(
+                "1000+ routes are live",
+                style: CustomTextStyles.labelMediumInterPrimary,
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -296,40 +314,42 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
     return Positioned(
       left: 23.h,
       top: 110.h,
-      child: SlideTransition(
-        position: _sidebarSlideAnimation,
-        child: Container(
-          width: 34.h,
-          padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 10.h),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary.withValues(alpha: 1.0),
-            borderRadius: BorderRadiusStyle.CircleBorder20,
-            boxShadow: [
-              BoxShadow(
-                color: appTheme.black900.withValues(alpha: 0.1),
-                spreadRadius: 2.h,
-                blurRadius: 2.h,
-                offset: Offset(0, 0),
-              )
-            ]
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildTransportModeItem(ImageConstant.imgWalking, "PT"),
-              SizedBox(height: 14.h),
-              _buildTransportModeItem(ImageConstant.imgBike, "Bike"),
-              SizedBox(height: 14.h),
-              _buildTransportModeItem(ImageConstant.imgCar, "Car"),
-              SizedBox(height: 14.h),
-              _buildTransportModeItem(ImageConstant.imgPlane, "Plane"),
-              SizedBox(height: 14.h),
-              _buildTransportModeItem(ImageConstant.imgTruck, "Truck"),
-              SizedBox(height: 14.h),
-              _buildTransportModeItem(ImageConstant.imgBus, "Bus"),
-              SizedBox(height: 14.h),
-              _buildTransportModeItem(ImageConstant.imgTrain, "Train"),
-            ],
+      child: RepaintBoundary(
+        child: SlideTransition(
+          position: _sidebarSlideAnimation,
+          child: Container(
+            width: 34.h,
+            padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onPrimary.withValues(alpha: 1.0),
+              borderRadius: BorderRadiusStyle.CircleBorder20,
+              boxShadow: [
+                BoxShadow(
+                  color: appTheme.black900.withValues(alpha: 0.1),
+                  spreadRadius: 2.h,
+                  blurRadius: 2.h,
+                  offset: Offset(0, 0),
+                )
+              ]
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTransportModeItem(ImageConstant.imgWalking, "PT"),
+                SizedBox(height: 14.h),
+                _buildTransportModeItem(ImageConstant.imgBike, "Bike"),
+                SizedBox(height: 14.h),
+                _buildTransportModeItem(ImageConstant.imgCar, "Car"),
+                SizedBox(height: 14.h),
+                _buildTransportModeItem(ImageConstant.imgPlane, "Plane"),
+                SizedBox(height: 14.h),
+                _buildTransportModeItem(ImageConstant.imgTruck, "Truck"),
+                SizedBox(height: 14.h),
+                _buildTransportModeItem(ImageConstant.imgBus, "Bus"),
+                SizedBox(height: 14.h),
+                _buildTransportModeItem(ImageConstant.imgTrain, "Train"),
+              ],
+            ),
           ),
         ),
       ),
@@ -411,12 +431,12 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
       builder: (context, ref, child) {
         final homeState = ref.watch(homeNotifier);
         return Positioned(
-          top: 110.h,
+          top: 112.h,
           right: 20.h,
-          child: CustomLiveToggleSwitch(
+          child: CustomSwitch(
             value: homeState.isLive,
             isDisabled: homeState.isToggling,
-            onChanged: (value) {
+            onChange: (value) {
               ref.read(homeNotifier.notifier).toggleIsLive(value);
             },
           ),
@@ -426,90 +446,70 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   }
 
   // Live route notification card that displays temporarily with fade effect
-  Widget _buildLiveRouteNotification(BuildContext context, bool isLive) {
+  Widget _buildLiveRouteNotificationContent(BuildContext context, bool isLive) {
     final message = isLive ? "Your route is now live" : "Your route is now disabled";
     final backgroundColor = isLive ? const Color(0xFFD4EDDA) : const Color(0xFFFFE5E5);
     final iconColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
     final messageColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
     
-    return Positioned(
-      top: 150.h,
-      left: 20.h,
-      right: 80.h,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.h),
-          border: Border.all(
-            color: backgroundColor,
-            width: 1.5.h,
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.h),
+        border: Border.all(
+          color: backgroundColor,
+          width: 1.5.h,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            spreadRadius: 0,
+            blurRadius: 8.h,
+            offset: const Offset(0, 2),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              spreadRadius: 0,
-              blurRadius: 8.h,
-              offset: const Offset(0, 2),
+          BoxShadow(
+            color: messageColor.withValues(alpha: 0.15),
+            spreadRadius: 0,
+            blurRadius: 4.h,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Container(
+            height: 36.h,
+            width: 36.h,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(18.h),
             ),
-            BoxShadow(
-              color: messageColor.withValues(alpha: 0.15),
-              spreadRadius: 0,
-              blurRadius: 4.h,
-              offset: const Offset(0, 0),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 36.h,
-              width: 36.h,
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(18.h),
-              ),
-              child: Center(
-                child: Icon(
-                  isLive ? Icons.check_circle : Icons.cancel_rounded,
-                  color: iconColor,
-                  size: 18.h,
-                ),
+            child: Center(
+              child: Icon(
+                isLive ? Icons.check_circle : Icons.cancel_rounded,
+                color: iconColor,
+                size: 18.h,
               ),
             ),
-            SizedBox(width: 12.h),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    message,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: messageColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    isLive ? 'You are now sharing your location' : 'Location sharing disabled',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey.shade600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+          ),
+          SizedBox(width: 12.h),
+          Flexible(
+            child: Text(
+              message,
+              style: CustomTextStyles.bodyMediumBluegray400,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ],
-        ),
+          ),
+          SizedBox(width: 12.h),
+          Icon(
+            Icons.close,
+            color: Colors.grey.shade600,
+            size: 20.h,
+          ),
+        ],
       ),
     );
   }
@@ -521,36 +521,38 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
       top: 60.h,
       child: GestureDetector(
         onTap: _toggleSidebar,
-        child: AnimatedBuilder(
-          animation: _filterButtonRotationAnimation,
-          builder: (context, child) {
-            return Transform.rotate(
-              angle: _filterButtonRotationAnimation.value * 2 * 3.14159, // Convert to radians
-              child: Container(
-                width: 40.h,
-                height: 40.h,
-                decoration: BoxDecoration(
-                  color: _isSidebarVisible ? Color(0xFF6A19D3) : Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 8.h,
-                      offset: Offset(0, 2),
+        child: RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: _filterButtonRotationAnimation,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _filterButtonRotationAnimation.value * 2 * 3.14159,
+                child: Container(
+                  width: 40.h,
+                  height: 40.h,
+                  decoration: BoxDecoration(
+                    color: _isSidebarVisible ? Color(0xFF6A19D3) : Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8.h,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: CustomImageView(
+                      imagePath: ImageConstant.imgFilter,
+                      height: 20.h,
+                      width: 20.h,
+                      color: _isSidebarVisible ? Colors.white : Color(0xFF6D6D6D),
                     ),
-                  ],
-                ),
-                child: Center(
-                  child: CustomImageView(
-                    imagePath: ImageConstant.imgFilter,
-                    height: 20.h,
-                    width: 20.h,
-                    color: _isSidebarVisible ? Colors.white : Color(0xFF6D6D6D),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

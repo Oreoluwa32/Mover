@@ -37,7 +37,7 @@ class ImageConstant {
   static String imgSparkleFill = '$imagePath/img_sparkle_fill.svg';
 
   // 3d car
-  static String img3DCar = '$imagePath/img_3d_car.png';
+  static String img3DCar = '$imagePath/img_3d_car.svg';
 
   // Notification bell icon
   static String imgNotificationBell = '$imagePath/img_notification_bell.svg';
@@ -46,7 +46,7 @@ class ImageConstant {
   static String imgWalkingLady = '$imagePath/img_walking_lady.png';
 
   // 3d walking man
-  static String imgWalkingMan = '$imagePath/img_walking_man.png';
+  static String imgWalkingMan = '$imagePath/img_walking_man.svg';
 
   // Filter icon
   static String imgFilter = '$imagePath/img_filter.svg';
@@ -217,7 +217,7 @@ class ImageConstant {
   static String imgNoMover = '$imagePath/img_no_mover.png';
 
   // 3d bike image
-  static String img3DBike = '$imagePath/img_3d_bike.png';
+  static String img3DBike = '$imagePath/img_3d_bike.svg';
 
   // 3d bus image
   static String img3DBus = '$imagePath/img_3d_bus.svg';
@@ -389,4 +389,10 @@ class ImageConstant {
 
   // Basic plan
   static String imgBasicPlan = '$imagePath/img_basic_plan.svg';
+
+  // Instant route
+  static String imgInstantRoute = '$imagePath/img_instant.svg';
+
+  // Calenadar add schedule
+  static String imgCalendarAdd = '$imagePath/img_calendar_add.svg';
 }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../core/app_export.dart';
 
 extension SearchViewStyleHelper on CustomSearchView{
-  static OutlineInputBorder get fillGray => OutlineInputBorder(
+  static OutlineInputBorder get outlinePrimaryTL8 => OutlineInputBorder(
     borderRadius: BorderRadius.circular(8.h),
-    borderSide: BorderSide.none,
+    borderSide: BorderSide(color: theme.colorScheme.primary),
   );
 }
 

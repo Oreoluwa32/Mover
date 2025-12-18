@@ -359,7 +359,7 @@ class AppRoutes {
 
     notificationScreen: (context) => NotificationScreen(),
 
-    initialRoute: (context) => SplashScreenOne()
+    initialRoute: (context) => HomeOneScreen()
   };
 
   /// Handle routes with parameters

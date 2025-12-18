@@ -179,7 +179,6 @@ class AddRouteScreenTwo extends StatelessWidget{
                                   horizontal: 14.h,
                                   vertical: 16.h,
                                 ),
-                                borderDecoration: SearchViewStyleHelper.fillGray,
                               ),
                             ),
                             SizedBox(width: 8.h),
