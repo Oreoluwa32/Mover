@@ -18,8 +18,9 @@ class ShareRideScreen extends ConsumerStatefulWidget {
 class ShareRideScreenState extends ConsumerState<ShareRideScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppbar(context),
       body: Container(
         width: double.maxFinite,
@@ -42,7 +43,7 @@ class ShareRideScreenState extends ConsumerState<ShareRideScreen> {
           ],
         ),
       ),
-    ));
+    );
   }
 
   // Section Widget

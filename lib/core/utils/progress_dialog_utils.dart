@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-
 // ignore for file, class must be immutable
 class ProgressDialogUtils {
   static bool isProgressVisible = false;

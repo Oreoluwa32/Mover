@@ -17,11 +17,12 @@ class ScanScreenOne extends ConsumerStatefulWidget{
 class ScanScreenOneState extends ConsumerState<ScanScreenOne>{
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.only(
             left: 16.h,
@@ -75,8 +76,7 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne>{
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget 

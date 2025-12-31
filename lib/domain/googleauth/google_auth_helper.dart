@@ -44,7 +44,6 @@ class GoogleAuthHelper {
       }
       return null;
     } catch (e) {
-      print('Backend authentication error: $e');
       return null;
     }
   }

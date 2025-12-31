@@ -17,10 +17,11 @@ class NoMoverScreen extends ConsumerStatefulWidget{
 class NoMoverScreenState extends ConsumerState<NoMoverScreen>{
     @override
     Widget build(BuildContext context){
-        return SafeArea(
-            child: Scaffold(
-                appBar: _buildAppbar(context),
-                body: Container(
+        return Scaffold(
+            extendBody: true,
+            extendBodyBehindAppBar: true,
+            appBar: _buildAppbar(context),
+            body: Container(
                     width: double.maxFinite,
                     padding: EdgeInsets.symmetric(
                         horizontal: 16.h,
@@ -37,8 +38,7 @@ class NoMoverScreenState extends ConsumerState<NoMoverScreen>{
                         ],
                     ),
                 ),
-            ),
-        );
+            );
     }
 
     // Section Widget

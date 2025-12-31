@@ -100,10 +100,11 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Form(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Form(
           key: _formKey,
           child: SizedBox(
             width: double.maxFinite,
@@ -136,8 +137,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           ),
         ),
         bottomNavigationBar: _buildButtonnav(context),
-      ),
-    );
+      );
   }
 
   // Section Widget

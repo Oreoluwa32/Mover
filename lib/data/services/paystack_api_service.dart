@@ -41,15 +41,12 @@ class PaystackApiService {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          print('[API] ${options.method} ${options.path}');
           return handler.next(options);
         },
         onError: (error, handler) {
-          print('[API ERROR] ${error.message}');
           return handler.next(error);
         },
         onResponse: (response, handler) {
-          print('[API RESPONSE] ${response.statusCode}');
           return handler.next(response);
         },
       ),

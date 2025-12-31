@@ -78,9 +78,10 @@ Future<void> createRoute(BuildContext context) async {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: Column(
             children: [
@@ -102,8 +103,7 @@ Future<void> createRoute(BuildContext context) async {
           ),
         ),
         bottomNavigationBar: _buildButtonnav(context),
-      ),
-    );
+      );
   }
 
   // Section Widget

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-const num FIGMA_DESIGN_WIDTH = 375;
-const num FIGMA_DESIGN_HEIGHT = 812;
-const num FIGMA_DESIGN_STATUS_BAR = 0;
+const num figmaDesignWidth = 375;
+const num figmaDesignHeight = 812;
+const num figmaDesignStatusBar = 0;
 
 extension ResponsiveExtension on num{
   double get _width => SizeUtils.width;
-  double get h => ((this * _width) / FIGMA_DESIGN_WIDTH);
-  double get fSize => ((this * _width) / FIGMA_DESIGN_WIDTH);
+  double get h => ((this * _width) / figmaDesignWidth);
+  double get fSize => ((this * _width) / figmaDesignWidth);
 }
 
 extension FormatExtension on double {
   double toDoubleValue({int fractionDigits = 2}){
-    return double.parse(this.toStringAsFixed(fractionDigits));
+    return double.parse(toStringAsFixed(fractionDigits));
   }
 
   double isNonZero({num defaultValue = 0.0}){
@@ -26,7 +26,7 @@ typedef ResponsiveBuild = Widget Function(
   BuildContext context, Orientation orientation, DeviceType deviceType);
 
   class Sizer extends StatelessWidget{
-    const Sizer({Key? key, required this.builder}) : super(key: key);
+    const Sizer({super.key, required this.builder});
 
     // Builds the widget whenever the orientation changes
     final ResponsiveBuild builder;

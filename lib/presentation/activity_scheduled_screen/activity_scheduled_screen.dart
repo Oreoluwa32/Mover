@@ -17,10 +17,11 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.symmetric(horizontal: 16.h),
           child: Column(
@@ -33,8 +34,7 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
             ],
           ),
         ),
-      )
-    );
+      );
   }
 
   // Section Widget 

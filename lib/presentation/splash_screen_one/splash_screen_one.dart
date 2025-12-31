@@ -25,15 +25,23 @@ class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
     final deviceMemory = DeviceMemoryService();
     await deviceMemory.init();
     
+    // Check if onboarding is completed
+    final onboardingCompleted = await PrefUtils().getOnboardingCompleted();
+    
     // Check if device is remembered (user already logged in)
     final isDeviceRemembered = await deviceMemory.isDeviceRemembered();
     
     _timer = Timer(const Duration(seconds: 3), () {
-      if (isDeviceRemembered) {
-        // User is already logged in, navigate to home
-        NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+      if (onboardingCompleted) {
+        if (isDeviceRemembered) {
+          // User already logged in, navigate to home
+          NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+        } else {
+          // Onboarding done but not logged in, navigate to login
+          NavigatorService.pushNamed(AppRoutes.signInScreen);
+        }
       } else {
-        // User is not logged in, show onboarding
+        // First time user, show onboarding splash screens
         NavigatorService.pushNamed(AppRoutes.splashScreenTwo);
       }
     });

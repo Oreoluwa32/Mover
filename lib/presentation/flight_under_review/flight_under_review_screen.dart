@@ -7,9 +7,10 @@ class FlightUnderReviewScreen extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: Column(
             children: [
@@ -47,7 +48,6 @@ class FlightUnderReviewScreen extends StatelessWidget{
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

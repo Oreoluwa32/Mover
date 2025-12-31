@@ -47,7 +47,7 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       return;
     }
 
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/reset-password');
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/reset-password/');
     try {
       final response = await http.post(
         url,

@@ -23,7 +23,7 @@ bool _obscurePassword = true;
 Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) async {
   final email = signInNotifier.state.emailController?.text ?? '';
   final password = signInNotifier.state.passwordController?.text ?? '';
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/login'); // Login endpoint
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/login/'); // Login endpoint
 
   if (email.isEmpty || password.isEmpty) {
     Fluttertoast.showToast(msg: "Email and password cannot be empty.");
@@ -59,6 +59,9 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       final deviceMemory = DeviceMemoryService();
       await deviceMemory.rememberDevice(userEmail: email);
       
+      // Mark onboarding as completed
+      await PrefUtils().setOnboardingCompleted(true);
+      
       Fluttertoast.showToast(msg: "Sign-in successful");
       // Navigate to the next screen
       if (context.mounted) {
@@ -71,7 +74,8 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
         final errorData = json.decode(response.body);
         final errorMessage = errorData['detail'] ?? 'Sign-in failed. Please try again.';
         
-        if (errorMessage == 'email_not_verified') {
+        if (errorMessage.toLowerCase().contains('email_not_verified') || 
+            errorMessage.toLowerCase().contains('not verified')) {
           // Navigate to check mail screen with email
           Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
           if (context.mounted) {
@@ -403,6 +407,9 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           // Remember device
           final deviceMemory = DeviceMemoryService();
           await deviceMemory.rememberDevice(userEmail: googleUser.email);
+          
+          // Mark onboarding as completed
+          await PrefUtils().setOnboardingCompleted(true);
           
           Fluttertoast.showToast(msg: "Sign-in successful");
           

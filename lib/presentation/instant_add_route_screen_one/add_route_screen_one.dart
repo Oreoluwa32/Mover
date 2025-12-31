@@ -42,7 +42,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
     final notifierState = ref.read(addRouteOneNotifier);
     final url =
-        Uri.parse('https://movr-api.onrender.com/api/v1/routes/instant');
+        Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
     final requestBody = {
       "location": notifierState.radioGroup,
       "destination": destinationController.text,
@@ -461,7 +461,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         vertical: 24.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           top: BorderSide(
             color: appTheme.gray20001,

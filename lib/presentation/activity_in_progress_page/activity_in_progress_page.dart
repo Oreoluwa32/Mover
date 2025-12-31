@@ -33,28 +33,28 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Container(
-          width: double.maxFinite,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-          ),
-          child: Column(
-            children: [
-              _buildAppbar(context),
-              Expanded(
-                child: TabBarView(
-                    controller: tabviewController,
-                    children: [
-                      ActivityProgressTab(),
-                      ActivityScheduledScreen(),
-                      ActivityCompletedScreen(),
-                    ],
-                  ),
-              )
-            ],
-          ),
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: double.maxFinite,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+        ),
+        child: Column(
+          children: [
+            _buildAppbar(context),
+            Expanded(
+              child: TabBarView(
+                controller: tabviewController,
+                children: [
+                  ActivityProgressTab(),
+                  ActivityScheduledScreen(),
+                  ActivityCompletedScreen(),
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );

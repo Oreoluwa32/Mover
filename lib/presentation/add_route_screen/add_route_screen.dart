@@ -16,17 +16,17 @@ class AddRouteScreen extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SizedBox(
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: Column(
             children: [_buildAddrouteone(context),SizedBox(height: 4.h)],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

@@ -13,10 +13,10 @@ class PaystackAuthResponse {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['authorization_url'] = this.authorizationUrl;
-    data['access_code'] = this.accessCode;
-    data['reference'] = this.reference;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['authorization_url'] = authorizationUrl;
+    data['access_code'] = accessCode;
+    data['reference'] = reference;
     return data;
   }
 }

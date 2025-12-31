@@ -33,7 +33,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   late Completer<GoogleMapController> googleMapController;
   late Completer<GoogleMapController> googleMapController1;
 
-  static const googleMapsApiKey = Constants.GOOGLE_MAPS_API_KEY;
+  static const googleMapsApiKey = Constants.googleMapsApiKey;
 
   // Animation controllers and variables
   late AnimationController _sidebarAnimationController;

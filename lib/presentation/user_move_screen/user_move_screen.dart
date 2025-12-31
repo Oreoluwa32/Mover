@@ -16,9 +16,10 @@ class UserMoveScreen extends ConsumerStatefulWidget{
 class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: SizedBox(
@@ -47,8 +48,7 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

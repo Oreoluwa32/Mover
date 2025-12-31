@@ -18,10 +18,11 @@ class HireMoverScreen extends ConsumerStatefulWidget{
 class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.symmetric(horizontal: 16.h),
           child: Column(
@@ -38,8 +39,7 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

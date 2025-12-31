@@ -15,10 +15,11 @@ class DeliveryRatingScreenTwo extends ConsumerStatefulWidget{
 class DeliveryRatingScreenTwoState extends ConsumerState<DeliveryRatingScreenTwo>{
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.only(
             left: 8.h,
@@ -51,8 +52,7 @@ class DeliveryRatingScreenTwoState extends ConsumerState<DeliveryRatingScreenTwo
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

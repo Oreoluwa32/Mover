@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:new_project/domain/googleauth/google_auth_helper.dart';
 import 'package:new_project/presentation/check_mail_screen/check_mail_screen.dart';
+import '../../services/device_memory_service.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../theme/custom_button_style.dart';
@@ -44,7 +45,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
 Future<void> registerUser(BuildContext context, CreateAccountNotifier createAccountNotifier) async {
   final email = createAccountNotifier.state.emailController?.text ?? '';
   final password = createAccountNotifier.state.passwordController?.text ?? '';
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/register'); // API endpoint
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/register/'); // API endpoint
 
   // Check if the fields are not empty
   if (email.isEmpty || password.isEmpty) {
@@ -83,12 +84,23 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       }
     }
     else if (response.statusCode == 400 || response.statusCode == 409) {
-    // Show error message if email already exists
+      // Show error message if email already exists
       final errorData = json.decode(response.body);
-      final errorMessage = errorData['error'] ?? 'This email is already registered. Please use a different email.';
-      Fluttertoast.showToast(msg: errorMessage);
-    }
-    else{
+      final errorMessage = errorData['message'] ?? 'Registration failed';
+      if (errorMessage.contains('already registered')) {
+        Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.checkMailScreen,
+            (route) => route.isFirst,
+            arguments: {'email': email},
+          );
+        }
+      } else {
+        Fluttertoast.showToast(msg: errorMessage);
+      }
+    } else {
       // Handle other error codes
       Fluttertoast.showToast(msg: "Registration failed. Please try again");
     }
@@ -390,6 +402,13 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     await storage.write(key: 'auth_token', value: authResponse['access_token']);
     await storage.write(key: 'refresh_token', value: authResponse['refresh_token']);
     await storage.write(key: 'user_email', value: googleUser.email);
+    
+    // Remember device
+    final deviceMemory = DeviceMemoryService();
+    await deviceMemory.rememberDevice(userEmail: googleUser.email);
+    
+    // Mark onboarding as completed
+    await PrefUtils().setOnboardingCompleted(true);
     
     Fluttertoast.showToast(msg: "Sign-up successful");
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);

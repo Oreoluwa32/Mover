@@ -125,7 +125,7 @@ class AppRoutes {
 
   static const String setDateBottomsheet = '/set_date_bottomsheet';
 
-  static const String setDateBottomsheetTwo = '/set_date_bottomsheet';
+  static const String setDateBottomsheetTwo = '/set_date_bottomsheet_two';
 
   static const String homeDeliveryRequestScreen =
       '/home_delivery_request_screen';
@@ -359,7 +359,7 @@ class AppRoutes {
 
     notificationScreen: (context) => NotificationScreen(),
 
-    initialRoute: (context) => HomeOneScreen()
+    initialRoute: (context) => MyRoutePage()
   };
 
   /// Handle routes with parameters

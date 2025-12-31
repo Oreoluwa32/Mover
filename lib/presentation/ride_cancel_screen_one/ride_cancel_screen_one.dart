@@ -18,10 +18,11 @@ class RideCancelScreenOne extends ConsumerStatefulWidget{
 class RideCancelScreenOneState extends ConsumerState<RideCancelScreenOne>{
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.symmetric(vertical: 24.h),
           child: Column(
@@ -50,8 +51,7 @@ class RideCancelScreenOneState extends ConsumerState<RideCancelScreenOne>{
           ),
         ),
         bottomNavigationBar: _buildColumndone(context),
-      )
-    );
+      );
   }
 
   // Section Widget

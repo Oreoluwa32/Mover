@@ -11,7 +11,7 @@ import '../../widgets/custom_pin_code_text_field.dart';
 
   // Function to verify OTP with backend
   Future<void> verifyOtp(BuildContext context, CheckMailNotifier checkMailNotifier, String email) async {
-    final url = Uri.parse('https://movr-api.onrender.com/api/v1/auth/verify-otp'); // API endpoint
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp'); // API endpoint
 
     // Send POST request with email and OTP
     final response = await http.post(
@@ -46,7 +46,7 @@ import '../../widgets/custom_pin_code_text_field.dart';
 
   // Function to resend OTP
   Future<void> resendOtp(BuildContext context, String email) async {
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp'); // Resend OTP endpoint
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/resend-otp/'); // Resend OTP endpoint
 
     try {
       // Show loading
@@ -154,13 +154,12 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
                       margin: EdgeInsets.symmetric(horizontal: 30.h),
                       child: Consumer(
                         builder: (context, ref, _) {
+                          final notifier = ref.watch(checkMailNotifier).otpController;
                           return CustomPinCodeTextField(
                             context: context,
-                            controller: ref.watch(checkMailNotifier).otpController, 
+                            controller: notifier, 
                             onChanged: (value) {
-                              ref.read(checkMailNotifier.notifier).state = 
-                                ref.read(checkMailNotifier.notifier).state.copyWith(
-                                  otpController: TextEditingController(text: value),);
+                              notifier?.text = value;
                             },
                           );
                         },
@@ -229,9 +228,9 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
   }
 
   // Navigates to the password success screen when the action is triggered
-  onTapVerifyEmail(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
-  }
+  // onTapVerifyEmail(BuildContext context){
+  //   Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
+  // }
 
   // Navigates back to the sign in screen when the action is triggered
   onTapBack(BuildContext context){

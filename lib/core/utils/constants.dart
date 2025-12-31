@@ -15,5 +15,5 @@ class Constants {
   static const String transaction = 'transaction';
 
   // Google Maps API Key
-  static const String GOOGLE_MAPS_API_KEY = 'AIzaSyAjeXxdRtBbs59HGHsjRko3xr1PQivmMVo';
+  static const String googleMapsApiKey = 'AIzaSyAjeXxdRtBbs59HGHsjRko3xr1PQivmMVo';
 }

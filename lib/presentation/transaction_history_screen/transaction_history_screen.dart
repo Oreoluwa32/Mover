@@ -28,11 +28,11 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
-      body: SafeArea(
-        top: false,
-        child: SizedBox(
+      body: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: SizedBox(
@@ -63,8 +63,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

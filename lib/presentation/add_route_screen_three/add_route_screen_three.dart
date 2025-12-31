@@ -58,7 +58,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final destination = notifierState.destinationController?.text;
 
     final url = Uri.parse(
-        'https://movr-api.onrender.com/api/v1/routes/scheduled');
+        'https://demosystem.pythonanywhere.com/create-scheduled-route/');
     final requestBody = {
       "location": location,
       "stop": stop,
@@ -102,8 +102,9 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       body: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -181,7 +182,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         ),
       ),
       bottomNavigationBar: _buildButtonnav(context),
-    ));
+    );
   }
 
   // Section Widget

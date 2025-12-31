@@ -59,39 +59,39 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SafeArea(
-          child: Scaffold(
-            appBar: _buildAppbar(context),
-            body: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.symmetric(horizontal: 16.h),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [SizedBox(height: 28.h), _buildSavedroute(context)],
-              ),
-            ),
-            floatingActionButton: _buildFloatingactionb(context),
-          ),
-        ),
-        if (_isExpanded)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _toggleExpanded,
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.5),
-              ),
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Stack(
+        children: [
+          Container(
+            width: double.maxFinite,
+            padding: EdgeInsets.symmetric(horizontal: 16.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [SizedBox(height: 98.h), _buildSavedroute(context)],
             ),
           ),
-        if (_isExpanded)
-          Positioned(
-            right: 16.h,
-            bottom: 80.h,
-            child: _buildOverlayButtons(context),
-          ),
-      ],
+          if (_isExpanded)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _toggleExpanded,
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          if (_isExpanded)
+            Positioned(
+              right: 16.h,
+              bottom: 80.h,
+              child: _buildOverlayButtons(context),
+            ),
+        ],
+      ),
+      floatingActionButton: _buildFloatingactionb(context),
     );
   }
 

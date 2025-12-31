@@ -24,9 +24,10 @@ class AddRouteScreenTwo extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: Column(
             children: [
@@ -52,8 +53,7 @@ class AddRouteScreenTwo extends StatelessWidget{
           ),
         ),
         bottomNavigationBar: _buildButtonnav(context),
-      ),
-    );
+      );
   }
 
   // Section Widget

@@ -18,10 +18,11 @@ class ReferFriendsScreen extends ConsumerStatefulWidget{
 class ReferFriendsScreenState extends ConsumerState<ReferFriendsScreen>{
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppBar(context),
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppBar(context),
+      body: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: Container(
@@ -84,8 +85,7 @@ class ReferFriendsScreenState extends ConsumerState<ReferFriendsScreen>{
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

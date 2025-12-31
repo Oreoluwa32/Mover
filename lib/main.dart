@@ -32,7 +32,7 @@ void main() {
 }
 
 class MyApp extends ConsumerWidget {
-  const MyApp();
+  const MyApp({super.key});
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {

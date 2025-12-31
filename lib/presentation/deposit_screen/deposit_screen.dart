@@ -19,10 +19,11 @@ class DepositScreen extends ConsumerStatefulWidget {
 class DepositScreenState extends ConsumerState<DepositScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Padding(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Padding(
           padding: EdgeInsets.only(top: 24.h),
           child: Consumer(
             builder: (context, ref, _) {
@@ -54,8 +55,7 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
             },
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

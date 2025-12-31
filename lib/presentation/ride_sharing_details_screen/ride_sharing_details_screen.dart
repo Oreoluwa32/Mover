@@ -23,8 +23,9 @@ class RideSharingDetailsScreenState
     extends ConsumerState<RideSharingDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       appBar: _buildAppbar(context),
       body: SizedBox(
         width: double.maxFinite,
@@ -54,7 +55,7 @@ class RideSharingDetailsScreenState
         ),
       ),
       bottomNavigationBar: _buildButtonnav(context),
-    ));
+    );
   }
 
   // Section Widget

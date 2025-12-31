@@ -10,9 +10,10 @@ class PasswordSuccessScreen extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: Column(
             children: [
@@ -78,8 +79,7 @@ class PasswordSuccessScreen extends StatelessWidget{
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Navigates to the sign in screen when the action is triggered

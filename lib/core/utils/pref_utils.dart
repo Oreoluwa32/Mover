@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:ui';
-import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ignore for file: must  be immutable
@@ -15,7 +12,6 @@ class PrefUtils {
 
   Future<void> init() async {
     _sharedPreferences ??= await SharedPreferences.getInstance();
-    print('SharedPreference Initialized');
   }
 
   // Will clear all the data stored in preference
@@ -51,5 +47,17 @@ class PrefUtils {
 
   Future<void> clearProfileImagePath() {
     return _sharedPreferences!.remove('profileImagePath');
+  }
+
+  Future<void> setOnboardingCompleted(bool completed) {
+    return _sharedPreferences!.setBool('onboardingCompleted', completed);
+  }
+
+  Future<bool> getOnboardingCompleted() async {
+    try {
+      return _sharedPreferences!.getBool('onboardingCompleted') ?? false;
+    } catch (e) {
+      return false;
+    }
   }
 }

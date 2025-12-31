@@ -10,10 +10,11 @@ class TrainLogRejectedScreen extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.only(
             left: 16.h,
@@ -69,8 +70,7 @@ class TrainLogRejectedScreen extends StatelessWidget{
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

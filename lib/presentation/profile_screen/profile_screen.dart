@@ -61,11 +61,12 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.symmetric(horizontal: 16.h),
           child: SingleChildScrollView(
@@ -86,8 +87,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         //   margin: EdgeInsets.symmetric(horizontal: 16.h),
         //   child: _buildBottombar(context),
         // ),
-      ),
-    );
+      );
   }
 
   // Section Widget

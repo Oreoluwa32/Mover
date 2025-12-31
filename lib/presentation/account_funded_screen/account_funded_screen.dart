@@ -14,10 +14,11 @@ class AccountFundedScreen extends ConsumerStatefulWidget {
 class AccountFundedScreenState extends ConsumerState<AccountFundedScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: _buildAppbar(context),
+      body: Container(
           width: double.maxFinite,
           padding: EdgeInsets.symmetric(horizontal: 8.h),
           child: Column(
@@ -32,8 +33,7 @@ class AccountFundedScreenState extends ConsumerState<AccountFundedScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // Section Widget

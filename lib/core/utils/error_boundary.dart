@@ -5,24 +5,22 @@ class ErrorBoundary extends StatefulWidget {
   late final Function(dynamic error, StackTrace stackTrace) errorCallback;
 
   ErrorBoundary({
-    Key? key,
+    super.key,
     required this.child,
     Function(dynamic error, StackTrace stackTrace)? onError,
-  }) : super(key: key) {
+  }) {
     errorCallback = (error, stackTrace) {
       if (onError != null) {
         onError(error, stackTrace);
-      } else {
-        print('Error: $error');
       }
     };
   }
 
   @override
-  _ErrorBoundaryState createState() => _ErrorBoundaryState();
+  ErrorBoundaryState createState() => ErrorBoundaryState();
 }
 
-class _ErrorBoundaryState extends State<ErrorBoundary> {
+class ErrorBoundaryState extends State<ErrorBoundary> {
   late Object error;
   late StackTrace stackTrace;
   bool hasError = false;

@@ -18,9 +18,7 @@ class NetworkInfo implements NetworkInfoI{
     return _networkInfo;
   }
 
-  NetworkInfo._internal(this.connectivity){
-    connectivity = this.connectivity;
-  }
+  NetworkInfo._internal(this.connectivity);
 
   // Checks if the internet is connected or not. Then returns true if its connected and false if its not
   @override

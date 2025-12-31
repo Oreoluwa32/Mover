@@ -20,9 +20,10 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: SizedBox(
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: Container(
@@ -86,8 +87,7 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
           child: _buildBottombar(context),
         ),
         floatingActionButton: _buildFloatingactionb(context),
-      )
-    );
+      );
   }
 
   // Section Widget

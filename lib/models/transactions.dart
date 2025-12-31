@@ -5,9 +5,9 @@ class Transactions {
   String? domain;
   String? status;
   String? reference;
-  Null? receiptNumber;
+  dynamic receiptNumber;
   int? amount;
-  Null? message;
+  dynamic message;
   String? gatewayResponse;
   String? paidAt;
   String? createdAt;
@@ -52,22 +52,22 @@ class Transactions {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['domain'] = this.domain;
-    data['status'] = this.status;
-    data['reference'] = this.reference;
-    data['receipt_number'] = this.receiptNumber;
-    data['amount'] = this.amount;
-    data['message'] = this.message;
-    data['gateway_response'] = this.gatewayResponse;
-    data['paid_at'] = this.paidAt;
-    data['created_at'] = this.createdAt;
-    data['channel'] = this.channel;
-    data['currency'] = this.currency;
-    data['fees'] = this.fees;
-    if (this.customer != null) {
-      data['customer'] = this.customer!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['domain'] = domain;
+    data['status'] = status;
+    data['reference'] = reference;
+    data['receipt_number'] = receiptNumber;
+    data['amount'] = amount;
+    data['message'] = message;
+    data['gateway_response'] = gatewayResponse;
+    data['paid_at'] = paidAt;
+    data['created_at'] = createdAt;
+    data['channel'] = channel;
+    data['currency'] = currency;
+    data['fees'] = fees;
+    if (customer != null) {
+      data['customer'] = customer!.toJson();
     }
     return data;
   }
