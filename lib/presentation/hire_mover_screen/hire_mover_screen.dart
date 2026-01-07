@@ -19,8 +19,8 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBody: false,
+      extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Container(
           width: double.maxFinite,
@@ -29,13 +29,14 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 24.h),
+              SizedBox(height: 6.h),
               Text(
                 "234 movers are heading your direction",
                 style: CustomTextStyles.bodyMediumMulishBlack900,
               ),
               SizedBox(height: 28.h),
-              _buildMoverlist(context)
+              _buildMoverlist(context),
+              SizedBox(height: 24.h),
             ],
           ),
         ),
@@ -51,8 +52,8 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
         imagePath: ImageConstant.imgLeftArrow,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 44.h,
-          bottom: 22.h
+          top: 24.h,
+          bottom: 42.h
         ),
         onTap: () {
           onTapBack(context);
@@ -62,21 +63,21 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
       title: AppbarSubtitle(
         text: "Movers",
         margin: EdgeInsets.only(
-          top: 45.h,
-          bottom: 20.h,
+          top: 25.h,
+          bottom: 40.h,
         ),
       ),
       actions: [
         AppbarTrailingImage(
           imagePath: ImageConstant.imgSort,
           margin: EdgeInsets.only(
-            top: 44.h,
-            bottom: 22.h,
+            top: 24.h,
+            bottom: 42.h,
           ),
         ),
         AppbarTrailingImage(
           imagePath: ImageConstant.imgFilter,
-          margin: EdgeInsets.fromLTRB(8.h, 44.h, 15.h, 22.h),
+          margin: EdgeInsets.fromLTRB(8.h, 24.h, 15.h, 42.h),
         )
       ],
       styleType: Style.bgOutline,

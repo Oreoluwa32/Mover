@@ -36,14 +36,30 @@ class HomeNotifier extends StateNotifier<HomeState>{
     }
   }
 
-  /// Toggle isLive status and show temporary notification
-  Future<void> toggleIsLive(bool value) async {
-    state = state.copyWith(
-      isLive: value,
-      showLiveNotification: true,
-    );
+  /// Toggle isLive status and call backend API
+  Future<void> toggleIsLive(bool value, {String? routeId}) async {
+    state = state.copyWith(isToggling: true);
     
-    await Future.delayed(const Duration(seconds: 3));
-    state = state.copyWith(showLiveNotification: false);
+    try {
+      await _userApiService.toggleLiveStatus(
+        routeId: routeId ?? '',
+        isLive: value,
+      );
+      
+      state = state.copyWith(
+        isLive: value,
+        showLiveNotification: true,
+        isToggling: false,
+      );
+      
+      await Future.delayed(const Duration(seconds: 3));
+      state = state.copyWith(showLiveNotification: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLive: !value,
+        isToggling: false,
+      );
+      rethrow;
+    }
   }
 }

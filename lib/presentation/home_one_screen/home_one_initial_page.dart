@@ -268,9 +268,8 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   Widget _buildTopNotificationBar(BuildContext context) {
     return IgnorePointer(
       child: Positioned(
-        top: 65.h,
-        left: 70.h,
-        // right: 20.h,
+        top: MediaQuery.of(context).size.height / 2 - 20.h,
+        left: MediaQuery.of(context).size.width / 2 - 80.h,
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
           decoration: BoxDecoration(
@@ -453,6 +452,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
     final messageColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
     
     return Container(
+      margin: EdgeInsets.only(top: 160.h, right: 16.h, left: 16.h),
       padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -504,11 +504,6 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
             ),
           ),
           SizedBox(width: 12.h),
-          Icon(
-            Icons.close,
-            color: Colors.grey.shade600,
-            size: 20.h,
-          ),
         ],
       ),
     );

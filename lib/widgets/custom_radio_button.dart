@@ -3,7 +3,7 @@ import '../core/app_export.dart';
 
 extension RadioStyleHelper on CustomRadioButton{
   static BoxDecoration get fillOnPrimary => BoxDecoration(
-    color: theme.colorScheme.onPrimary.withOpacity(1),
+    color: theme.colorScheme.onPrimary.withValues(alpha: 1),
   );
 }
 
@@ -92,20 +92,39 @@ extension RadioStyleHelper on CustomRadioButton{
     textAlign: textAlignment ?? TextAlign.start,
     style: textStyle ?? CustomTextStyles.bodySmallOnPrimaryContainer,
   );
-  Widget get radioButtonWidget => SizedBox(
-    height: iconSize,
-    width: iconSize,
-    child: Radio<String>(
-      visualDensity: VisualDensity(
-        vertical: -4,
-        horizontal: -4,
+  Widget get radioButtonWidget {
+    final size = iconSize ?? 20.0;
+    return SizedBox(
+      height: size,
+      width: size,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: groupValue == (value ?? "")
+            ? theme.colorScheme.primary
+            : appTheme.gray400,
+        ),
+        padding: EdgeInsets.all(size * 0.1),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+          ),
+          child: Center(
+            child: groupValue == (value ?? "")
+              ? Container(
+                  width: size * 0.45,
+                  height: size * 0.45,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colorScheme.primary,
+                  ),
+                )
+              : SizedBox.shrink(),
+          ),
+        ),
       ),
-      value: value ?? "",
-      groupValue: groupValue,
-      onChanged: (value) {
-        onChange(value!);
-      }
-    ),
-  );
+    );
+  }
   BoxDecoration get radioButtonDecoration => BoxDecoration(color: backgroundColor);
 }

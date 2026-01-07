@@ -98,7 +98,9 @@ class CustomDropDown extends StatelessWidget{
       decoration: decoration,
       validator: validator,
       onChanged: (value){
-        onChanged!(value.toString());
+        if (onChanged != null) {
+          onChanged!(value.toString());
+        }
       },
     ),
   );

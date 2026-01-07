@@ -16,6 +16,7 @@ final addRouteTwoNotifier =
     setTimeController: TextEditingController(),
     setTimeBeginController: TextEditingController(),
     setTimeEndController: TextEditingController(),
+    routeNameController: TextEditingController(),
     serviceDropdownValue: SelectionPopupModel(title: ''),
     repeatDropdownValue: SelectionPopupModel(title: ''),
     maxCapDropdownValue: SelectionPopupModel(title: ''),
@@ -81,5 +82,33 @@ class AddRouteTwoNotifier extends StateNotifier<AddRouteTwoState> {
   // Update the state with the image path
   void uploadImage(String imagePath) {
     state = state.copyWith(imagePath: imagePath);
+  }
+
+  void toggleStopField() {
+    state = state.copyWith(showStopField: !state.showStopField);
+  }
+
+  void selectServiceType(SelectionPopupModel service) {
+    state = state.copyWith(serviceDropdownValue: service);
+  }
+
+  void updateDateField(String dateText) {
+    state.setDateController?.text = dateText;
+    state = state.copyWith();
+  }
+
+  void updateTimeField(String timeText) {
+    state.setTimeController?.text = timeText;
+    state = state.copyWith();
+  }
+
+  void updateTimeBeginField(String timeText) {
+    state.setTimeBeginController?.text = timeText;
+    state = state.copyWith();
+  }
+
+  void updateTimeEndField(String timeText) {
+    state.setTimeEndController?.text = timeText;
+    state = state.copyWith();
   }
 }

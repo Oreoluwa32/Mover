@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import '../core/app_export.dart';
-import '../core/utils/pref_utils.dart';
 
 enum BottomBarEnum {Home, Route, Move, Activity, Profile}
 

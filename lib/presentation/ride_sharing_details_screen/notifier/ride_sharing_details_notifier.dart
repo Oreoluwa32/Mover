@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/app_export.dart';
 import '../../../data/models/selectionPopupModel/selection_popup_model.dart';
@@ -9,16 +8,16 @@ final rideSharingDetailsNotifier = StateNotifierProvider.autoDispose<
     RideSharingDetailsNotifier, RideSharingDetailsState>(
   (ref) => RideSharingDetailsNotifier(RideSharingDetailsState(
     selectedDropDownValue: SelectionPopupModel(title: ''),
-    radioGroup: "",
+    destination: "",
     rideSharingDetailsModelObj: RideSharingDetailsModel(dropdownItemList: [
-      SelectionPopupModel(id: 1, title: "Item One", isSelected: true),
+      SelectionPopupModel(id: 1, title: "1 passenger", isSelected: true),
       SelectionPopupModel(
         id: 2,
-        title: "Item Two",
+        title: "2 passengers",
       ),
       SelectionPopupModel(
         id: 3,
-        title: "Item Three",
+        title: "3 passengers",
       )
     ]),
   )),
@@ -29,7 +28,7 @@ class RideSharingDetailsNotifier
     extends StateNotifier<RideSharingDetailsState> {
   RideSharingDetailsNotifier(RideSharingDetailsState state) : super(state);
 
-  void changeRadioButton(String value) {
-    state = state.copyWith(radioGroup: value);
+  void updateDestination(String value) {
+    state = state.copyWith(destination: value);
   }
 }

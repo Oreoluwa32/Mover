@@ -14,29 +14,34 @@ class ChipviewoneItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        canvasColor: Colors.transparent,
-      ),
-      child: RawChip(
-        showCheckmark: false,
-        labelPadding: EdgeInsets.zero,
-        label: Text(
-          daysItemModelObj.days!,
-          style: TextStyle(
-            color: appTheme.blueGray800,
-            fontSize: 14.fSize,
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w400,
+    final isSelected = daysItemModelObj.isSelected ?? false;
+    
+    return GestureDetector(
+      onTap: () {
+        onSelectedDay?.call(!isSelected);
+      },
+      child: Container(
+        width: 40.h,
+        height: 40.h,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelected
+              ? appTheme.deepPurple600
+              : appTheme.gray200,
+        ),
+        child: Center(
+          child: Text(
+            daysItemModelObj.days!,
+            style: TextStyle(
+              color: isSelected
+                  ? Colors.white
+                  : appTheme.blueGray800,
+              fontSize: 14.fSize,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        selected: (daysItemModelObj.isSelected ?? false),
-        backgroundColor: Colors.transparent,
-        selectedColor: Colors.transparent,
-        side: BorderSide.none,
-        onSelected: (value) {
-          onSelectedDay?.call(value);
-        },
       ),
     );
   }

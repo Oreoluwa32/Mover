@@ -180,14 +180,20 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                 color: Colors.white,
                 borderRadius: BorderRadiusStyle.roundedBorder4,
               ),
-              child: Text(
-                'Instant route',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12.fSize,
+              child: GestureDetector(
+                child: Text(
+                  'Instant route',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12.fSize,
+                  ),
                 ),
-              ),
+                onTap: () {
+                  _toggleExpanded();
+                  onTapInstant(context);
+                },
+              )
             ),
             SizedBox(width: 12.h),
             GestureDetector(
@@ -228,14 +234,20 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                 color: Colors.white,
                 borderRadius: BorderRadiusStyle.roundedBorder4,
               ),
-              child: Text(
-                'Schedule route',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12.fSize,
+              child: GestureDetector(
+                child: Text(
+                  'Schedule route',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12.fSize,
+                  ),
                 ),
-              ),
+                onTap: () {
+                  _toggleExpanded();
+                  onTapSchedule(context);
+                },
+              )
             ),
             SizedBox(width: 12.h),
             GestureDetector(

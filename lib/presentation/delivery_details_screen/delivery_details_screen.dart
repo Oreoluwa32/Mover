@@ -19,6 +19,7 @@ import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_radio_button.dart';
 import '../../widgets/custom_search_view.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import 'notifier/delivery_details_notifier.dart';
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
@@ -61,7 +62,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
     final destination = state.destinationController?.text;
 
     final url =
-        Uri.parse('https://movr-api.onrender.com/api/v1/deliveries');
+        Uri.parse('https://demosystem.pythonanywhere.com/submit-package');
     // Gather details
     final requestBody = {
       "location": location,
@@ -101,8 +102,8 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBody: false,
+      extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Form(
           key: _formKey,
@@ -113,7 +114,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                 width: double.maxFinite,
                 padding: EdgeInsets.only(
                   left: 16.h,
-                  top: 24.h,
+                  // top: 12.h,
                   right: 16.h,
                 ),
                 child: Column(
@@ -149,8 +150,8 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
         imagePath: ImageConstant.imgLeftArrow,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 44.h,
-          bottom: 22.h,
+          top: 26.h,
+          bottom: 32.h,
         ),
         onTap: () {
           onTapBack(context);
@@ -160,8 +161,8 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       title: AppbarSubtitle(
         text: "Send a package",
         margin: EdgeInsets.only(
-          top: 46.h,
-          bottom: 19.h,
+          top: 26.h,
+          bottom: 32.h,
         ),
       ),
       styleType: Style.bgOutline,
@@ -224,45 +225,66 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           Consumer(
             builder: (context, ref, _) {
               final imagePath = ref.watch(deliveryDetailsNotifier).imagePath;
+              final fileName = imagePath != null
+                  ? imagePath.split('/').last
+                  : null;
               return GestureDetector(
                 onTap: () {
-                  requestCameraGalleryPermission(context);
+                  requestCameraGalleryPermission(context, ref);
                 },
                 child: Container(
                   width: double.maxFinite,
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.onPrimary.withOpacity(1),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 1),
                     borderRadius: BorderRadiusStyle.roundedBorder8,
                     border: Border.all(
                       color: appTheme.blueGray10002,
                       width: 1.h,
                     ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomIconButton(
-                        height: 40.h,
-                        width: 40.h,
-                        padding: EdgeInsets.all(10.h),
-                        decoration: IconButtonStyleHelper.outlineGray,
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgCloudUpload,
+                  child: imagePath != null
+                      ? Column(
+                          children: [
+                            CustomImageView(
+                              imagePath: imagePath,
+                              width: double.maxFinite,
+                              height: 150.h,
+                              fit: BoxFit.cover,
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              'File: $fileName',
+                              style: CustomTextStyles.bodySmallInterGray600_1,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomIconButton(
+                              height: 40.h,
+                              width: 40.h,
+                              padding: EdgeInsets.all(10.h),
+                              decoration: IconButtonStyleHelper.outlineGray,
+                              child: CustomImageView(
+                                imagePath: ImageConstant.imgCloudUpload,
+                              ),
+                            ),
+                            SizedBox(height: 12.h),
+                            Text(
+                              "Click to upload",
+                              style: CustomTextStyles.titleSmallInterPrimary,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              "PNG or JPG (max. 5MB)",
+                              style: CustomTextStyles.bodySmallInterGray600_1,
+                            )
+                          ],
                         ),
-                      ),
-                      SizedBox(height: 12.h),
-                      Text(
-                        "Click to upload",
-                        style: CustomTextStyles.titleSmallInterPrimary,
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        "PNG or JPG (max. 800x400px)",
-                        style: CustomTextStyles.bodySmallInterGray600_1,
-                      )
-                    ],
-                  ),
                 ),
               );
             },
@@ -454,7 +476,20 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       text: "Find Mover",
       buttonStyle: CustomButtonStyles.fillBlueGray,
       onPressed: () {
-        NavigatorService.pushNamed(AppRoutes.searchMoverBottomsheet);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.homeOneScreen,
+          (route) => false,
+        );
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            showModalBottomSheet(
+              context: context,
+              builder: (context) => const SearchMoverBottomsheet(),
+              isScrollControlled: true,
+            );
+          }
+        });
       },
     );
   }
@@ -466,10 +501,10 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
-        vertical: 24.h,
+        vertical: 22.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           top: BorderSide(
             color: appTheme.gray20001,
@@ -491,12 +526,15 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
   // Requests permission to access the camera and storage, and displays a model sheet for selecting images
   // Throws an error if permission is denied or an error occures while selecting images
-  requestCameraGalleryPermission(BuildContext context) async {
+  requestCameraGalleryPermission(BuildContext context, WidgetRef ref) async {
     await PermissionManager.requestPermission(Permission.camera);
     await PermissionManager.requestPermission(Permission.storage);
-    List<String?>? imageList = [];
     await FileManager().showModelSheetForImage(getImages: (value) async {
-      imageList = value;
+      if (value.isNotEmpty && value[0] != null) {
+        ref.read(deliveryDetailsNotifier.notifier).uploadImage(value[0]!);
+        final fileName = value[0]!.split('/').last;
+        Fluttertoast.showToast(msg: "Image uploaded: $fileName");
+      }
     });
   }
 }

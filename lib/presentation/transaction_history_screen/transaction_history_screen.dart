@@ -29,7 +29,6 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
       body: SizedBox(
@@ -252,7 +251,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
               buttonTextStyle: CustomTextStyles.titleSmallInterPrimary,
               onPressed: () {
                 // ✅ NEW: Show quick deposit bottom sheet immediately
-                _showQuickDepositSheet(context);
+                onTapDeposit(context);
               },
             ),
           ),
@@ -301,5 +300,10 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
       isDismissible: true,
       backgroundColor: Colors.transparent,
     );
+  }
+
+  // Navigates to the deposit screen
+  onTapDeposit(BuildContext context) {
+    NavigatorService.pushNamed(AppRoutes.depositScreen);
   }
 }

@@ -11,6 +11,7 @@ class AddRouteTwoState extends Equatable {
       this.setTimeController,
       this.setTimeBeginController,
       this.setTimeEndController,
+      this.routeNameController,
       this.serviceDropdownValue,
       this.repeatDropdownValue,
       this.maxCapDropdownValue,
@@ -18,6 +19,7 @@ class AddRouteTwoState extends Equatable {
       this.returnRadio = "",
       this.setTime,
       this.imagePath,
+      this.showStopField = false,
       this.addRouteTwoModelObj});
 
   TextEditingController? locationController;
@@ -27,6 +29,7 @@ class AddRouteTwoState extends Equatable {
   TextEditingController? setTimeController;
   TextEditingController? setTimeBeginController;
   TextEditingController? setTimeEndController;
+  TextEditingController? routeNameController;
   SelectionPopupModel? serviceDropdownValue;
   SelectionPopupModel? repeatDropdownValue;
   SelectionPopupModel? maxCapDropdownValue;
@@ -35,6 +38,7 @@ class AddRouteTwoState extends Equatable {
   String returnRadio;
   TimeOfDay? setTime;
   String? imagePath;
+  bool showStopField;
 
   @override
   List<Object?> get props => [
@@ -45,6 +49,7 @@ class AddRouteTwoState extends Equatable {
         setTimeController,
         setTimeBeginController,
         setTimeEndController,
+        routeNameController,
         serviceDropdownValue,
         repeatDropdownValue,
         maxCapDropdownValue,
@@ -52,6 +57,7 @@ class AddRouteTwoState extends Equatable {
         returnRadio,
         setTime,
         imagePath,
+        showStopField,
         addRouteTwoModelObj
       ];
   AddRouteTwoState copyWith(
@@ -62,6 +68,7 @@ class AddRouteTwoState extends Equatable {
       TextEditingController? setTimeController,
       TextEditingController? setTimeBeginController,
       TextEditingController? setTimeEndController,
+      TextEditingController? routeNameController,
       SelectionPopupModel? serviceDropdownValue,
       SelectionPopupModel? repeatDropdownValue,
       SelectionPopupModel? maxCapDropdownValue,
@@ -69,7 +76,8 @@ class AddRouteTwoState extends Equatable {
       String? radioGroup,
       String? returnRadio,
       TimeOfDay? setTime,
-      String? imagePath}) {
+      String? imagePath,
+      bool? showStopField}) {
     return AddRouteTwoState(
         locationController: locationController ?? this.locationController,
         stopController: stopController ?? this.stopController,
@@ -79,6 +87,7 @@ class AddRouteTwoState extends Equatable {
         setTimeBeginController:
             setTimeBeginController ?? this.setTimeBeginController,
         setTimeEndController: setTimeEndController ?? this.setTimeEndController,
+        routeNameController: routeNameController ?? this.routeNameController,
         serviceDropdownValue: serviceDropdownValue ?? this.serviceDropdownValue,
         repeatDropdownValue: repeatDropdownValue ?? this.repeatDropdownValue,
         maxCapDropdownValue: maxCapDropdownValue ?? this.maxCapDropdownValue,
@@ -86,6 +95,7 @@ class AddRouteTwoState extends Equatable {
         returnRadio: returnRadio ?? this.returnRadio,
         setTime: setTime ?? this.setTime,
         imagePath: imagePath ?? this.imagePath,
+        showStopField: showStopField ?? this.showStopField,
         addRouteTwoModelObj: addRouteTwoModelObj ?? this.addRouteTwoModelObj);
   }
 }

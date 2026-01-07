@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     PAYSTACK_PUBLIC_KEY: str = ""
     PAYSTACK_SECRET_KEY: str = ""
     
+    # Monnify Payment
+    MONNIFY_API_KEY: str = ""
+    MONNIFY_SECRET_KEY: str = ""
+    MONNIFY_CONTRACT_CODE: str = ""
+    
     # Cloudinary File Storage
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""

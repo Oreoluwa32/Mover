@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
@@ -26,6 +27,7 @@ class AddRouteScreenOne extends ConsumerStatefulWidget {
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
   TextEditingController locationController = TextEditingController();
+  TextEditingController stopController = TextEditingController();
   TextEditingController destinationController = TextEditingController();
 
   Future<String?> getToken() async {
@@ -96,7 +98,14 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+      child: Scaffold(
         body: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -119,7 +128,8 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
           ),
         ),
         bottomNavigationBar: _buildButtonnav(context),
-      );
+      ),
+    );
   }
 
   // Section Widget
@@ -127,11 +137,11 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.only(
-        top: 24.h,
+        // top: 24.h,
         bottom: 22.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           bottom: BorderSide(
             color: appTheme.gray20001,
@@ -140,7 +150,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         ),
         boxShadow: [
           BoxShadow(
-            color: appTheme.black900.withOpacity(0.08),
+            color: appTheme.black900.withValues(alpha: 0.08),
             spreadRadius: 2.h,
             blurRadius: 2.h,
             offset: const Offset(
@@ -204,6 +214,21 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                         ref
                             .read(addRouteOneNotifier.notifier)
                             .changeRadioButton('location');
+                      },
+                    );
+                  },
+                ),
+                SizedBox(height: 16.h),
+                Consumer(
+                  builder: (context, ref, _) {
+                    return CustomTextFormField(
+                      controller: stopController,
+                      hintText: "Add Stop",
+                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
+                      onTap: () {
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .changeRadioButton('stop');
                       },
                     );
                   },
@@ -310,11 +335,12 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                             .selectTransportMode(index);
                       },
                       child: Container(
+                        width: 100.h,
                         padding: EdgeInsets.all(15.h),
                         margin: EdgeInsets.only(right: 25.h),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? theme.colorScheme.primary.withOpacity(0.1)
+                              ? theme.colorScheme.primary.withValues(alpha: 0.1)
                               : Colors.transparent,
                           border: Border.all(
                             color: isSelected
@@ -325,11 +351,13 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                           borderRadius: BorderRadius.circular(8.h),
                         ),
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CustomImageView(
                               imagePath: mode.meansImage ?? '',
                               height: 40.h,
                               width: 40.h,
+                              fit: BoxFit.contain,
                             ),
                             SizedBox(height: 8.h),
                             Text(
@@ -339,6 +367,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                                     ? theme.colorScheme.primary
                                     : appTheme.gray600,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
@@ -385,10 +414,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                             fit: BoxFit.contain,
                           ),
                         ),
-                        textStyle: theme.textTheme.bodySmall,
+                        textStyle: theme.textTheme.bodySmall?.copyWith(color: appTheme.black900),
                         iconSize: 16.h,
                         hintText: "Type of service",
-                        hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray40001),
+                        hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray600),
                         items: ref
                                 .watch(addRouteOneNotifier)
                                 .addRouteOneModelObj
@@ -458,7 +487,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
-        vertical: 24.h,
+        vertical: 22.h,
       ),
       decoration: BoxDecoration(
         color: theme.colorScheme.onPrimary.withValues(alpha: 1),
@@ -501,19 +530,16 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      // builder: (BuildContext context, Widget? child) {
-      //   return Theme(
-      //     data: ThemeData.light().copyWith(
-      //       timePickerTheme: TimePickerThemeData(
-      //         hourMinuteTextColor: Colors.black87,
-      //         dayPeriodColor: Theme.of(context).primaryColor,
-      //         dayPeriodTextColor: Theme.of(context).primaryColor,
-      //         backgroundColor: Colors.white
-      //       ),
-      //     ),
-      //     child: child!,
-      //   );
-      // },
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: theme.colorScheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {

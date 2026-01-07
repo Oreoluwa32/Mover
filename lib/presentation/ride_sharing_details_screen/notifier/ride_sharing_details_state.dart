@@ -5,24 +5,24 @@ part of 'ride_sharing_details_notifier.dart';
 class RideSharingDetailsState extends Equatable {
   RideSharingDetailsState(
       {this.selectedDropDownValue,
-      this.radioGroup = "",
+      this.destination = "",
       this.rideSharingDetailsModelObj});
 
   SelectionPopupModel? selectedDropDownValue;
   RideSharingDetailsModel? rideSharingDetailsModelObj;
-  String radioGroup;
+  String destination;
 
   @override
   List<Object?> get props =>
-      [selectedDropDownValue, radioGroup, rideSharingDetailsModelObj];
+      [selectedDropDownValue, destination, rideSharingDetailsModelObj];
   RideSharingDetailsState copyWith(
       {SelectionPopupModel? selectedDropDownValue,
-      String? radioGroup,
+      String? destination,
       RideSharingDetailsModel? rideSharingDetailsModelObj}) {
     return RideSharingDetailsState(
         selectedDropDownValue:
             selectedDropDownValue ?? this.selectedDropDownValue,
-        radioGroup: radioGroup ?? this.radioGroup,
+        destination: destination ?? this.destination,
         rideSharingDetailsModelObj:
             rideSharingDetailsModelObj ?? this.rideSharingDetailsModelObj);
   }

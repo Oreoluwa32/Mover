@@ -21,7 +21,7 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Padding(
           padding: EdgeInsets.only(top: 24.h),
@@ -73,7 +73,7 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Deposit",
-        margin: EdgeInsets.only(top: 44.h, bottom: 23.h),
+        margin: EdgeInsets.only(top: 34.h, bottom: 23.h),
       ),
       styleType: Style.bgOutline,
     );
@@ -84,12 +84,16 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
     NavigatorService.goBack();
   }
 
+  // onTapCard(BuildContext context) {
+  //   showModalBottomSheet(
+  //                       context: context, 
+  //                       builder: (_) => DepositBottomsheet(),
+  //                       isScrollControlled: true,
+  //                       isDismissible: true
+  //                     );
+  // }
+
   onTapCard(BuildContext context) {
-    showModalBottomSheet(
-                        context: context, 
-                        builder: (_) => DepositBottomsheet(),
-                        isScrollControlled: true,
-                        isDismissible: true
-                      );
+    NavigatorService.pushNamed(AppRoutes.depositScreenTwo);
   }
 }

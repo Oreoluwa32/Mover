@@ -65,6 +65,10 @@ import '../presentation/delivery_pickup_screen_two/delivery_pickup_screen_two.da
 import '../presentation/scan_screen_one/scan_screen_one.dart';
 import '../presentation/notification_screen/notification_screen.dart';
 import '../presentation/paystack_payment_screen/paystack_payment_screen.dart';
+import '../presentation/monnify_payment_screen/monnify_payment_screen.dart';
+import '../presentation/schedule_move_bottomsheet/schedule_move_bottomsheet.dart';
+import '../presentation/ride_sharing_details_screen/ride_sharing_details_screen.dart';
+import '../presentation/schedule_move_bottomsheet_one/schedule_move_bottomsheet_one.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -87,6 +91,8 @@ class AppRoutes {
   static const String passwordCheckMailScreen = '/password_check_mail_screen';
 
   static const String homeScreenDialog = '/home_screen_dialog';
+
+  static const String scheduleMoveBottomsheetOne = '/schedule_move_bottomsheet_one';
 
   static const String verificationScreen = '/verification_screen';
 
@@ -126,6 +132,9 @@ class AppRoutes {
   static const String setDateBottomsheet = '/set_date_bottomsheet';
 
   static const String setDateBottomsheetTwo = '/set_date_bottomsheet_two';
+
+  static const String rideSharingDetailsScreen =
+      '/ride_sharing_details_screen';
 
   static const String homeDeliveryRequestScreen =
       '/home_delivery_request_screen';
@@ -206,7 +215,11 @@ class AppRoutes {
 
   static const String notificationScreen = '/notification_screen';
 
+  static const String scheduleMoveBottomsheet = 'schedule_move_bottomsheet';
+
   static const String paystackPaymentScreen = '/paystack_payment_screen';
+
+  static const String monnifyPaymentScreen = '/monnify_payment_screen';
 
   static const String initialRoute = '/initialRoute';
 
@@ -259,9 +272,13 @@ class AppRoutes {
 
     vehicleInformationScreen: (context) => VehicleInformationScreen(),
 
+    rideSharingDetailsScreen: (context) => RideSharingDetailsScreen(),
+
     underReviewScreen: (context) => UnderReviewScreen(),
 
     selectPlanScreen: (context) => SelectPlanScreen(),
+
+    scheduleMoveBottomsheetOne: (context) => ScheduleMoveBottomsheetOne(),
 
     // myRoutePlusPage: (context) => MyRoutePlusPage(),
 
@@ -359,7 +376,9 @@ class AppRoutes {
 
     notificationScreen: (context) => NotificationScreen(),
 
-    initialRoute: (context) => MyRoutePage()
+    scheduleMoveBottomsheet: (context) => ScheduleMoveBottomsheet(),
+
+    initialRoute: (context) => HomeOneScreen()
   };
 
   /// Handle routes with parameters
@@ -370,6 +389,14 @@ class AppRoutes {
       case paystackPaymentScreen:
         return MaterialPageRoute(
           builder: (context) => PaystackPaymentScreen(
+            amount: args?['amount'] ?? '',
+            email: args?['email'] ?? '',
+            reference: args?['reference'] ?? '',
+          ),
+        );
+      case monnifyPaymentScreen:
+        return MaterialPageRoute(
+          builder: (context) => MonnifyPaymentScreen(
             amount: args?['amount'] ?? '',
             email: args?['email'] ?? '',
             reference: args?['reference'] ?? '',

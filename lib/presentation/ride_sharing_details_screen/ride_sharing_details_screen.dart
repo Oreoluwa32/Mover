@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../data/models/selectionPopupModel/selection_popup_model.dart';
-import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
-import '../../widgets/custom_radio_button.dart';
-import 'models/ride_sharing_details_model.dart';
+import '../../widgets/custom_search_view.dart';
 import 'notifier/ride_sharing_details_notifier.dart';
 
 class RideSharingDetailsScreen extends ConsumerStatefulWidget {
@@ -25,7 +22,7 @@ class RideSharingDetailsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: SizedBox(
         width: double.maxFinite,
@@ -35,7 +32,7 @@ class RideSharingDetailsScreenState
               width: double.maxFinite,
               padding: EdgeInsets.only(
                 left: 16.h,
-                top: 24.h,
+                // top: 12.h,
                 right: 16.h,
               ),
               child: Column(
@@ -64,8 +61,8 @@ class RideSharingDetailsScreenState
       height: 90.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
-        imagePath: ImageConstant.imgLeftArrow1,
-        margin: EdgeInsets.only(left: 16.h, top: 44.h, bottom: 22.h),
+        imagePath: ImageConstant.imgChevronLeft,
+        margin: EdgeInsets.only(left: 16.h, top: 24.h, bottom: 42.h),
         onTap: () {
           onTapBack(context);
         },
@@ -73,7 +70,7 @@ class RideSharingDetailsScreenState
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Share a ride",
-        margin: EdgeInsets.only(top: 45.h, bottom: 20.h),
+        margin: EdgeInsets.only(top: 25.h, bottom: 45.h),
       ),
       styleType: Style.bgOutline,
     );
@@ -83,45 +80,65 @@ class RideSharingDetailsScreenState
   Widget _buildLocation(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
-      child: Consumer(
-        builder: (context, ref, _) {
-          return Column(
-            children: [
-              CustomRadioButton(
-                text: "Dominion University",
-                value: "Dominion Unniversity",
-                groupValue: ref.watch(rideSharingDetailsNotifier).radioGroup,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.h,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.maxFinite,
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.h,
+              vertical: 14.h,
+            ),
+            decoration: BoxDecoration(
+              color: appTheme.gray10001,
+              borderRadius: BorderRadius.circular(8.h),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  height: 12.h,
+                  width: 12.h,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 12.h),
+                Expanded(
+                  child: Text(
+                    "Gateway Zone, Magodo Phase II, GRA Lagos St...",
+                    style: CustomTextStyles.bodySmallGray800,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 22.h),
+          Consumer(
+            builder: (context, ref, _) {
+              return CustomSearchView(
+                hintText: "Destination",
+                borderDecoration: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.h),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 1.5,
+                  ),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.h,
                   vertical: 14.h,
                 ),
-                isExpandedText: true,
-                overflow: TextOverflow.ellipsis,
-                decoration: RadioStyleHelper.fillOnPrimary,
-                onChange: (value) {
+                onChanged: (value) {
                   ref
                       .read(rideSharingDetailsNotifier.notifier)
-                      .changeRadioButton(value);
+                      .updateDestination(value);
                 },
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 16.h),
-                child: CustomRadioButton(
-                  text: "Peace Estate, Elebu, Ibadan",
-                  value: "Peace Estate, Elebu, Ibadan",
-                  groupValue: ref.watch(rideSharingDetailsNotifier).radioGroup,
-                  padding: EdgeInsets.fromLTRB(12.h, 14.h, 30.h, 14.h),
-                  textStyle: CustomTextStyles.bodySmallGray400,
-                  onChange: (value) {
-                    ref
-                        .read(rideSharingDetailsNotifier.notifier)
-                        .changeRadioButton(value);
-                  },
-                ),
-              )
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -185,17 +202,17 @@ class RideSharingDetailsScreenState
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
-        vertical: 24.h,
+        vertical: 22.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           top: BorderSide(color: appTheme.gray20001, width: 1.h),
         ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.max,
-        children: [CustomElevatedButton(text: "Find Mover")],
+        children: [CustomElevatedButton(text: "Find Mover", onPressed: () {NavigatorService.pushNamed(AppRoutes.searchMoverBottomsheet);})],
       ),
     );
   }

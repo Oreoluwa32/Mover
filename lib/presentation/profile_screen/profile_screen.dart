@@ -64,7 +64,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Container(
           width: double.maxFinite,

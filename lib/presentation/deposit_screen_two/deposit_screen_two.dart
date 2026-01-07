@@ -291,7 +291,6 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
                 hintText: "Enter your email",
                 hintStyle: theme.textTheme.bodySmall!,
                 textInputAction: TextInputAction.done,
-                readOnly: true,
                 contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
               );
             },
@@ -428,7 +427,7 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
-        vertical: 24.h,
+        vertical: 22.h,
       ),
       decoration: BoxDecoration(
         border: Border(
@@ -492,9 +491,9 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
     // Generate reference if not provided
     final reference = widget.reference ?? 'TXN-${DateTime.now().millisecondsSinceEpoch}';
     
-    // Navigate to payment screen
+    // Navigate to Monnify payment screen
     NavigatorService.pushNamed(
-      AppRoutes.paystackPaymentScreen,
+      AppRoutes.monnifyPaymentScreen,
       arguments: {
         'amount': amount,
         'email': email,

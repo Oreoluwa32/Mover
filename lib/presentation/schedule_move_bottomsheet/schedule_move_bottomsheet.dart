@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../schedule_move_bottomsheet_one/schedule_move_bottomsheet_one.dart';
 import 'models/move_item_model.dart';
 import 'notifier/move_notifier.dart';
 import 'widgets/move_item_widget.dart'; // ignore for file, must be immutable
@@ -19,7 +20,7 @@ class ScheduleMoveBottomsheetState
       width: double.maxFinite,
       padding: EdgeInsets.only(left: 16.h, top: 16.h, right: 16.h),
       decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withOpacity(1),
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
           borderRadius: BorderRadiusStyle.customBorderTL24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -38,13 +39,18 @@ class ScheduleMoveBottomsheetState
               children: [
                 Text(
                   "Schedule Service",
-                  style: theme.textTheme.titleSmall,
+                  style: CustomTextStyles.titleSmallBlack900,
                 ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgCancel,
-                  height: 24.h,
-                  width: 24.h,
-                  margin: EdgeInsets.only(left: 92.h),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgCancel,
+                    height: 24.h,
+                    width: 24.h,
+                    margin: EdgeInsets.only(left: 92.h),
+                  ),
                 )
               ],
             ),
@@ -63,7 +69,20 @@ class ScheduleMoveBottomsheetState
                           .moveModelObj
                           ?.moveItemList[index] ??
                       MoveItemModel();
-                  return MoveItemWidget(model);
+                  return MoveItemWidget(
+                    model,
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (BuildContext context) {
+                          return Material(
+                            child: ScheduleMoveBottomsheetOne(),
+                          );
+                        },
+                      );
+                    },
+                  );
                 },
                 separatorBuilder: (context, index) {
                   return SizedBox(
@@ -74,7 +93,7 @@ class ScheduleMoveBottomsheetState
                     ref.watch(moveNotifier).moveModelObj?.moveItemList.length ??
                         0);
           }),
-          SizedBox(height: 8.h,)
+          SizedBox(height: 25.h,)
         ],
       ),
     );

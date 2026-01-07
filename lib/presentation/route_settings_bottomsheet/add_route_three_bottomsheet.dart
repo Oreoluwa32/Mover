@@ -34,7 +34,7 @@ class AddRouteThreeBottomsheetState
         ),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.onPrimary.withOpacity(1),
-          borderRadius: BorderRadiusStyle.customBorderTL24,
+          borderRadius: BorderRadiusStyle.roundedBorder24,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -63,7 +63,7 @@ class AddRouteThreeBottomsheetState
                           style: CustomTextStyles.titleSmallBlack900,
                         ),
                         Text(
-                          "${_distance}km",
+                          "${_distance.toStringAsFixed(1)}km",
                           style: CustomTextStyles.titleSmallBlack900,
                         )
                       ],
@@ -77,7 +77,7 @@ class AddRouteThreeBottomsheetState
                       data: SliderThemeData(
                         trackShape: RoundedRectSliderTrackShape(),
                         inactiveTrackColor: appTheme.gray400,
-                        thumbColor: theme.colorScheme.onPrimary.withOpacity(1),
+                        thumbColor: theme.colorScheme.onPrimary.withValues(alpha: 1),
                         thumbShape: const RoundSliderThumbShape(),
                       ),
                       child: Slider(
@@ -87,7 +87,7 @@ class AddRouteThreeBottomsheetState
                         onChanged: (value) {
                           setState(() {
                             _value = value;
-                            _distance = (value / 10).ceil() as double;
+                            _distance = 1.0 + (value / 100) * 9;
                           });
                         },
                       ),

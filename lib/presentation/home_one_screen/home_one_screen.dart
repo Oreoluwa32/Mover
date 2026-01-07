@@ -5,6 +5,7 @@ import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../my_route_page/my_route_page.dart';
 import '../profile_screen/profile_screen.dart';
 import '../user_move_screen/user_move_screen.dart';
+import '../save_your_route_dialog/save_your_route_dialog.dart';
 import 'home_one_initial_page.dart';
 import 'notifier/home_notifier.dart';
 
@@ -23,6 +24,23 @@ class HomeOneScreen extends ConsumerStatefulWidget{
 class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
   GlobalKey<NavigatorState> navigatorKey = GlobalKey();
   bool _hideBottomBar = false;
+  bool _dialogShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args?['showDialog'] == true && !_dialogShown) {
+        _dialogShown = true;
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => SaveYourRouteDialog(),
+        );
+      }
+    });
+  }
 
   void _setBottomBarVisibility(bool hide) {
     setState(() {
@@ -93,7 +111,9 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
           onOverlayChanged: _setBottomBarVisibility,
         );
       case AppRoutes.userMoveScreen:
-        return UserMoveScreen();
+        return UserMoveScreen(
+          onOverlayChanged: _setBottomBarVisibility,
+        );
       case AppRoutes.activityInProgressPage:
         return ActivityInProgressPage();
       case AppRoutes.profileScreen:

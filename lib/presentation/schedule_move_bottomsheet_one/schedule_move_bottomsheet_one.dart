@@ -55,13 +55,18 @@ class ScheduleMoveBottomsheetOneState
                             alignment: Alignment.bottomCenter,
                             child: Text(
                               "Departure Details",
-                              style: theme.textTheme.titleSmall,
+                              style: CustomTextStyles.titleSmallBlack900,
                             ),
                           ),
-                          CustomImageView(
-                            imagePath: ImageConstant.imgCancel,
-                            height: 24.h,
-                            width: 24.h,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: CustomImageView(
+                              imagePath: ImageConstant.imgCancel,
+                              height: 24.h,
+                              width: 24.h,
+                            ),
                           )
                         ],
                       ),
@@ -136,7 +141,7 @@ class ScheduleMoveBottomsheetOneState
                 buttonStyle: CustomButtonStyles.fillBlueGray,
               ),
               SizedBox(
-                height: 8.h,
+                height: 25.h,
               )
             ],
           ),
@@ -168,6 +173,16 @@ class ScheduleMoveBottomsheetOneState
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: theme.colorScheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {

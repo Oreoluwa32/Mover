@@ -55,19 +55,21 @@ class UserApiService {
 
   /// Toggle user's live status (location sharing)
   /// 
-  /// Request body:
-  /// - is_live: bool (true to enable, false to disable)
+  /// Parameters:
+  /// - routeId: String (the route ID to toggle)
+  /// - isLive: bool (true to enable, false to disable)
   /// 
   /// Response:
   /// - status: bool (true if successful)
   /// - message: string (notification message)
   /// - is_live: bool (current live status)
   Future<Map<String, dynamic>> toggleLiveStatus({
+    required String routeId,
     required bool isLive,
   }) async {
     try {
       final response = await _dio.post(
-        '/api/v1/user/toggle-live',
+        '/toggle-is-live/$routeId/',
         data: {
           'is_live': isLive,
         },

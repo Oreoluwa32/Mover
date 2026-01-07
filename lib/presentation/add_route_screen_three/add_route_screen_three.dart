@@ -39,7 +39,39 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     return await storage.read(key: 'auth_token');
   }
 
-  Future<void> createRoute(BuildContext context) async {
+  Map<String, DateTime?> _parseDateRange(String dateRangeText) {
+    try {
+      final parts = dateRangeText.split(' - ');
+      if (parts.length != 2) return {'startDate': null, 'endDate': null};
+      
+      final startDateStr = parts[0].trim();
+      final endDateStr = parts[1].trim();
+      
+      final startDate = _parseDate(startDateStr);
+      final endDate = _parseDate(endDateStr);
+      
+      return {'startDate': startDate, 'endDate': endDate};
+    } catch (e) {
+      return {'startDate': null, 'endDate': null};
+    }
+  }
+
+  DateTime? _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length != 3) return null;
+      
+      final month = int.parse(parts[0]);
+      final day = int.parse(parts[1]);
+      final year = int.parse(parts[2]);
+      
+      return DateTime(year, month, day);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> createRoute(BuildContext context, String routeName) async {
     final token = await getToken();
     if (token == null) {
       Fluttertoast.showToast(msg: "No token found. Please log in first.");
@@ -56,12 +88,18 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final location = notifierState.locationController?.text;
     final stop = notifierState.stopController?.text;
     final destination = notifierState.destinationController?.text;
+    final departureDate = notifierState.setDateController?.text;
+    final departureTime = notifierState.setTimeController?.text;
+    final returnRoute = notifierState.returnRadio;
+    final timeBegin = notifierState.setTimeBeginController?.text;
+    final timeEnd = notifierState.setTimeEndController?.text;
 
     final url = Uri.parse(
         'https://demosystem.pythonanywhere.com/create-scheduled-route/');
     final requestBody = {
+      "route_name": routeName,
       "location": location,
-      "stop": stop,
+      if (stop != null && stop.isNotEmpty) "stop": stop,
       "destination": destination,
       "transportation_mode":
           notifierState.addRouteTwoModelObj?.transportMeansList
@@ -71,7 +109,11 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
               )
               .tabTitle,
       "service_type": notifierState.serviceDropdownValue?.title,
-      "departure_time": notifierState.setTimeController,
+      "departure_date": departureDate,
+      "departure_time": departureTime,
+      "return_route": returnRoute,
+      "time_begin": timeBegin,
+      "time_end": timeEnd,
       if (itemImageBase64 != null) "item_image": itemImageBase64,
     };
 
@@ -85,10 +127,15 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         body: jsonEncode(requestBody),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final message = jsonDecode(response.body)['message'] ??
             'Route created successfully.';
         Fluttertoast.showToast(msg: message);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.homeOneScreen,
+          (route) => false,
+          arguments: {'showDialog': true},
+        );
       } else {
         final error =
             jsonDecode(response.body)['error'] ?? 'Failed to create route.';
@@ -120,57 +167,43 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                     children: [
                       _buildColumnmeansof(context),
                       SizedBox(height: 22.h),
-                      Consumer(
-                        builder: (context, ref, _) {
-                          final selectedTransportMode = ref.watch(addRouteTwoNotifier).addRouteTwoModelObj?.transportMeansList.firstWhere((item) => item.isSelected,
-                          orElse: () => AddRouteItemModel(),
-                          ).tabTitle;
-
-                          if(selectedTransportMode == null) {
-                            return Container(); // If no tab is selected, return empty container
-                          }
-                          if (selectedTransportMode == "Public") {
-                            return SizedBox(
-                              width: double.maxFinite,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.h),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      _buildColumnnumberof(context),
-                                      SizedBox(height: 24.h),
-                                      _buildMaxCap(context),
-                                      SizedBox(height: 24.h),
-                                      _buildDepartureone(context),
-                                      SizedBox(height: 22.h),
-                                      Text(
-                                        "Do you want to make a returning route?",
-                                        style: theme.textTheme.labelLarge,
-                                      ),
-                                      SizedBox(height: 10.h),
-                                      _buildDoyouwantto(context),
-                                      SizedBox(height: 22.h),
-                                      _buildColumnreturn(context),
-                                      SizedBox(height: 24.h),
-                                      _buildTimeRange(context),
-                                      SizedBox(
-                                        height: 22.h,
-                                      ),
-                                      _buildTrainTicket(context),
-                                      SizedBox(
-                                        height: 22.h,
-                                      ),
-                                      _buildUpload(context)
-                                    ],
-                                  ),
+                      SizedBox(
+                        width: double.maxFinite,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.h),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildColumnnumberof(context),
+                                SizedBox(height: 24.h),
+                                // _buildMaxCap(context),
+                                // SizedBox(height: 24.h),
+                                _buildDepartureone(context),
+                                SizedBox(height: 22.h),
+                                Text(
+                                  "Do you want to make a returning route?",
+                                  style: theme.textTheme.labelLarge,
                                 ),
-                              ),
-                            );
-                          }
-                          return Container();
-                        }
+                                SizedBox(height: 10.h),
+                                _buildDoyouwantto(context),
+                                SizedBox(height: 22.h),
+                                _buildColumnreturn(context),
+                                SizedBox(height: 24.h),
+                                _buildTimeRange(context),
+                                SizedBox(
+                                  height: 22.h,
+                                ),
+                                // _buildTrainTicket(context),
+                                SizedBox(
+                                  height: 22.h,
+                                ),
+                                _buildUpload(context)
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                       SizedBox(height: 4.h)
                     ],
@@ -194,7 +227,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         bottom: 22.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           bottom: BorderSide(
             color: appTheme.gray20001,
@@ -203,7 +236,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         ),
         boxShadow: [
           BoxShadow(
-            color: appTheme.black900.withOpacity(0.08),
+            color: appTheme.black900.withValues(alpha: 0.08),
             spreadRadius: 2.h,
             blurRadius: 2.h,
             offset: const Offset(
@@ -231,9 +264,16 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
               text: "Add Route",
             ),
             actions: [
-              AppbarTrailingImage(
-                imagePath: ImageConstant.imgPlusBlack,
-                margin: EdgeInsets.only(right: 15.h),
+              Consumer(
+                builder: (context, ref, _) {
+                  return AppbarTrailingImage(
+                    imagePath: ImageConstant.imgPlusBlack,
+                    margin: EdgeInsets.only(right: 15.h),
+                    onTap: () {
+                      ref.read(addRouteTwoNotifier.notifier).toggleStopField();
+                    },
+                  );
+                }
               )
             ],
           ),
@@ -246,48 +286,112 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
               children: [
                 Consumer(
                   builder: (context, ref, _) {
+                    final state = ref.watch(addRouteTwoNotifier);
                     return CustomTextFormField(
-                      controller: ref.watch(addRouteTwoNotifier).locationController,
+                      controller: state.locationController,
                       hintText: "Enter your location",
                       borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      // onTap: () {
-                      //   ref
-                      //       .read(addRouteTwoNotifier.notifier)
-                      //       .changeRadioBtn('location');
-                      // },
+                      contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
+                      prefix: Padding(
+                        padding: EdgeInsets.only(left: 8.h, right: 8.h),
+                        child: CustomRadioButton(
+                          value: "location",
+                          groupValue: state.radioGroup,
+                          onChange: (value) {
+                            ref
+                                .read(addRouteTwoNotifier.notifier)
+                                .changeRadioBtn(value);
+                          },
+                          iconSize: 18.h,
+                        ),
+                      ),
+                      prefixConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
+                      onTap: () {
+                        ref
+                            .read(addRouteTwoNotifier.notifier)
+                            .changeRadioBtn("location");
+                      },
                     );
                   },
                 ),
                 SizedBox(height: 16.h),
                 Consumer(
                   builder: (context, ref, _) {
+                    final state = ref.watch(addRouteTwoNotifier);
                     return CustomTextFormField(
-                      controller: ref.watch(addRouteTwoNotifier).stopController,
-                      hintText: "Add stop",
+                      controller: state.destinationController,
+                      hintText: "Destination",
                       borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      // onTap: () {
-                      //   ref
-                      //       .read(addRouteTwoNotifier.notifier)
-                      //       .changeRadioBtn('stop');
-                      // },
+                      contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
+                      prefix: Padding(
+                        padding: EdgeInsets.only(left: 8.h, right: 8.h),
+                        child: CustomRadioButton(
+                          value: "destination",
+                          groupValue: state.radioGroup,
+                          onChange: (value) {
+                            ref
+                                .read(addRouteTwoNotifier.notifier)
+                                .changeRadioBtn(value);
+                          },
+                          iconSize: 18.h,
+                        ),
+                      ),
+                      prefixConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
+                      onTap: () {
+                        ref
+                            .read(addRouteTwoNotifier.notifier)
+                            .changeRadioBtn("destination");
+                      },
                     );
                   },
                 ),
-                SizedBox(height: 16.h),
-                Consumer(
-                  builder: (context, ref, _) {
-                    return CustomTextFormField(
-                      controller: ref.watch(addRouteTwoNotifier).destinationController,
-                      hintText: "Enter your destination",
-                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      // onTap: () {
-                      //   ref
-                      //       .read(addRouteTwoNotifier.notifier)
-                      //       .changeRadioBtn('destination');
-                      // },
-                    );
-                  },
-                ),
+                if (ref.watch(addRouteTwoNotifier).showStopField) ...[
+                  SizedBox(height: 16.h),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final state = ref.watch(addRouteTwoNotifier);
+                      return CustomTextFormField(
+                        controller: state.stopController,
+                        hintText: "Add stop",
+                        borderDecoration: TextFormFieldStyleHelper.outlineGray1,
+                        contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
+                        prefix: Padding(
+                          padding: EdgeInsets.only(left: 8.h, right: 8.h),
+                          child: CustomRadioButton(
+                            value: "stop",
+                            groupValue: state.radioGroup,
+                            onChange: (value) {
+                              ref
+                                  .read(addRouteTwoNotifier.notifier)
+                                  .changeRadioBtn(value);
+                            },
+                            iconSize: 18.h,
+                          ),
+                        ),
+                        prefixConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
+                        suffix: Padding(
+                          padding: EdgeInsets.only(right: 8.h),
+                          child: CustomImageView(
+                              imagePath: ImageConstant.imgCancel,
+                              height: 16.h,
+                              width: 16.h,
+                              onTap: () {
+                              ref
+                                  .read(addRouteTwoNotifier.notifier)
+                                  .toggleStopField();
+                            },
+                            ),
+                        ),
+                        suffixConstraints: BoxConstraints(maxHeight: 44.h),
+                        onTap: () {
+                          ref
+                              .read(addRouteTwoNotifier.notifier)
+                              .changeRadioBtn("stop");
+                        },
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           )
@@ -331,11 +435,12 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                             .selectTransportMode(index);
                       },
                       child: Container(
+                        width: 100.h,
                         padding: EdgeInsets.all(15.h),
                         margin: EdgeInsets.only(right: 25.h),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? theme.colorScheme.primary.withOpacity(0.1)
+                              ? theme.colorScheme.primary.withValues(alpha: 0.1)
                               : Colors.transparent,
                           border: Border.all(
                             color: isSelected
@@ -411,6 +516,18 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                     [],
                 contentPadding: EdgeInsets.all(14.h),
                 borderDecoration: DropDownStyleHelper.outlineBlueGray,
+                onChanged: (value) {
+                  final selectedService = ref
+                      .watch(addRouteTwoNotifier)
+                      .addRouteTwoModelObj
+                      ?.serviceDropdown
+                      .firstWhere((item) => item.title == value);
+                  if (selectedService != null) {
+                    ref
+                        .read(addRouteTwoNotifier.notifier)
+                        .selectServiceType(selectedService);
+                  }
+                },
               );
             })
           ],
@@ -418,46 +535,46 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
   }
 
   // Section Widget
-  Widget _buildMaxCap(BuildContext context) {
-    return SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Maximum Capacity",
-              style: theme.textTheme.labelLarge,
-            ),
-            SizedBox(
-              height: 4.h,
-            ),
-            Consumer(builder: (context, ref, _) {
-              return CustomDropDown(
-                icon: Container(
-                  margin: EdgeInsets.only(left: 16.h),
-                  child: CustomImageView(
-                    imagePath: ImageConstant.imgBlueGrayDownArrow,
-                    height: 16.h,
-                    width: 20.h,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                iconSize: 16.h,
-                hintText: "Maximum Capacity",
-                items: ref
-                        .watch(addRouteTwoNotifier)
-                        .addRouteTwoModelObj
-                        ?.maxCapDropdown
-                        .map((item) => item.title)
-                        .toList() ??
-                    [],
-                contentPadding: EdgeInsets.all(14.h),
-                borderDecoration: DropDownStyleHelper.outlineBlueGray,
-              );
-            })
-          ],
-        ));
-  }
+  // Widget _buildMaxCap(BuildContext context) {
+  //   return SizedBox(
+  //       width: double.maxFinite,
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Text(
+  //             "Maximum Capacity",
+  //             style: theme.textTheme.labelLarge,
+  //           ),
+  //           SizedBox(
+  //             height: 4.h,
+  //           ),
+  //           Consumer(builder: (context, ref, _) {
+  //             return CustomDropDown(
+  //               icon: Container(
+  //                 margin: EdgeInsets.only(left: 16.h),
+  //                 child: CustomImageView(
+  //                   imagePath: ImageConstant.imgBlueGrayDownArrow,
+  //                   height: 16.h,
+  //                   width: 20.h,
+  //                   fit: BoxFit.contain,
+  //                 ),
+  //               ),
+  //               iconSize: 16.h,
+  //               hintText: "Maximum Capacity",
+  //               items: ref
+  //                       .watch(addRouteTwoNotifier)
+  //                       .addRouteTwoModelObj
+  //                       ?.maxCapDropdown
+  //                       .map((item) => item.title)
+  //                       .toList() ??
+  //                   [],
+  //               contentPadding: EdgeInsets.all(14.h),
+  //               borderDecoration: DropDownStyleHelper.outlineBlueGray,
+  //             );
+  //           })
+  //         ],
+  //       ));
+  // }
 
   // Section Widget
   Widget _buildDate(BuildContext context) {
@@ -483,13 +600,19 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           vertical: 16.h,
         ),
         onTap: () {
+          final dateRangeText = ref.watch(addRouteTwoNotifier).setDateController?.text ?? '';
+          final parsedDates = _parseDateRange(dateRangeText);
+          
           showModalBottomSheet(
               context: context,
               shape: RoundedRectangleBorder(
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(20.h))),
               builder: (BuildContext context) {
-                return const SetDateBottomsheet();
+                return SetDateBottomsheet(
+                  initialStartDate: parsedDates['startDate'],
+                  initialEndDate: parsedDates['endDate'],
+                );
               });
         },
       );
@@ -599,7 +722,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                 padding: EdgeInsets.symmetric(vertical: 2.h),
                 textStyle: theme.textTheme.labelLarge,
                 onChange: (value) {
-                  ref.read(addRouteTwoNotifier.notifier).changeRadioBtn(value);
+                  ref.read(addRouteTwoNotifier.notifier).returnRouteBtn(value);
                 },
               ),
               Padding(
@@ -613,7 +736,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                   onChange: (value) {
                     ref
                         .read(addRouteTwoNotifier.notifier)
-                        .changeRadioBtn(value);
+                        .returnRouteBtn(value);
                   },
                 ),
               )
@@ -624,20 +747,35 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
   // Section Widget
   Widget _buildGateway(BuildContext context) {
-    return CustomElevatedButton(
-      text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-      leftIcon: Container(
-        margin: EdgeInsets.only(right: 12.h),
-        child: CustomImageView(
-          imagePath: ImageConstant.imgSearch,
-          height: 24.h,
-          width: 24.h,
-          fit: BoxFit.contain,
-        ),
-      ),
-      buttonStyle: CustomButtonStyles.fillGray,
-      buttonTextStyle: CustomTextStyles.bodySmallOnPrimaryContainer,
-    );
+    // return CustomElevatedButton(
+    //   text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+    //   leftIcon: Container(
+    //     margin: EdgeInsets.only(right: 12.h),
+    //     child: CustomImageView(
+    //       imagePath: ImageConstant.imgSearch,
+    //       height: 24.h,
+    //       width: 24.h,
+    //       fit: BoxFit.contain,
+    //     ),
+    //   ),
+    //   buttonStyle: CustomButtonStyles.fillGray,
+    //   buttonTextStyle: CustomTextStyles.bodySmallOnPrimaryContainer,
+    // );
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomRadioButton(
+                  text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+                  value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
+                  groupValue: ref.watch(addRouteTwoNotifier).returnRadio,
+                  padding: EdgeInsets.symmetric(vertical: 2.h),
+                  textStyle: theme.textTheme.labelLarge,
+                  onChange: (value) {
+                    ref
+                        .read(addRouteTwoNotifier.notifier)
+                        .returnRouteBtn(value);
+                  },
+                );
+      });
   }
 
   // Section Widget
@@ -645,7 +783,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     return Container(
       width: double.maxFinite,
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -691,27 +829,31 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
   // Section Widget
   Widget _buildTimeEnd(BuildContext context) {
-    return Expanded(
-      child: CustomTextFormField(
-        readOnly: true,
-        controller: ref.watch(addRouteTwoNotifier).setTimeEndController,
-        hintText: "Set time",
-        textInputAction: TextInputAction.done,
-        prefix: Container(
-          margin: EdgeInsets.fromLTRB(14.h, 14.h, 12.h, 14.h),
-          child: CustomImageView(
-            imagePath: ImageConstant.imgClock,
-            height: 16.h,
-            width: 16.h,
-            fit: BoxFit.contain,
+    return Consumer(
+      builder: (context, ref, _) {
+        return Expanded(
+          child: CustomTextFormField(
+            readOnly: true,
+            controller: ref.watch(addRouteTwoNotifier).setTimeEndController,
+            hintText: "Set time",
+            textInputAction: TextInputAction.done,
+            prefix: Container(
+              margin: EdgeInsets.fromLTRB(14.h, 14.h, 12.h, 14.h),
+              child: CustomImageView(
+                imagePath: ImageConstant.imgClock,
+                height: 16.h,
+                width: 16.h,
+                fit: BoxFit.contain,
+              ),
+            ),
+            prefixConstraints: BoxConstraints(maxHeight: 46.h),
+            contentPadding: EdgeInsets.all(14.h),
+            onTap: () {
+              onTapTimeEnd(context);
+            },
           ),
-        ),
-        prefixConstraints: BoxConstraints(maxHeight: 46.h),
-        contentPadding: EdgeInsets.all(14.h),
-        onTap: () {
-          onTapTimeEnd(context);
-        },
-      ),
+        );
+      },
     );
   }
 
@@ -755,70 +897,70 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
   }
 
   // Section Widget
-  Widget _buildTrainTicket(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Train Ticket",
-            style: theme.textTheme.labelLarge,
-          ),
-          SizedBox(
-            height: 4.h,
-          ),
-          Consumer(
-            builder: (context, ref, _) {
-              final imagePath = ref.watch(addRouteTwoNotifier).imagePath;
-              return GestureDetector(
-                  onTap: () {
-                    requestCameraGalleryPermission(context);
-                  },
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.symmetric(vertical: 14.h),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.onPrimary.withOpacity(1),
-                      borderRadius: BorderRadiusStyle.roundedBorder8,
-                      border:
-                          Border.all(color: appTheme.blueGray10002, width: 1.h),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomIconButton(
-                          height: 40.h,
-                          width: 40.h,
-                          padding: EdgeInsets.all(10.h),
-                          decoration: IconButtonStyleHelper.outlineGray,
-                          child: CustomImageView(
-                            imagePath: ImageConstant.imgCloudUpload,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 12.h,
-                        ),
-                        Text(
-                          "Click to upload",
-                          style: CustomTextStyles.titleSmallInterPrimary,
-                        ),
-                        SizedBox(
-                          height: 4.h,
-                        ),
-                        Text(
-                          "PNG or JPG (max. 800 x 400px)",
-                          style: CustomTextStyles.bodySmallInterGray600_1,
-                        )
-                      ],
-                    ),
-                  ));
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildTrainTicket(BuildContext context) {
+  //   return SizedBox(
+  //     width: double.maxFinite,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           "Train Ticket",
+  //           style: theme.textTheme.labelLarge,
+  //         ),
+  //         SizedBox(
+  //           height: 4.h,
+  //         ),
+  //         Consumer(
+  //           builder: (context, ref, _) {
+  //             final imagePath = ref.watch(addRouteTwoNotifier).imagePath;
+  //             return GestureDetector(
+  //                 onTap: () {
+  //                   requestCameraGalleryPermission(context);
+  //                 },
+  //                 child: Container(
+  //                   width: double.maxFinite,
+  //                   padding: EdgeInsets.symmetric(vertical: 14.h),
+  //                   decoration: BoxDecoration(
+  //                     color: theme.colorScheme.onPrimary.withOpacity(1),
+  //                     borderRadius: BorderRadiusStyle.roundedBorder8,
+  //                     border:
+  //                         Border.all(color: appTheme.blueGray10002, width: 1.h),
+  //                   ),
+  //                   child: Column(
+  //                     mainAxisSize: MainAxisSize.min,
+  //                     children: [
+  //                       CustomIconButton(
+  //                         height: 40.h,
+  //                         width: 40.h,
+  //                         padding: EdgeInsets.all(10.h),
+  //                         decoration: IconButtonStyleHelper.outlineGray,
+  //                         child: CustomImageView(
+  //                           imagePath: ImageConstant.imgCloudUpload,
+  //                         ),
+  //                       ),
+  //                       SizedBox(
+  //                         height: 12.h,
+  //                       ),
+  //                       Text(
+  //                         "Click to upload",
+  //                         style: CustomTextStyles.titleSmallInterPrimary,
+  //                       ),
+  //                       SizedBox(
+  //                         height: 4.h,
+  //                       ),
+  //                       Text(
+  //                         "PNG or JPG (max. 800 x 400px)",
+  //                         style: CustomTextStyles.bodySmallInterGray600_1,
+  //                       )
+  //                     ],
+  //                   ),
+  //                 ));
+  //           },
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   // Section Widget
   Widget _buildUpload(BuildContext context) {
@@ -855,13 +997,128 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     );
   }
 
+  bool _isFormValid(AddRouteTwoState state) {
+    final hasLocation = state.locationController?.text.isNotEmpty ?? false;
+    final hasDestination = state.destinationController?.text.isNotEmpty ?? false;
+    final hasTransportMode = state.addRouteTwoModelObj?.transportMeansList
+            .any((item) => item.isSelected) ??
+        false;
+    final hasServiceType = (state.serviceDropdownValue?.title ?? '').isNotEmpty;
+    final hasDepartureDate = state.setDateController?.text.isNotEmpty ?? false;
+    final hasDepartureTime = state.setTimeController?.text.isNotEmpty ?? false;
+    final hasReturnRoute = state.returnRadio.isNotEmpty;
+    final hasTimeBegin = state.setTimeBeginController?.text.isNotEmpty ?? false;
+    final hasTimeEnd = state.setTimeEndController?.text.isNotEmpty ?? false;
+
+    return hasLocation &&
+        hasDestination &&
+        hasTransportMode &&
+        hasServiceType &&
+        hasDepartureDate &&
+        hasDepartureTime &&
+        hasReturnRoute &&
+        hasTimeBegin &&
+        hasTimeEnd;
+  }
+
   // Section Widget
   Widget _buildAddroute(BuildContext context) {
-    return CustomElevatedButton(
-      text: "Add route",
-      buttonStyle: CustomButtonStyles.fillBlueGray,
-      onPressed: () {
-        NavigatorService.pushNamed(AppRoutes.saveYourRouteDialog);
+    return Consumer(
+      builder: (context, ref, _) {
+        final state = ref.watch(addRouteTwoNotifier);
+        final isValid = _isFormValid(state);
+
+        return CustomElevatedButton(
+          text: "Add route",
+          buttonStyle: isValid
+              ? CustomButtonStyles.fillPrimaryTL41
+              : CustomButtonStyles.fillBlueGray,
+          onPressed: isValid
+              ? () {
+                  _showSaveRouteDialog(context);
+                }
+              : null,
+        );
+      },
+    );
+  }
+
+  void _showSaveRouteDialog(BuildContext context) {
+    final routeNameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.h),
+              ),
+              title: Text(
+                'Save Route',
+                style: theme.textTheme.titleLarge,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enter a name for your route:',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: routeNameController,
+                    decoration: InputDecoration(
+                      hintText: 'Route name',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.h),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 14.h,
+                        vertical: 12.h,
+                      ),
+                    ),
+                    onChanged: (_) {
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: routeNameController.text.isEmpty
+                      ? null
+                      : () {
+                          Navigator.of(dialogContext).pop();
+                          createRoute(context, routeNameController.text);
+                        },
+                  child: Text(
+                    'Save Route',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: routeNameController.text.isEmpty
+                          ? Colors.grey
+                          : theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }
@@ -873,10 +1130,10 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
       width: double.maxFinite,
       padding: EdgeInsets.symmetric(
         horizontal: 16.h,
-        vertical: 24.h,
+        vertical: 22.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           top: BorderSide(
             color: appTheme.gray20001,
@@ -904,8 +1161,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
             DateTime.now().year, DateTime.now().month, DateTime.now().day));
     if (dateTime != null) {
       ref.watch(addRouteTwoNotifier).addRouteTwoModelObj!.setDate = dateTime;
-      ref.watch(addRouteTwoNotifier).setDateController?.text =
-          dateTime.format(pattern: dateTimeFormatPattern);
+      final formattedDate = dateTime.format(pattern: dateTimeFormatPattern);
+      ref.read(addRouteTwoNotifier.notifier).updateDateField(formattedDate);
     }
   }
 
@@ -915,19 +1172,22 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: theme.colorScheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
-      // Access the state using ref.watch()
-      final notifierState = ref.watch(addRouteTwoNotifier);
-
-      ref.read(addRouteTwoNotifier.notifier).state = notifierState.copyWith(
-          setTime: pickedTime); // Update with the pickedTime
-
-      // Format the pickedTime as needed (e.g., 'HH:mm')
       final formattedTime =
           "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-      ref.watch(addRouteTwoNotifier).setTimeController?.text = formattedTime;
+      ref.read(addRouteTwoNotifier.notifier).updateTimeField(formattedTime);
     }
   }
 
@@ -937,20 +1197,22 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: theme.colorScheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
-      // Access the state using ref.watch()
-      final notifierState = ref.watch(addRouteTwoNotifier);
-
-      // Update the setTime in your notifierState
-      ref.read(addRouteTwoNotifier.notifier).state = notifierState.copyWith(
-          setTime: pickedTime); // Update with the pickedTime
-
-      // Format the pickedTime as needed (e.g., 'HH:mm')
       final formattedTime =
           "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-      ref.watch(addRouteTwoNotifier).setTimeController?.text = formattedTime;
+      ref.read(addRouteTwoNotifier.notifier).updateTimeBeginField(formattedTime);
     }
   }
 
@@ -960,20 +1222,22 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: theme.colorScheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
-      // Access the state using ref.watch()
-      final notifierState = ref.watch(addRouteTwoNotifier);
-
-      // Update the setTime in your notifierState
-      ref.read(addRouteTwoNotifier.notifier).state = notifierState.copyWith(
-          setTime: pickedTime); // Update with the pickedTime
-
-      // Format the pickedTime as needed (e.g., 'HH:mm')
       final formattedTime =
           "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-      ref.watch(addRouteTwoNotifier).setTimeController?.text = formattedTime;
+      ref.read(addRouteTwoNotifier.notifier).updateTimeEndField(formattedTime);
     }
   }
 

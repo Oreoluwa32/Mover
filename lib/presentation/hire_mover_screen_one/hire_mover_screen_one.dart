@@ -21,7 +21,7 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       body: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -57,9 +57,9 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
   Widget _buildProfile(BuildContext context) {
     return Container(
       width: double.maxFinite,
-      padding: EdgeInsets.only(top: 20.h),
+      padding: EdgeInsets.only(top: 15.h),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           bottom: BorderSide(color: appTheme.gray20001, width: 1.h),
         ),

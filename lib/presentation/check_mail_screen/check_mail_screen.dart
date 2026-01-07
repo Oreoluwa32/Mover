@@ -19,7 +19,7 @@ import '../../widgets/custom_pin_code_text_field.dart';
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "email": email.trim(), // Use the passed email directly
-        "otp": checkMailNotifier.state.otpController?.text.trim(),    // OTP code from user input
+        "code": checkMailNotifier.state.otpController?.text.trim(),    // OTP code from user input
       }),
     );
 

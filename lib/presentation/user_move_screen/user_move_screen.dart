@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../schedule_move_bottomsheet/schedule_move_bottomsheet.dart';
 import 'models/list_item_model.dart';
 import 'models/listsendpackage_item_model.dart';
 import 'notifier/move_notifier.dart';
@@ -7,7 +8,9 @@ import 'widgets/list_item_widget.dart';
 import 'widgets/listsendpackage_item_widget.dart';
 
 class UserMoveScreen extends ConsumerStatefulWidget{
-  const UserMoveScreen({Key? key}) : super(key: key);
+  final Function(bool)? onOverlayChanged;
+  
+  const UserMoveScreen({Key? key, this.onOverlayChanged}) : super(key: key);
 
   @override
   UserMoveScreenState createState() => UserMoveScreenState();
@@ -18,7 +21,7 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       body: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -28,7 +31,7 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 40.h,),
+                  SizedBox(height: 90.h,),
                   SizedBox(
                     width: double.maxFinite,
                     child: Align(
@@ -61,9 +64,29 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
           shrinkWrap: true,
           itemBuilder: (context, index) {
             ListsendpackageItemModel model = ref.watch(moveNotifier).moveModelObj?.listsendpackageItemList[index] ?? ListsendpackageItemModel();
-            return ListsendpackageItemWidget(model, onTapSendPackage: () {
-              NavigatorService.pushNamed(AppRoutes.deliveryDetailsScreen);
-            });
+            return ListsendpackageItemWidget(
+              model,
+              onTapSendPackage: () {
+                NavigatorService.pushNamed(AppRoutes.deliveryDetailsScreen);
+              },
+              onTapShareRide: () {
+                NavigatorService.pushNamed(AppRoutes.rideSharingDetailsScreen);
+              },
+              onTapScheduleTrip: () {
+                widget.onOverlayChanged?.call(true);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (BuildContext context) {
+                    return Material(
+                      child: ScheduleMoveBottomsheet(),
+                    );
+                  },
+                ).then((_) {
+                  widget.onOverlayChanged?.call(false);
+                });
+              },
+            );
           }, 
           separatorBuilder: (context, index) {
             return SizedBox(

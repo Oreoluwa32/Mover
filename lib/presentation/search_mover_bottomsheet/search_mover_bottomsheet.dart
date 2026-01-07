@@ -114,7 +114,7 @@ class SearchMoverBottomsheetState
             child: Padding(
               padding: EdgeInsets.only(
                 left: 8.h,
-                bottom: 12.h,
+                bottom: 2.h,
               ),
               child: Text(
                 "Movers have seen your request",
