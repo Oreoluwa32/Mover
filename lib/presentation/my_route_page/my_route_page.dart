@@ -61,7 +61,7 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Stack(
         children: [
@@ -71,7 +71,7 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
             child: Column(
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [SizedBox(height: 98.h), _buildSavedroute(context)],
+              children: [_buildSavedroute(context)],
             ),
           ),
           if (_isExpanded)

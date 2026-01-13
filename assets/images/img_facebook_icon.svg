@@ -1,1 +1,10 @@
-<svg data-name="Layer 1" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><path d="M53.68 38.26v15.1H37.11V72h16.57v42h19.61V72H90l2-18.63H73.29V38.26c0-2.67 2.11-4 3-4.82 1.57-1.34 9.15-1.55 9.15-1.55h7.43V15a93.26 93.26 0 0 0-11.68-1c-28.08 0-27.51 24.26-27.51 24.26Z" fill="none" stroke="#6d6d6d" stroke-miterlimit="10" stroke-width="6.5px" class="stroke-062b31"></path></svg>
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_2056_33894)">
+<path d="M13.5 1.5H11.25C10.2554 1.5 9.30161 1.89509 8.59835 2.59835C7.89509 3.30161 7.5 4.25544 7.5 5.25V7.5H5.25V10.5H7.5V16.5H10.5V10.5H12.75L13.5 7.5H10.5V5.25C10.5 5.05109 10.579 4.86032 10.7197 4.71967C10.8603 4.57902 11.0511 4.5 11.25 4.5H13.5V1.5Z" stroke="#6D6D6D" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_2056_33894">
+<rect width="18" height="18" fill="white"/>
+</clipPath>
+</defs>
+</svg>

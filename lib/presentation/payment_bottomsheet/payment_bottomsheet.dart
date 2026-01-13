@@ -18,7 +18,7 @@ class PaymentBottomsheetState extends ConsumerState<PaymentBottomsheet> {
     return Container(
       width: double.maxFinite,
       decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withOpacity(1),
+          color: theme.colorScheme.onPrimary.withValues(alpha:1),
           borderRadius: BorderRadiusStyle.customBorderTL24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -127,6 +127,7 @@ class PaymentBottomsheetState extends ConsumerState<PaymentBottomsheet> {
                     child: Divider(
                       color: appTheme.gray20001,
                       endIndent: 16.h,
+                      height: 0.h,
                     ),
                   ),
                   SizedBox(
@@ -195,7 +196,7 @@ class PaymentBottomsheetState extends ConsumerState<PaymentBottomsheet> {
             width: double.maxFinite,
             padding: EdgeInsets.fromLTRB(16.h, 22.h, 16.h, 24.h),
             decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 1),
               border: Border(
                 top: BorderSide(
                   color: appTheme.gray20001,
@@ -228,15 +229,11 @@ class PaymentBottomsheetState extends ConsumerState<PaymentBottomsheet> {
       children: [
         Text(
           title,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.black87,
-          ),
+          style: CustomTextStyles.bodySmallInter12,
         ),
         Text(
           content,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.black87,
-          ),
+          style: CustomTextStyles.bodySmallInter12,
         )
       ],
     );

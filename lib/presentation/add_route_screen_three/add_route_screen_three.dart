@@ -23,6 +23,7 @@ import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/custom_icon_button.dart';
 import 'models/add_route_item_model.dart';
 import 'notifier/add_route_two_notifier.dart';
+import 'widgets/places_autocomplete_field.dart';
 
 class AddRouteScreenThree extends ConsumerStatefulWidget {
   const AddRouteScreenThree({super.key});
@@ -114,7 +115,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
       "return_route": returnRoute,
       "time_begin": timeBegin,
       "time_end": timeEnd,
-      if (itemImageBase64 != null) "item_image": itemImageBase64,
+      // if (itemImageBase64 != null) "item_image": itemImageBase64,
     };
 
     try {
@@ -249,7 +250,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 20.h),
+          SizedBox(height: 10.h),
           CustomAppBar(
             leadingWidth: 40.h,
             leading: AppbarLeadingImage(
@@ -287,29 +288,16 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                 Consumer(
                   builder: (context, ref, _) {
                     final state = ref.watch(addRouteTwoNotifier);
-                    return CustomTextFormField(
+                    return PlacesAutocompleteField(
                       controller: state.locationController,
                       hintText: "Enter your location",
-                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
-                      prefix: Padding(
-                        padding: EdgeInsets.only(left: 8.h, right: 8.h),
-                        child: CustomRadioButton(
-                          value: "location",
-                          groupValue: state.radioGroup,
-                          onChange: (value) {
-                            ref
-                                .read(addRouteTwoNotifier.notifier)
-                                .changeRadioBtn(value);
-                          },
-                          iconSize: 18.h,
-                        ),
-                      ),
-                      prefixConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
-                      onTap: () {
+                      radioValue: "location",
+                      onRadioChange: () {
                         ref
                             .read(addRouteTwoNotifier.notifier)
                             .changeRadioBtn("location");
+                      },
+                      onPlaceSelected: (description, lat, lng) {
                       },
                     );
                   },
@@ -318,29 +306,16 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                 Consumer(
                   builder: (context, ref, _) {
                     final state = ref.watch(addRouteTwoNotifier);
-                    return CustomTextFormField(
+                    return PlacesAutocompleteField(
                       controller: state.destinationController,
                       hintText: "Destination",
-                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
-                      prefix: Padding(
-                        padding: EdgeInsets.only(left: 8.h, right: 8.h),
-                        child: CustomRadioButton(
-                          value: "destination",
-                          groupValue: state.radioGroup,
-                          onChange: (value) {
-                            ref
-                                .read(addRouteTwoNotifier.notifier)
-                                .changeRadioBtn(value);
-                          },
-                          iconSize: 18.h,
-                        ),
-                      ),
-                      prefixConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
-                      onTap: () {
+                      radioValue: "destination",
+                      onRadioChange: () {
                         ref
                             .read(addRouteTwoNotifier.notifier)
                             .changeRadioBtn("destination");
+                      },
+                      onPlaceSelected: (description, lat, lng) {
                       },
                     );
                   },
@@ -350,43 +325,22 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                   Consumer(
                     builder: (context, ref, _) {
                       final state = ref.watch(addRouteTwoNotifier);
-                      return CustomTextFormField(
+                      return PlacesAutocompleteField(
                         controller: state.stopController,
                         hintText: "Add stop",
-                        borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
-                        prefix: Padding(
-                          padding: EdgeInsets.only(left: 8.h, right: 8.h),
-                          child: CustomRadioButton(
-                            value: "stop",
-                            groupValue: state.radioGroup,
-                            onChange: (value) {
-                              ref
-                                  .read(addRouteTwoNotifier.notifier)
-                                  .changeRadioBtn(value);
-                            },
-                            iconSize: 18.h,
-                          ),
-                        ),
-                        prefixConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
-                        suffix: Padding(
-                          padding: EdgeInsets.only(right: 8.h),
-                          child: CustomImageView(
-                              imagePath: ImageConstant.imgCancel,
-                              height: 16.h,
-                              width: 16.h,
-                              onTap: () {
-                              ref
-                                  .read(addRouteTwoNotifier.notifier)
-                                  .toggleStopField();
-                            },
-                            ),
-                        ),
-                        suffixConstraints: BoxConstraints(maxHeight: 44.h),
-                        onTap: () {
+                        radioValue: "stop",
+                        showCloseButton: true,
+                        onRadioChange: () {
                           ref
                               .read(addRouteTwoNotifier.notifier)
                               .changeRadioBtn("stop");
+                        },
+                        onClose: () {
+                          ref
+                              .read(addRouteTwoNotifier.notifier)
+                              .toggleStopField();
+                        },
+                        onPlaceSelected: (description, lat, lng) {
                         },
                       );
                     },

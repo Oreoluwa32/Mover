@@ -21,6 +21,7 @@ import '../../widgets/custom_search_view.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import 'notifier/delivery_details_notifier.dart';
+import 'widgets/places_autocomplete_field.dart';
 
 class DeliveryDetailsScreen extends ConsumerStatefulWidget {
   const DeliveryDetailsScreen({Key? key}) : super(key: key);
@@ -175,33 +176,36 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       width: double.maxFinite,
       child: Column(
         children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: Consumer(
-              builder: (context, ref, _) {
-                return CustomSearchView(
-                  controller:
-                      ref.watch(deliveryDetailsNotifier).pickupController,
-                  hintText: "Pickup",
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14.h,
-                    vertical: 16.h,
-                  ),
-                );
-              },
-            ),
+          Consumer(
+            builder: (context, ref, _) {
+              final state = ref.watch(deliveryDetailsNotifier);
+              return PlacesAutocompleteField(
+                controller: state.pickupController,
+                hintText: "Pickup location",
+                radioValue: "location",
+                onRadioChange: () {
+                  ref
+                      .read(deliveryDetailsNotifier.notifier)
+                      .changeRadioBtn("location");
+                },
+                onPlaceSelected: (description, lat, lng) {},
+              );
+            },
           ),
           SizedBox(height: 16.h),
           Consumer(
             builder: (context, ref, _) {
-              return CustomSearchView(
-                controller:
-                    ref.watch(deliveryDetailsNotifier).destinationController,
+              final state = ref.watch(deliveryDetailsNotifier);
+              return PlacesAutocompleteField(
+                controller: state.destinationController,
                 hintText: "Destination",
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 14.h,
-                  vertical: 16.h,
-                ),
+                radioValue: "destination",
+                onRadioChange: () {
+                  ref
+                      .read(deliveryDetailsNotifier.notifier)
+                      .changeRadioBtn("destination");
+                },
+                onPlaceSelected: (description, lat, lng) {},
               );
             },
           )
@@ -246,8 +250,8 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   child: imagePath != null
                       ? Column(
                           children: [
-                            CustomImageView(
-                              imagePath: imagePath,
+                            Image.file(
+                              File(imagePath!),
                               width: double.maxFinite,
                               height: 150.h,
                               fit: BoxFit.cover,

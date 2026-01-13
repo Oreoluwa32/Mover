@@ -1,0 +1,6 @@
+Running Gradle task 'assembleRelease'...                        
+Maps API Key for DefaultConfig: AIzaSyAFTxq5MJy_Xn2bzlbZPaqzDoT0sBwjCzA
+Maps API Key for Release Build: AIzaSyAFTxq5MJy_Xn2bzlbZPaqzDoT0sBwjCzA
+Maps API Key for Debug Build: AIzaSyAFTxq5MJy_Xn2bzlbZPaqzDoT0sBwjCzA
+Running Gradle task 'assembleRelease'...                           16.4s
+√ Built build\app\outputs\flutter-apk\app-release.apk (73.8MB)

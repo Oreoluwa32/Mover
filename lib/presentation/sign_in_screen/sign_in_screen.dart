@@ -34,10 +34,12 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
   LoadingDialog.show(context, message: 'Signing in...');
 
   try {
+    final requestBody = json.encode({'email': email, 'password': password});
+    print('Login request: $requestBody');
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
-      body: json.encode({'email': email, 'password': password}),
+      body: requestBody,
     );
 
     // Hide loading dialog
@@ -72,7 +74,7 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       // Check if the error is email not verified
       try {
         final errorData = json.decode(response.body);
-        final errorMessage = errorData['detail'] ?? 'Sign-in failed. Please try again.';
+        final errorMessage = errorData['detail'] ?? '${response.statusCode} Sign-in failed. Please try again.';
         
         if (errorMessage.toLowerCase().contains('email_not_verified') || 
             errorMessage.toLowerCase().contains('not verified')) {
@@ -90,16 +92,40 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
           Fluttertoast.showToast(msg: errorMessage);
         }
       } catch (e) {
-        Fluttertoast.showToast(msg: 'Sign-in failed. Please try again.');
+        Fluttertoast.showToast(msg: '${response.statusCode} Sign-in failed. Please try again.');
+      }
+    }
+    else if (response.statusCode == 400) {
+      try {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['error'] ?? errorData['detail'] ?? errorData['message'] ?? 'Invalid email or password. Please try again.';
+        
+        if (errorMessage.toLowerCase().contains('email') && errorMessage.toLowerCase().contains('not verified')) {
+          Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
+          if (context.mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.checkMailScreen,
+              (route) => route.isFirst,
+              arguments: {'email': email},
+            );
+          }
+        } else {
+          Fluttertoast.showToast(msg: errorMessage);
+        }
+        print('Login error response: ${response.body}');
+      } catch (e) {
+        Fluttertoast.showToast(msg: 'Invalid email or password. Please try again.');
+        print('Login error: ${response.body}');
       }
     }
     else {
       try {
         final errorData = json.decode(response.body);
-        final errorMessage = errorData['detail'] ?? 'Sign-in failed. Please try again.';
+        final errorMessage = errorData['detail'] ?? errorData['message'] ?? '${response.statusCode} Sign-in failed. Please try again.';
         Fluttertoast.showToast(msg: errorMessage);
       } catch (e) {
-        Fluttertoast.showToast(msg: 'Sign-in failed. Please try again.');
+        Fluttertoast.showToast(msg: '${response.statusCode} Sign-in failed. Please try again.');
       }
     }
   } catch (e) {

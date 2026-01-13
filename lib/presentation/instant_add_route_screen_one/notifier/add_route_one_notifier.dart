@@ -9,9 +9,13 @@ part 'add_route_one_state.dart';
 final addRouteOneNotifier =
     StateNotifierProvider.autoDispose<AddRouteOneNotifier, AddRouteOneState>(
   (ref) => AddRouteOneNotifier(AddRouteOneState(
+    locationController: TextEditingController(),
+    stopController: TextEditingController(),
+    destinationController: TextEditingController(),
     serviceTypeDropDownValue: SelectionPopupModel(title: ''),
     setTimeController: TextEditingController(),
     radioGroup: "",
+    showStopField: false,
     addRouteOneModelObj: AddRouteOneModel(transportMeansList: [
       AddRouteOneItemModel(
           meansImage: ImageConstant.imgWalkingMan, meansTitle: "Public"),
@@ -49,6 +53,10 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
     state = state.copyWith(radioGroup: value);
   }
 
+  void changeRadioBtn(String value) {
+    state = state.copyWith(radioGroup: value);
+  }
+
   void selectTransportMode(int index) {
     final updatedModes =
         state.addRouteOneModelObj?.transportMeansList.map((item) {
@@ -67,6 +75,33 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
       addRouteOneModelObj: state.addRouteOneModelObj?.copyWith(
         transportMeansList: updatedModes,
       ),
+    );
+  }
+
+  void toggleStopField() {
+    state = state.copyWith(showStopField: !state.showStopField);
+  }
+
+  void selectServiceType(SelectionPopupModel service) {
+    state = state.copyWith(serviceTypeDropDownValue: service);
+  }
+
+  void updateTimeField(String timeText) {
+    state.setTimeController?.text = timeText;
+    state = state.copyWith();
+  }
+
+  void setLocationCoordinates(double lat, double lng) {
+    state = state.copyWith(
+      locationLat: lat,
+      locationLng: lng,
+    );
+  }
+
+  void setDestinationCoordinates(double lat, double lng) {
+    state = state.copyWith(
+      destinationLat: lat,
+      destinationLng: lng,
     );
   }
 }

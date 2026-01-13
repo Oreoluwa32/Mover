@@ -361,7 +361,7 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
         right: 16.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           top: BorderSide(
             color: appTheme.gray20001,

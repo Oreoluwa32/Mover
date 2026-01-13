@@ -10,6 +10,11 @@ class HomeState extends Equatable{
     this.isLive = false,
     this.showLiveNotification = false,
     this.isToggling = false,
+    this.highlightRoute = false,
+    this.routeLocationLat,
+    this.routeLocationLng,
+    this.routeDestinationLat,
+    this.routeDestinationLng,
   });
 
   bool isSelectedSwitch;
@@ -18,6 +23,11 @@ class HomeState extends Equatable{
   bool isLive;
   bool showLiveNotification;
   bool isToggling;
+  bool highlightRoute;
+  double? routeLocationLat;
+  double? routeLocationLng;
+  double? routeDestinationLat;
+  double? routeDestinationLng;
 
   @override
   List<Object?> get props => [
@@ -27,6 +37,11 @@ class HomeState extends Equatable{
     isLive,
     showLiveNotification,
     isToggling,
+    highlightRoute,
+    routeLocationLat,
+    routeLocationLng,
+    routeDestinationLat,
+    routeDestinationLng,
   ];
 
   HomeState copyWith({
@@ -36,6 +51,11 @@ class HomeState extends Equatable{
     bool? isLive,
     bool? showLiveNotification,
     bool? isToggling,
+    bool? highlightRoute,
+    double? routeLocationLat,
+    double? routeLocationLng,
+    double? routeDestinationLat,
+    double? routeDestinationLng,
   }) {
     return HomeState(
       isSelectedSwitch: isSelectedSwitch ?? this.isSelectedSwitch,
@@ -44,6 +64,11 @@ class HomeState extends Equatable{
       isLive: isLive ?? this.isLive,
       showLiveNotification: showLiveNotification ?? this.showLiveNotification,
       isToggling: isToggling ?? this.isToggling,
+      highlightRoute: highlightRoute ?? this.highlightRoute,
+      routeLocationLat: routeLocationLat ?? this.routeLocationLat,
+      routeLocationLng: routeLocationLng ?? this.routeLocationLng,
+      routeDestinationLat: routeDestinationLat ?? this.routeDestinationLat,
+      routeDestinationLng: routeDestinationLng ?? this.routeDestinationLng,
     );
   }
 }

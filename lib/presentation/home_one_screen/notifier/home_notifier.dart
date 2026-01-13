@@ -62,4 +62,19 @@ class HomeNotifier extends StateNotifier<HomeState>{
       rethrow;
     }
   }
+
+  void setRouteCoordinates({
+    required double locationLat,
+    required double locationLng,
+    required double destinationLat,
+    required double destinationLng,
+  }) {
+    state = state.copyWith(
+      highlightRoute: true,
+      routeLocationLat: locationLat,
+      routeLocationLng: locationLng,
+      routeDestinationLat: destinationLat,
+      routeDestinationLng: destinationLng,
+    );
+  }
 }

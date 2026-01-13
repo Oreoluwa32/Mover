@@ -1,0 +1,839 @@
+Analyzing Movr...                                               
+
+warning - Unused import: 'notifier/account_funded_notifier.dart' - lib\presentation\account_funded_screen\account_funded_screen.dart:5:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\account_funded_screen\account_funded_screen.dart:8:9 - use_super_parameters
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\account_funded_screen\models\account_funded_model.dart:1:8 - unused_import
+warning - The getter doesn't override an inherited getter - lib\presentation\account_funded_screen\models\account_funded_model.dart:12:21 - override_on_non_overriding_member
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\account_funded_screen\notifier\account_funded_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\account_funded_screen\notifier\account_funded_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AccountFundedState.accountFundedModelObj - lib\presentation\account_funded_screen\notifier\account_funded_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_completed_screen\activity_completed_screen.dart:8:9 - use_super_parameters
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\activity_completed_screen\models\activity_completed_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ActivityCompletedModel.completedItemList - lib\presentation\activity_completed_screen\models\activity_completed_model.dart:7:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\activity_completed_screen\notifier\activity_completed_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\activity_completed_screen\notifier\activity_completed_notifier.dart:39:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ActivityCompletedState.activityCompletedModelObj - lib\presentation\activity_completed_screen\notifier\activity_completed_state.dart:6:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CompletedItemWidget.completedItemModelObj, CompletedItemWidget.googleMapController - lib\presentation\activity_completed_screen\widgets\completed_item_widget.dart:9:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_completed_screen\widgets\completed_item_widget.dart:10:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_completed_screen\widgets\completed_item_widget.dart:22:44 - deprecated_member_use
+warning - Unused import: '../../widgets/custom_bottom_bar.dart' - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:3:8 - unused_import
+warning - Unused import: '../home_one_screen/home_one_initial_page.dart' - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:4:8 - unused_import
+warning - Unused import: '../profile_screen/profile_screen.dart' - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:5:8 - unused_import
+warning - Unused import: '../my_route_page/my_route_page.dart' - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:6:8 - unused_import
+warning - Unused import: 'notifier/activity_progress_notifier.dart' - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:13:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:16:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:128:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:136:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:150:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:158:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:172:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\activity_in_progress_page.dart:180:64 - deprecated_member_use
+warning - Unused import: 'models/activity_in_progress_model.dart' - lib\presentation\activity_in_progress_page\activity_progress_tab.dart:3:8 - unused_import
+warning - Unused import: 'models/activity_progress_tab_model.dart' - lib\presentation\activity_in_progress_page\activity_progress_tab.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_in_progress_page\activity_progress_tab.dart:10:9 - use_super_parameters
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\activity_in_progress_page\models\activity_in_progress_model.dart:2:8 - unused_import
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\activity_in_progress_page\models\activity_in_progress_model.dart:3:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\activity_in_progress_page\models\activity_in_progress_model.dart:7:3 - prefer_const_constructors_in_immutables
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ActivityProgressTabModel.progressList - lib\presentation\activity_in_progress_page\models\activity_progress_tab_model.dart:6:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\activity_in_progress_page\notifier\activity_progress_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\activity_in_progress_page\notifier\activity_progress_notifier.dart:40:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ActivityProgressState.activityInProgressModelObj, ActivityProgressState.activityProgressTabModelObj - lib\presentation\activity_in_progress_page\notifier\activity_progress_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ProgressItemWidget.progressItemModelObj, ProgressItemWidget.googleMapController - lib\presentation\activity_in_progress_page\widgets\progress_item_widget.dart:9:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_in_progress_page\widgets\progress_item_widget.dart:10:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_in_progress_page\widgets\progress_item_widget.dart:23:44 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_scheduled_screen\activity_scheduled_screen.dart:8:9 - use_super_parameters
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\activity_scheduled_screen\models\activity_scheduled_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ActivityScheduledModel.scheduledItemList - lib\presentation\activity_scheduled_screen\models\activity_scheduled_model.dart:7:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\activity_scheduled_screen\notifier\activity_scheduled_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\activity_scheduled_screen\notifier\activity_scheduled_notifier.dart:39:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ActivityScheduledState.activityScheduledModelObj - lib\presentation\activity_scheduled_screen\notifier\activity_scheduled_state.dart:6:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ScheduledItemWidget.scheduledItemModelObj, ScheduledItemWidget.googleMapController - lib\presentation\activity_scheduled_screen\widgets\scheduled_item_widget.dart:9:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\activity_scheduled_screen\widgets\scheduled_item_widget.dart:10:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\activity_scheduled_screen\widgets\scheduled_item_widget.dart:22:44 - deprecated_member_use
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteScreen.locationController, AddRouteScreen.destinationController - lib\presentation\add_route_screen\add_route_screen.dart:10:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\add_route_screen\add_route_screen.dart:11:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen\add_route_screen.dart:41:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen\add_route_screen.dart:50:38 - deprecated_member_use
+warning - Unused import: 'package:image_picker/image_picker.dart' - lib\presentation\add_route_screen_three\add_route_screen_three.dart:8:8 - unused_import
+warning - Unused import: '../../widgets/custom_icon_button.dart' - lib\presentation\add_route_screen_three\add_route_screen_three.dart:23:8 - unused_import
+warning - The value of the local variable 'itemImageBase64' isn't used - lib\presentation\add_route_screen_three\add_route_screen_three.dart:85:11 - unused_local_variable
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\add_route_screen_three\add_route_screen_three.dart:135:22 - use_build_context_synchronously
+warning - The value of the local variable 'imageList' isn't used - lib\presentation\add_route_screen_three\add_route_screen_three.dart:1203:20 - unused_local_variable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteTwoModel.transportMeansList, AddRouteTwoModel.serviceDropdown, AddRouteTwoModel.maxCapDropdown, AddRouteTwoModel.setDate, AddRouteTwoModel.date, AddRouteTwoModel.setTime, AddRouteTwoModel.time, AddRouteTwoModel.repeatDropdown, AddRouteTwoModel.setTimeBegin, AddRouteTwoModel.timeBegin, AddRouteTwoModel.setTimeEnd, AddRouteTwoModel.timeEnd - lib\presentation\add_route_screen_three\models\add_route_two_model.dart:7:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\add_route_screen_three\notifier\add_route_two_notifier.dart:51:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteTwoState.locationController, AddRouteTwoState.stopController, AddRouteTwoState.destinationController, AddRouteTwoState.setDateController, AddRouteTwoState.setTimeController, AddRouteTwoState.setTimeBeginController, AddRouteTwoState.setTimeEndController, AddRouteTwoState.routeNameController, AddRouteTwoState.serviceDropdownValue, AddRouteTwoState.repeatDropdownValue, AddRouteTwoState.maxCapDropdownValue, AddRouteTwoState.addRouteTwoModelObj, AddRouteTwoState.radioGroup, AddRouteTwoState.returnRadio, AddRouteTwoState.setTime, AddRouteTwoState.imagePath, AddRouteTwoState.showStopField - lib\presentation\add_route_screen_three\notifier\add_route_two_state.dart:5:7 - must_be_immutable
+   info - Don't invoke 'print' in production code - lib\presentation\add_route_screen_three\notifier\places_autocomplete_notifier.dart:29:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\add_route_screen_three\notifier\places_autocomplete_notifier.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\add_route_screen_three\notifier\places_autocomplete_notifier.dart:53:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\add_route_screen_three\notifier\places_autocomplete_notifier.dart:61:7 - avoid_print
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteThreeWidget.addRouteItemModelObj - lib\presentation\add_route_screen_three\widgets\add_route_three_widget.dart:5:7 - must_be_immutable
+   info - Don't invoke 'print' in production code - lib\presentation\add_route_screen_three\widgets\places_autocomplete_field.dart:86:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\add_route_screen_three\widgets\places_autocomplete_field.dart:155:17 - avoid_print
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteScreenTwo.pickupController, AddRouteScreenTwo.addStopController, AddRouteScreenTwo.destinationController, AddRouteScreenTwo.dropdownItemList, AddRouteScreenTwo.timeController - lib\presentation\add_route_screen_two\add_route_screen_two.dart:15:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\add_route_screen_two\add_route_screen_two.dart:16:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen_two\add_route_screen_two.dart:65:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen_two\add_route_screen_two.dart:74:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen_two\add_route_screen_two.dart:338:44 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\presentation\add_route_screen_two\widgets\add_route_two_item_widget.dart:5:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen_two\widgets\add_route_two_item_widget.dart:17:44 - deprecated_member_use
+warning - Unused import: 'package:new_project/theme/custom_button_style.dart' - lib\presentation\check_mail_screen\check_mail_screen.dart:6:8 - unused_import
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\check_mail_screen\check_mail_screen.dart:15:39 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\check_mail_screen\check_mail_screen.dart:15:39 - invalid_use_of_protected_member
+   info - Don't invoke 'print' in production code - lib\presentation\check_mail_screen\check_mail_screen.dart:22:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\check_mail_screen\check_mail_screen.dart:35:7 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\check_mail_screen\check_mail_screen.dart:46:29 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\presentation\check_mail_screen\check_mail_screen.dart:69:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\check_mail_screen\check_mail_screen.dart:89:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\check_mail_screen\check_mail_screen.dart:97:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\check_mail_screen\check_mail_screen.dart:129:7 - avoid_print
+   info - Parameter 'key' could be a super parameter - lib\presentation\check_mail_screen\check_mail_screen.dart:142:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\check_mail_screen\models\check_mail_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\check_mail_screen\notifier\check_mail_notifier.dart:16:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CheckMailState.otpController, CheckMailState.checkMailModelObj - lib\presentation\check_mail_screen\notifier\check_mail_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/completed_notifier.dart' - lib\presentation\completed_bottomsheet\completed_bottomsheet.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\completed_bottomsheet\completed_bottomsheet.dart:6:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\completed_bottomsheet\completed_bottomsheet.dart:26:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\completed_bottomsheet\completed_bottomsheet.dart:184:69 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\completed_bottomsheet\models\completed_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\completed_bottomsheet\notifier\completed_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\completed_bottomsheet\notifier\completed_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CompletedState.completedModelObj - lib\presentation\completed_bottomsheet\notifier\completed_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\create_account_screen\create_account_screen.dart:21:9 - use_super_parameters
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\create_account_screen\create_account_screen.dart:46:39 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\create_account_screen\create_account_screen.dart:46:39 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\create_account_screen\create_account_screen.dart:47:42 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\create_account_screen\create_account_screen.dart:47:42 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\create_account_screen\create_account_screen.dart:118:28 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\create_account_screen\create_account_screen.dart:118:28 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\create_account_screen\create_account_screen.dart:119:31 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\create_account_screen\create_account_screen.dart:119:31 - invalid_use_of_protected_member
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\create_account_screen\create_account_screen.dart:374:51 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\create_account_screen\create_account_screen.dart:376:37 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\create_account_screen\create_account_screen.dart:382:35 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\create_account_screen\create_account_screen.dart:388:33 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\create_account_screen\create_account_screen.dart:413:25 - use_build_context_synchronously
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\create_account_screen\models\create_account_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\create_account_screen\notifier\create_account_notifier.dart:16:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CreateAccountState.emailController, CreateAccountState.passwordController, CreateAccountState.createAccountModelObj - lib\presentation\create_account_screen\notifier\create_account_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'package:image_picker/image_picker.dart' - lib\presentation\delivery_details_screen\delivery_details_screen.dart:6:8 - unused_import
+warning - Unused import: '../../widgets/custom_search_view.dart' - lib\presentation\delivery_details_screen\delivery_details_screen.dart:20:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_details_screen\delivery_details_screen.dart:27:9 - use_super_parameters
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\delivery_details_screen\delivery_details_screen.dart:91:31 - use_build_context_synchronously
+   info - Use the null-aware operator '?.' rather than an explicit 'null' comparison - lib\presentation\delivery_details_screen\delivery_details_screen.dart:232:32 - prefer_null_aware_operators
+warning - The '!' will have no effect because the receiver can't be null - lib\presentation\delivery_details_screen\delivery_details_screen.dart:254:45 - unnecessary_non_null_assertion
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\delivery_details_screen\delivery_details_screen.dart:491:15 - use_build_context_synchronously
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\delivery_details_screen\models\delivery_details_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_details_screen\notifier\delivery_details_notifier.dart:22:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryDetailsState.pickupController, DeliveryDetailsState.destinationController, DeliveryDetailsState.itemDescrController, DeliveryDetailsState.nameController, DeliveryDetailsState.phoneController, DeliveryDetailsState.deliveryDetailsModelObj, DeliveryDetailsState.radioGroup, DeliveryDetailsState.itemWeight, DeliveryDetailsState.imagePath - lib\presentation\delivery_details_screen\notifier\delivery_details_state.dart:5:7 - must_be_immutable
+   info - Don't invoke 'print' in production code - lib\presentation\delivery_details_screen\notifier\places_autocomplete_notifier.dart:29:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\delivery_details_screen\notifier\places_autocomplete_notifier.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\delivery_details_screen\notifier\places_autocomplete_notifier.dart:53:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\delivery_details_screen\notifier\places_autocomplete_notifier.dart:61:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\delivery_details_screen\widgets\places_autocomplete_field.dart:86:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\delivery_details_screen\widgets\places_autocomplete_field.dart:155:17 - avoid_print
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\delivery_pickup_screen_one\delivery_pickup_screen_one.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_pickup_screen_one\delivery_pickup_screen_one.dart:10:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\delivery_pickup_screen_one\delivery_pickup_screen_one.dart:24:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\delivery_pickup_screen_one\delivery_pickup_screen_one.dart:195:44 - deprecated_member_use
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryPickupModel.deliveryPickupItemList - lib\presentation\delivery_pickup_screen_one\models\delivery_pickup_model.dart:6:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\delivery_pickup_screen_one\notifier\delivery_pickup_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_pickup_screen_one\notifier\delivery_pickup_notifier.dart:29:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryPickupState.deliveryPickupModelObj - lib\presentation\delivery_pickup_screen_one\notifier\delivery_pickup_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: PickupOneWidget.deliveryPickupModelObj - lib\presentation\delivery_pickup_screen_one\widgets\pickup_one_widget.dart:5:7 - must_be_immutable
+warning - Unused import: '../../widgets/custom_icon_button.dart' - lib\presentation\delivery_pickup_screen_two\delivery_pickup_screen_two.dart:6:8 - unused_import
+warning - Unused import: 'notifier/pickup_notifier.dart' - lib\presentation\delivery_pickup_screen_two\delivery_pickup_screen_two.dart:7:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_pickup_screen_two\delivery_pickup_screen_two.dart:10:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\delivery_pickup_screen_two\models\pickup_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\delivery_pickup_screen_two\notifier\pickup_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_pickup_screen_two\notifier\pickup_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: PickupState.pickupModelObj - lib\presentation\delivery_pickup_screen_two\notifier\pickup_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_rating_screen_one\delivery_rating_screen_one.dart:10:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\delivery_rating_screen_one\models\delivery_rating_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_rating_screen_one\notifier\delivery_rating_notifier.dart:15:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryRatingState.descrController, DeliveryRatingState.deliveryRatingModelObj - lib\presentation\delivery_rating_screen_one\notifier\delivery_rating_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/rating_notifier.dart' - lib\presentation\delivery_rating_screen_two\delivery_rating_screen_two.dart:5:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_rating_screen_two\delivery_rating_screen_two.dart:8:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\delivery_rating_screen_two\models\rating_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\delivery_rating_screen_two\notifier\rating_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_rating_screen_two\notifier\rating_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RatingState.ratingModelObj - lib\presentation\delivery_rating_screen_two\notifier\rating_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\delivery_screen\delivery_screen.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_screen\delivery_screen.dart:14:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\delivery_screen\delivery_screen.dart:107:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\delivery_screen\delivery_screen.dart:546:44 - deprecated_member_use
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\delivery_screen\models\delivery_item_model.dart:1:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryModel.deliveryItemList - lib\presentation\delivery_screen\models\delivery_model.dart:6:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\delivery_screen\notifier\delivery_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_screen\notifier\delivery_notifier.dart:55:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryState.deliveryModelObj - lib\presentation\delivery_screen\notifier\delivery_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryItemWidget.deliveryItemModelObj - lib\presentation\delivery_screen\widgets\delivery_item_widget.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\delivery_screen\widgets\delivery_item_widget.dart:8:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\delivery_task_one_bottomsheet\delivery_task_one_bottomsheet.dart:29:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\delivery_task_one_bottomsheet\delivery_task_one_bottomsheet.dart:369:46 - deprecated_member_use
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\delivery_task_one_bottomsheet\models\delivery_task_item_model.dart:1:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryTaskModel.deliveryTaskItemList - lib\presentation\delivery_task_one_bottomsheet\models\delivery_task_model.dart:6:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\delivery_task_one_bottomsheet\notifier\delivery_task_notifier.dart:24:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryTaskState.priceController, DeliveryTaskState.radioGroup, DeliveryTaskState.deliveryTaskModelObj - lib\presentation\delivery_task_one_bottomsheet\notifier\delivery_task_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DeliveryTaskOneBottomsheetWidget.deliveryTaskItemModelObj - lib\presentation\delivery_task_one_bottomsheet\widgets\delivery_task_one_bottomsheet_widget.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\deposit_bottomsheet\deposit_bottomsheet.dart:11:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\deposit_bottomsheet\deposit_bottomsheet.dart:26:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\deposit_bottomsheet\deposit_bottomsheet.dart:227:44 - deprecated_member_use
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositBottomsheetModel.enterExpiryDate, DepositBottomsheetModel.expiryDate - lib\presentation\deposit_bottomsheet\models\deposit_bottomsheet_model.dart:6:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\deposit_bottomsheet\notifier\deposit_bottomsheet_notifier.dart:19:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositBottomsheetState.cardNumController, DepositBottomsheetState.expiryDateController, DepositBottomsheetState.cvvController, DepositBottomsheetState.nameController, DepositBottomsheetState.depositBottomsheetModelObj - lib\presentation\deposit_bottomsheet\notifier\deposit_bottomsheet_state.dart:6:7 - must_be_immutable
+warning - Unused import: 'package:http/http.dart' - lib\presentation\deposit_screen\deposit_screen.dart:1:8 - unused_import
+warning - Unused import: '../deposit_bottomsheet/deposit_bottomsheet.dart' - lib\presentation\deposit_screen\deposit_screen.dart:10:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\deposit_screen\deposit_screen.dart:13:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositModel.depositItemList - lib\presentation\deposit_screen\models\deposit_model.dart:7:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\deposit_screen\notifier\deposit_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\deposit_screen\notifier\deposit_notifier.dart:30:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositState.depositModelObj - lib\presentation\deposit_screen\notifier\deposit_state.dart:6:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositItemWidget.depositItemModelObj, DepositItemWidget.onTapCard - lib\presentation\deposit_screen\widgets\deposit_item_widget.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\deposit_screen\widgets\deposit_item_widget.dart:8:3 - use_super_parameters
+warning - Unused import: 'dart:convert' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:1:8 - unused_import
+warning - Unused import: 'package:http/http.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:2:8 - unused_import
+warning - Unused import: 'package:new_project/services/paystack_services.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:6:8 - unused_import
+warning - Unused import: '../../models/transactions.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:8:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositItemTwoModel.image, DepositItemTwoModel.cardNum, DepositItemTwoModel.cardType, DepositItemTwoModel.radioBtn, DepositItemTwoModel.id - lib\presentation\deposit_screen_two\models\deposit_item_two_model.dart:6:7 - must_be_immutable
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\deposit_screen_two\models\deposit_model_two.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositModelTwo.depositItemTwoList - lib\presentation\deposit_screen_two\models\deposit_model_two.dart:7:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\deposit_screen_two\notifier\deposit_two_notifier.dart:29:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositTwoState.amountController, DepositTwoState.referenceController, DepositTwoState.emailController, DepositTwoState.depositModelTwoObj - lib\presentation\deposit_screen_two\notifier\deposit_two_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositItemTwoWidget.depositItemTwoModelObj, DepositItemTwoWidget.changeRadioBtn - lib\presentation\deposit_screen_two\widgets\deposit_item_two_widget.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\deposit_screen_two\widgets\deposit_item_two_widget.dart:8:3 - use_super_parameters
+warning - The '!' will have no effect because the receiver can't be null - lib\presentation\deposit_screen_two\widgets\deposit_item_two_widget.dart:72:41 - unnecessary_non_null_assertion
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\email_verified_screen\email_verified_screen.dart:3:8 - unused_import
+warning - Unused import: 'notifier/email_verified_notifier.dart' - lib\presentation\email_verified_screen\email_verified_screen.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\email_verified_screen\email_verified_screen.dart:9:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\email_verified_screen\models\email_verified_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\email_verified_screen\notifier\email_verified_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\email_verified_screen\notifier\email_verified_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: EmailVerifiedState.emailVerifiedModelObj - lib\presentation\email_verified_screen\notifier\email_verified_state.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\flight_under_review\flight_under_review_screen.dart:5:9 - use_super_parameters
+warning - Unused import: '../../core/utils/keys.dart' - lib\presentation\forgot_password_screen\forgot_password_screen.dart:7:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\forgot_password_screen\forgot_password_screen.dart:16:9 - use_super_parameters
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\forgot_password_screen\forgot_password_screen.dart:29:42 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\forgot_password_screen\forgot_password_screen.dart:29:42 - invalid_use_of_protected_member
+   info - Don't invoke 'print' in production code - lib\presentation\forgot_password_screen\forgot_password_screen.dart:37:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\forgot_password_screen\forgot_password_screen.dart:52:9 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\forgot_password_screen\forgot_password_screen.dart:59:11 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\presentation\forgot_password_screen\forgot_password_screen.dart:64:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\forgot_password_screen\forgot_password_screen.dart:65:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\forgot_password_screen\forgot_password_screen.dart:75:7 - avoid_print
+   info - The local variable '_isFormValid' starts with an underscore - lib\presentation\forgot_password_screen\forgot_password_screen.dart:82:10 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_validateForm' starts with an underscore - lib\presentation\forgot_password_screen\forgot_password_screen.dart:84:10 - no_leading_underscores_for_local_identifiers
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\forgot_password_screen\forgot_password_screen.dart:92:20 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\forgot_password_screen\forgot_password_screen.dart:92:20 - invalid_use_of_protected_member
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\forgot_password_screen\models\forgot_password_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\forgot_password_screen\notifier\forgot_password_notifier.dart:15:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ForgotPasswordState.emailController, ForgotPasswordState.forgotPasswordModelObj - lib\presentation\forgot_password_screen\notifier\forgot_password_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/hire_mover_one_notifier.dart' - lib\presentation\hire_mover_bottomsheet_one\hire_mover_bottomsheet_one.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\hire_mover_bottomsheet_one\hire_mover_bottomsheet_one.dart:6:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\hire_mover_bottomsheet_one\hire_mover_bottomsheet_one.dart:20:46 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\hire_mover_bottomsheet_one\models\hire_mover_one_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:1:8 - unused_import
+warning - Unused import: 'package:new_project/presentation/hire_mover_screen_one/notifier/hire_mover_one_notifier.dart' - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:3:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:14:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HireMoverOneState.hireMoverOneModelObj - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\hire_mover_bottomsheet_two\hire_mover_bottomsheet_two.dart:3:8 - unused_import
+warning - Unused import: 'notifier/hire_mover_two_notifier.dart' - lib\presentation\hire_mover_bottomsheet_two\hire_mover_bottomsheet_two.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\hire_mover_bottomsheet_two\hire_mover_bottomsheet_two.dart:9:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\hire_mover_bottomsheet_two\hire_mover_bottomsheet_two.dart:23:46 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\hire_mover_bottomsheet_two\models\hire_mover_two_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\hire_mover_bottomsheet_two\notifier\hire_mover_two_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\hire_mover_bottomsheet_two\notifier\hire_mover_two_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HireMoverTwoState.hireMoverTwoModelObj - lib\presentation\hire_mover_bottomsheet_two\notifier\hire_mover_two_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\hire_mover_screen\hire_mover_screen.dart:12:9 - use_super_parameters
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\hire_mover_screen\models\hire_mover_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HireMoverModel.moverItemList - lib\presentation\hire_mover_screen\models\hire_mover_model.dart:7:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\hire_mover_screen\notifier\hire_mover_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\hire_mover_screen\notifier\hire_mover_notifier.dart:81:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HireMoverState.hireMoverModelObj - lib\presentation\hire_mover_screen\notifier\hire_mover_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoverItemWidget.moverItemModelObj - lib\presentation\hire_mover_screen\widgets\mover_item_widget.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\hire_mover_screen\widgets\mover_item_widget.dart:8:3 - use_super_parameters
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\hire_mover_screen_one\hire_mover_screen_one.dart:5:8 - unused_import
+warning - Unused import: 'notifier/hire_mover_one_notifier.dart' - lib\presentation\hire_mover_screen_one\hire_mover_screen_one.dart:10:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\hire_mover_screen_one\hire_mover_screen_one.dart:13:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\hire_mover_screen_one\models\hire_mover_one_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\hire_mover_screen_one\notifier\hire_mover_one_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\hire_mover_screen_one\notifier\hire_mover_one_notifier.dart:14:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HireMoverOneState.hireMoverOneModelObj - lib\presentation\hire_mover_screen_one\notifier\hire_mover_one_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../activity_in_progress_page/activity_in_progress_page.dart' - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:8:8 - unused_import
+warning - Unused import: '../my_route_page/my_route_page.dart' - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:9:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HomeDeliveryRequestScreen.googleMapController, HomeDeliveryRequestScreen.navigatorKey - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:14:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:15:3 - use_super_parameters
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:29:20 - sized_box_for_whitespace
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:48:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:52:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:102:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:168:72 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:233:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:252:86 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:267:78 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_delivery_request_screen\home_delivery_request_screen.dart:403:52 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:94:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:100:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:270:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:306:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:312:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:339:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\home_one_screen\home_one_initial_page.dart:342:7 - avoid_print
+warning - The declaration '_buildTaskNotification' isn't referenced - lib\presentation\home_one_screen\home_one_initial_page.dart:744:10 - unused_element
+warning - The declaration '_buildBottomNavigation' isn't referenced - lib\presentation\home_one_screen\home_one_initial_page.dart:760:10 - unused_element
+   info - Parameter 'key' could be a super parameter - lib\presentation\home_one_screen\home_one_screen.dart:14:9 - use_super_parameters
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_one_screen\home_one_screen.dart:80:16 - sized_box_for_whitespace
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\home_one_screen\models\home_initial_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\home_one_screen\models\home_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\home_one_screen\notifier\home_notifier.dart:20:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HomeState.isSelectedSwitch, HomeState.homeModelObj, HomeState.homeInitialModelObj, HomeState.isLive, HomeState.showLiveNotification, HomeState.isToggling, HomeState.highlightRoute, HomeState.routeLocationLat, HomeState.routeLocationLng, HomeState.routeDestinationLat, HomeState.routeDestinationLng, HomeState.selectedTransportMode, HomeState.selectedTransportModeIcon - lib\presentation\home_one_screen\notifier\home_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../activity_in_progress_page/activity_in_progress_page.dart' - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:8:8 - unused_import
+warning - Unused import: '../my_route_page/my_route_page.dart' - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:9:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HomeRidesharingRequestScreen.googleMapController, HomeRidesharingRequestScreen.navigatorKey - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:14:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:15:3 - use_super_parameters
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:29:20 - sized_box_for_whitespace
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:48:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:52:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:102:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:168:72 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:233:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:252:86 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:267:78 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\home_ridesharing_request_screen\home_ridesharing_request_screen.dart:403:52 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\presentation\home_screen\home_screen.dart:6:9 - use_super_parameters
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:24:22 - sized_box_for_whitespace
+   info - Unnecessary instance of 'Container' - lib\presentation\home_screen\home_screen.dart:44:42 - avoid_unnecessary_containers
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:123:38 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:164:38 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:176:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:231:62 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:402:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:550:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:583:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:616:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:649:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:682:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:715:50 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\home_screen\home_screen.dart:748:50 - sized_box_for_whitespace
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\home_screen\models\home_model.dart:2:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\home_screen\models\home_model.dart:6:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\home_screen\notifier\home_notifier.dart:1:8 - unused_import
+warning - Unused import: 'package:new_project/presentation/home_one_screen/notifier/home_notifier.dart' - lib\presentation\home_screen\notifier\home_notifier.dart:3:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\home_screen\notifier\home_notifier.dart:14:3 - use_super_parameters
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\home_screen_dialog\home_screen_dialog.dart:3:8 - unused_import
+warning - Unused import: 'notifier/home_dialog_notifier.dart' - lib\presentation\home_screen_dialog\home_screen_dialog.dart:5:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\home_screen_dialog\home_screen_dialog.dart:8:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\home_screen_dialog\models\home_dialog_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\home_screen_dialog\notifier\home_dialog_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\home_screen_dialog\notifier\home_dialog_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HomeDialogState.homeDialogModelObj - lib\presentation\home_screen_dialog\notifier\home_dialog_state.dart:5:7 - must_be_immutable
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\instant_add_route_screen_one\add_route_screen_one.dart:91:22 - use_build_context_synchronously
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\instant_add_route_screen_one\models\add_route_one_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteOneModel.transportMeansList, AddRouteOneModel.serviceTypeDropdown, AddRouteOneModel.setTime, AddRouteOneModel.time - lib\presentation\instant_add_route_screen_one\models\add_route_one_model.dart:8:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\instant_add_route_screen_one\notifier\add_route_one_notifier.dart:50:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteOneState.locationController, AddRouteOneState.stopController, AddRouteOneState.destinationController, AddRouteOneState.serviceTypeDropDownValue, AddRouteOneState.setTimeController, AddRouteOneState.addRouteOneModelObj, AddRouteOneState.radioGroup, AddRouteOneState.setTime, AddRouteOneState.showStopField, AddRouteOneState.locationLat, AddRouteOneState.locationLng, AddRouteOneState.destinationLat, AddRouteOneState.destinationLng - lib\presentation\instant_add_route_screen_one\notifier\add_route_one_state.dart:5:7 - must_be_immutable
+   info - Don't invoke 'print' in production code - lib\presentation\instant_add_route_screen_one\notifier\places_autocomplete_notifier.dart:29:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\instant_add_route_screen_one\notifier\places_autocomplete_notifier.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\instant_add_route_screen_one\notifier\places_autocomplete_notifier.dart:53:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\instant_add_route_screen_one\notifier\places_autocomplete_notifier.dart:61:7 - avoid_print
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteOneItemWidget.addRouteOneItemModelObj - lib\presentation\instant_add_route_screen_one\widgets\add_route_one_item_widget.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\instant_add_route_screen_one\widgets\add_route_one_item_widget.dart:6:3 - use_super_parameters
+   info - Don't invoke 'print' in production code - lib\presentation\instant_add_route_screen_one\widgets\places_autocomplete_field.dart:86:19 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\instant_add_route_screen_one\widgets\places_autocomplete_field.dart:165:17 - avoid_print
+   info - The import of '../../theme/custom_text_style.dart' is unnecessary because all of the used elements are also provided by the import of '../../core/app_export.dart' - lib\presentation\monnify_payment_screen\monnify_payment_screen.dart:11:8 - unnecessary_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\monnify_payment_screen\monnify_payment_screen.dart:19:9 - use_super_parameters
+warning - The left operand can't be null, so the right operand is never executed - lib\presentation\monnify_payment_screen\monnify_payment_screen.dart:113:54 - dead_null_aware_expression
+warning - Unused import: 'package:new_project/presentation/my_route_page/widgets/savedroute_item_widget.dart' - lib\presentation\my_route_page\models\my_route_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MyRouteModel.savedrouteItemList - lib\presentation\my_route_page\models\my_route_model.dart:7:7 - must_be_immutable
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\my_route_page\models\saved_route_model.dart:1:8 - unused_import
+warning - Unused import: '../instant_add_route_screen_one/add_route_screen_one.dart' - lib\presentation\my_route_page\my_route_page.dart:3:8 - unused_import
+warning - Unused import: '../add_route_screen_three/add_route_screen_three.dart' - lib\presentation\my_route_page\my_route_page.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\my_route_page\my_route_page.dart:16:9 - use_super_parameters
+   info - The 'child' argument should be last in widget constructor invocations - lib\presentation\my_route_page\my_route_page.dart:154:11 - sort_child_properties_last
+   info - The 'child' argument should be last in widget constructor invocations - lib\presentation\my_route_page\my_route_page.dart:287:13 - sort_child_properties_last
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\my_route_page\notifier\my_route_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\my_route_page\notifier\my_route_notifier.dart:48:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MyRouteState.myRouteModelObj - lib\presentation\my_route_page\notifier\my_route_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SavedrouteItemWidget.savedrouteItemModelObj - lib\presentation\my_route_page\widgets\savedroute_item_widget.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\my_route_page\widgets\savedroute_item_widget.dart:6:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\my_route_page\widgets\savedroute_item_widget.dart:22:44 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\my_route_plus_page\models\my_route_plus_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\no_mover_screen\models\no_mover_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\no_mover_screen\no_mover_screen.dart:3:8 - unused_import
+warning - Unused import: 'notifier/no_mover_notifier.dart' - lib\presentation\no_mover_screen\no_mover_screen.dart:7:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\no_mover_screen\no_mover_screen.dart:10:11 - use_super_parameters
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\no_mover_screen\notifier\no_mover_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\no_mover_screen\notifier\no_mover_notifier.dart:13:5 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: NoMoverState.noMoverModelObj - lib\presentation\no_mover_screen\notifier\no_mover_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\notification_screen\models\list_item_model.dart:1:8 - unused_import
+warning - The getter doesn't override an inherited getter - lib\presentation\notification_screen\models\list_item_model.dart:38:21 - override_on_non_overriding_member
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\notification_screen\models\notification_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: NotificationModel.listItemList - lib\presentation\notification_screen\models\notification_model.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\notification_screen\notification_screen.dart:11:9 - use_super_parameters
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\notification_screen\notifier\notification_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\notification_screen\notifier\notification_notifier.dart:55:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: NotificationState.notificationModelObj - lib\presentation\notification_screen\notifier\notification_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ListItemWidget.listItemModelObj - lib\presentation\notification_screen\widgets\list_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\notification_screen\widgets\list_item_widget.dart:7:5 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\password_check_mail_screen\password_check_mail_screen.dart:9:9 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\password_success_screen\password_success_screen.dart:7:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\payment_bottomsheet\models\payment_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\payment_bottomsheet\notifier\payment_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\payment_bottomsheet\notifier\payment_notifier.dart:14:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: PaymentState.paymentModelObj - lib\presentation\payment_bottomsheet\notifier\payment_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\payment_bottomsheet\payment_bottomsheet.dart:3:8 - unused_import
+warning - Unused import: 'notifier/payment_notifier.dart' - lib\presentation\payment_bottomsheet\payment_bottomsheet.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\payment_bottomsheet\payment_bottomsheet.dart:9:9 - use_super_parameters
+   info - The import of '../../theme/custom_text_style.dart' is unnecessary because all of the used elements are also provided by the import of '../../core/app_export.dart' - lib\presentation\paystack_payment_screen\paystack_payment_screen.dart:11:8 - unnecessary_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\paystack_payment_screen\paystack_payment_screen.dart:19:9 - use_super_parameters
+warning - The left operand can't be null, so the right operand is never executed - lib\presentation\paystack_payment_screen\paystack_payment_screen.dart:115:54 - dead_null_aware_expression
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\personal_information_screen\models\personal_information_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\personal_information_screen\notifier\personal_information_notifier.dart:24:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: PersonalInformationState.firstNameController, PersonalInformationState.lastNameController, PersonalInformationState.emailController, PersonalInformationState.phoneNumberController, PersonalInformationState.facebookLinkController, PersonalInformationState.instagramLinkController, PersonalInformationState.linkedinLinkController, PersonalInformationState.personalInformationModelObj, PersonalInformationState.selectedCountry - lib\presentation\personal_information_screen\notifier\personal_information_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\personal_information_screen\personal_information_screen.dart:21:9 - use_super_parameters
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:46:44 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:46:44 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:47:43 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:47:43 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:48:40 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:48:40 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:49:46 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:49:46 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:50:47 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:50:47 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:51:48 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:51:48 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:52:47 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:52:47 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\personal_information_screen\personal_information_screen.dart:53:50 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\personal_information_screen\personal_information_screen.dart:53:50 - invalid_use_of_protected_member
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\personal_information_screen\personal_information_screen.dart:81:31 - use_build_context_synchronously
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\profile_screen\models\profile_screen_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:image_picker/image_picker.dart' - lib\presentation\profile_screen\notifier\profile_screen_notifier.dart:3:8 - unused_import
+warning - Unused import: 'package:http/http.dart' - lib\presentation\profile_screen\notifier\profile_screen_notifier.dart:4:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\profile_screen\notifier\profile_screen_notifier.dart:18:3 - use_super_parameters
+warning - The value of the local variable 'file' isn't used - lib\presentation\profile_screen\notifier\profile_screen_notifier.dart:126:13 - unused_local_variable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ProfileScreenState.profileScreenModelObj, ProfileScreenState.isUploadingProfileImage, ProfileScreenState.profileImageError - lib\presentation\profile_screen\notifier\profile_screen_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'package:http/http.dart' - lib\presentation\profile_screen\profile_screen.dart:1:8 - unused_import
+warning - Unused import: '../../core/utils/file_upload_helper.dart' - lib\presentation\profile_screen\profile_screen.dart:7:8 - unused_import
+warning - Unused import: '../../widgets/app_bar/appbar_title.dart' - lib\presentation\profile_screen\profile_screen.dart:12:8 - unused_import
+warning - Unused import: '../transaction_history_screen/transaction_history_screen.dart' - lib\presentation\profile_screen\profile_screen.dart:13:8 - unused_import
+warning - Unused import: '../activity_in_progress_page/activity_in_progress_page.dart' - lib\presentation\profile_screen\profile_screen.dart:14:8 - unused_import
+warning - Unused import: '../home_one_screen/home_one_initial_page.dart' - lib\presentation\profile_screen\profile_screen.dart:15:8 - unused_import
+warning - Unused import: '../my_route_page/my_route_page.dart' - lib\presentation\profile_screen\profile_screen.dart:16:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\presentation\profile_screen\profile_screen.dart:35:5 - avoid_print
+   info - Parameter 'key' could be a super parameter - lib\presentation\profile_screen\profile_screen.dart:45:9 - use_super_parameters
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\presentation\profile_screen\profile_screen.dart:108:12 - sized_box_for_whitespace
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\profile_screen\profile_screen.dart:340:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\profile_screen\profile_screen.dart:428:46 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\profile_screen\profile_screen.dart:485:7 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\profile_screen\profile_screen.dart:527:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\profile_screen\profile_screen.dart:532:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\profile_screen\profile_screen.dart:549:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\profile_screen\profile_screen.dart:554:30 - use_build_context_synchronously
+   info - Parameter 'key' could be a super parameter - lib\presentation\quick_deposit_bottomsheet\quick_deposit_bottomsheet.dart:12:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\quick_deposit_bottomsheet\quick_deposit_bottomsheet.dart:27:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\quick_deposit_bottomsheet\quick_deposit_bottomsheet.dart:145:44 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\refer_friends_screen\models\refer_friends_model.dart:6:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\refer_friends_screen\notifier\refer_friends_notifier.dart:15:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ReferFriendsState.referFriendsModelObj, ReferFriendsState.codeController - lib\presentation\refer_friends_screen\notifier\refer_friends_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\refer_friends_screen\refer_friends_screen.dart:12:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\reset_password_screen\models\reset_password_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\reset_password_screen\notifier\reset_password_notifier.dart:17:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ResetPasswordState.passwordController, ResetPasswordState.confirmpasswordController, ResetPasswordState.resetPasswordModelObj, ResetPasswordState.resetToken - lib\presentation\reset_password_screen\notifier\reset_password_state.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\reset_password_screen\reset_password_screen.dart:17:9 - use_super_parameters
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\reset_password_screen\reset_password_screen.dart:31:44 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\reset_password_screen\reset_password_screen.dart:31:44 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\reset_password_screen\reset_password_screen.dart:32:51 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\reset_password_screen\reset_password_screen.dart:32:51 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\reset_password_screen\reset_password_screen.dart:33:41 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\reset_password_screen\reset_password_screen.dart:33:41 - invalid_use_of_protected_member
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\reset_password_screen\reset_password_screen.dart:70:43 - use_build_context_synchronously
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\ride_cancel_screen_one\models\ride_cancel_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\ride_cancel_screen_one\notifier\ride_cancel_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\ride_cancel_screen_one\notifier\ride_cancel_notifier.dart:15:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideCancelState.rideCancelModelObj, RideCancelState.radioGroup - lib\presentation\ride_cancel_screen_one\notifier\ride_cancel_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\ride_cancel_screen_one\ride_cancel_screen_one.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\ride_cancel_screen_one\ride_cancel_screen_one.dart:11:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideSharingDetailsModel.dropdownItemList - lib\presentation\ride_sharing_details_screen\models\ride_sharing_details_model.dart:6:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\ride_sharing_details_screen\notifier\ride_sharing_details_notifier.dart:29:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideSharingDetailsState.selectedDropDownValue, RideSharingDetailsState.rideSharingDetailsModelObj, RideSharingDetailsState.destination - lib\presentation\ride_sharing_details_screen\notifier\ride_sharing_details_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\ride_sharing_details_screen\ride_sharing_details_screen.dart:12:9 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\ride_sharing_pickup_one\ride_sharing_pickup_one.dart:6:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\ride_sharing_pickup_one\ride_sharing_pickup_one.dart:15:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\ride_sharing_pickup_one\ride_sharing_pickup_one.dart:190:52 - deprecated_member_use
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\ride_sharing_pickup_two\models\model.dart:1:8 - unused_import
+warning - The getter doesn't override an inherited getter - lib\presentation\ride_sharing_pickup_two\models\model.dart:12:21 - override_on_non_overriding_member
+warning - The getter doesn't override an inherited getter - lib\presentation\ride_sharing_pickup_two\models\ride_sharing_item_model.dart:34:21 - override_on_non_overriding_member
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\ride_sharing_pickup_two\models\ride_sharing_pickup_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideSharingPickupModel.rideSharingItemList - lib\presentation\ride_sharing_pickup_two\models\ride_sharing_pickup_model.dart:7:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\ride_sharing_pickup_two\notifier\ride_sharing_pickup_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\ride_sharing_pickup_two\notifier\ride_sharing_pickup_notifier.dart:33:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideSharingPickupState.rideSharingPickupModelObj - lib\presentation\ride_sharing_pickup_two\notifier\ride_sharing_pickup_state.dart:6:7 - must_be_immutable
+warning - Unused import: 'package:new_project/presentation/delivery_pickup_screen_two/notifier/pickup_notifier.dart' - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:2:8 - unused_import
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:12:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: PickupTwoOneItemWidget.rideSharingItemModelObj - lib\presentation\ride_sharing_pickup_two\widgets\pickup_two_one_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\ride_sharing_pickup_two\widgets\pickup_two_one_item_widget.dart:7:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideSharingTaskBottomsheetOne.routeController, RideSharingTaskBottomsheetOne.radioGroup, RideSharingTaskBottomsheetOne.priceController - lib\presentation\ride_sharing_task_bottomsheet_one\ride_sharing_task_bottomsheet_one.dart:9:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\ride_sharing_task_bottomsheet_one\ride_sharing_task_bottomsheet_one.dart:10:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\ride_sharing_task_bottomsheet_one\ride_sharing_task_bottomsheet_one.dart:26:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\ride_sharing_task_bottomsheet_one\ride_sharing_task_bottomsheet_one.dart:269:44 - deprecated_member_use
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\route_settings_bottomsheet\add_route_three_bottomsheet.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\route_settings_bottomsheet\add_route_three_bottomsheet.dart:8:9 - use_super_parameters
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\route_settings_bottomsheet\notifier\route_setting_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\route_settings_bottomsheet\notifier\route_setting_notifier.dart:14:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RouteSettingState.routeSettingModelObj - lib\presentation\route_settings_bottomsheet\notifier\route_setting_state.dart:5:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\save_your_route_dialog\notifier\save_route_notifier.dart:15:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SaveRouteState.textController, SaveRouteState.saveRouteModelObj - lib\presentation\save_your_route_dialog\notifier\save_route_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\save_your_route_dialog\save_your_route_dialog.dart:11:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\scan_screen\models\scan_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\scan_screen\notifier\scan_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\scan_screen\notifier\scan_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ScanState.scanModelObj - lib\presentation\scan_screen\notifier\scan_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/scan_notifier.dart' - lib\presentation\scan_screen\scan_screen.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\scan_screen\scan_screen.dart:9:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\scan_screen_one\models\scan_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'state' could be a super parameter - lib\presentation\scan_screen_one\notifier\scan_notifier.dart:16:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ScanState.codeController, ScanState.scanModelObj - lib\presentation\scan_screen_one\notifier\scan_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\scan_screen_one\scan_screen_one.dart:10:9 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\scan_screen_two\scan_screen_two.dart:8:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_add_route_screen_one\add_route_screen_one.dart:118:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_add_route_screen_one\add_route_screen_one.dart:127:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_add_route_screen_one\add_route_screen_one.dart:275:73 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_add_route_screen_one\add_route_screen_one.dart:423:44 - deprecated_member_use
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\schedule_add_route_screen_one\models\add_route_one_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteOneModel.transportMeansList, AddRouteOneModel.serviceTypeDropdown, AddRouteOneModel.departureDropdown - lib\presentation\schedule_add_route_screen_one\models\add_route_one_model.dart:8:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\schedule_add_route_screen_one\notifier\add_route_one_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\schedule_add_route_screen_one\notifier\add_route_one_notifier.dart:75:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteOneState.serviceTypeDropDownValue, AddRouteOneState.departureDropDownValue, AddRouteOneState.addRouteOneModelObj, AddRouteOneState.radioGroup - lib\presentation\schedule_add_route_screen_one\notifier\add_route_one_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: AddRouteOneItemWidget.addRouteOneItemModelObj - lib\presentation\schedule_add_route_screen_one\widgets\add_route_one_item_widget.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\schedule_add_route_screen_one\widgets\add_route_one_item_widget.dart:6:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_add_route_screen_one\widgets\add_route_one_item_widget.dart:20:44 - deprecated_member_use
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\schedule_move_bottomsheet\models\move_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveModel.moveItemList - lib\presentation\schedule_move_bottomsheet\models\move_model.dart:8:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:1:8 - unused_import
+warning - Unused import: 'package:new_project/presentation/user_move_screen/notifier/move_notifier.dart' - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:3:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:28:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveState.moveModelObj - lib\presentation\schedule_move_bottomsheet\notifier\move_state.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\schedule_move_bottomsheet\schedule_move_bottomsheet.dart:9:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveItemWidget.moveItemModelObj, MoveItemWidget.onTap - lib\presentation\schedule_move_bottomsheet\widgets\move_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\schedule_move_bottomsheet\widgets\move_item_widget.dart:7:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveOneModel.selectedDate, MoveOneModel.date, MoveOneModel.selectedTime, MoveOneModel.time - lib\presentation\schedule_move_bottomsheet_one\models\move_one_model.dart:6:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\schedule_move_bottomsheet_one\notifier\move_one_notifier.dart:16:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveOneState.dateController, MoveOneState.timeController, MoveOneState.setTime, MoveOneState.moveOneModelObj - lib\presentation\schedule_move_bottomsheet_one\notifier\move_one_state.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\schedule_move_bottomsheet_one\schedule_move_bottomsheet_one.dart:10:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_move_bottomsheet_one\schedule_move_bottomsheet_one.dart:33:50 - deprecated_member_use
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\schedule_move_bottomsheet_one\schedule_move_bottomsheet_one.dart:192:42 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\schedule_move_bottomsheet_one\schedule_move_bottomsheet_one.dart:192:42 - invalid_use_of_protected_member
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\schedule_trip_bottomsheet\models\schedule_trip_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ScheduleTripModel.scheduleItemList - lib\presentation\schedule_trip_bottomsheet\models\schedule_trip_model.dart:8:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\schedule_trip_bottomsheet\notifier\schedule_trip_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\schedule_trip_bottomsheet\notifier\schedule_trip_notifier.dart:29:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ScheduleTripState.scheduleTripModelObj - lib\presentation\schedule_trip_bottomsheet\notifier\schedule_trip_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\schedule_trip_bottomsheet\schedule_trip_bottomsheet.dart:8:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\schedule_trip_bottomsheet\schedule_trip_bottomsheet.dart:29:50 - deprecated_member_use
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ScheduleItemWidget.scheduleItemModelObj - lib\presentation\schedule_trip_bottomsheet\widgets\schedule_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\schedule_trip_bottomsheet\widgets\schedule_item_widget.dart:7:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\search_mover_bottomsheet\models\search_mover_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\search_mover_bottomsheet\notifier\search_mover_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\search_mover_bottomsheet\notifier\search_mover_notifier.dart:15:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SearchMoverState.searchMoverModelObj, SearchMoverState.radioGroup - lib\presentation\search_mover_bottomsheet\notifier\search_mover_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\search_mover_bottomsheet\search_mover_bottomsheet.dart:3:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\search_mover_bottomsheet\search_mover_bottomsheet.dart:9:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\search_mover_bottomsheet\search_mover_bottomsheet.dart:28:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\search_mover_bottomsheet\search_mover_bottomsheet.dart:99:50 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\select_plan_screen\models\select_plan_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\select_plan_screen\notifier\select_plan_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\select_plan_screen\notifier\select_plan_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SelectPlanState.selectPlanModelObj - lib\presentation\select_plan_screen\notifier\select_plan_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/select_plan_notifier.dart' - lib\presentation\select_plan_screen\select_plan_screen.dart:12:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\select_plan_screen\select_plan_screen.dart:27:9 - use_super_parameters
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\select_plan_screen\select_plan_screen.dart:107:27 - use_build_context_synchronously
+warning - The declaration '_buildPlanThree' isn't referenced - lib\presentation\select_plan_screen\select_plan_screen.dart:347:10 - unused_element
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DaysItemModel.days, DaysItemModel.isSelected - lib\presentation\set_date_bottomsheet\models\days_item_model.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SetDateModel.startDate, SetDateModel.setStartDate, SetDateModel.repeatDropdown, SetDateModel.daysOfWeek, SetDateModel.endDate, SetDateModel.setEndDate - lib\presentation\set_date_bottomsheet\models\set_date_model.dart:7:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\set_date_bottomsheet\notifier\set_date_notifier.dart:36:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SetDateState.startDateController, SetDateState.endDateController, SetDateState.numberController, SetDateState.repeatDropdownValue, SetDateState.setDateModelObj - lib\presentation\set_date_bottomsheet\notifier\set_date_state.dart:5:7 - must_be_immutable
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ChipviewoneItemWidget.daysItemModelObj, ChipviewoneItemWidget.onSelectedDay - lib\presentation\set_date_bottomsheet\widgets\chipviewone_item_widget.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\set_date_bottomsheet\widgets\chipviewone_item_widget.dart:6:3 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\set_date_bottomsheet\widgets\custom_date_picker.dart:10:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SetDateBottomsheetTwo.startdateController, SetDateBottomsheetTwo.dropdownItemList, SetDateBottomsheetTwo.enddateController - lib\presentation\set_date_bottomsheet_two\set_date_bottomsheet_two.dart:9:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\set_date_bottomsheet_two\set_date_bottomsheet_two.dart:10:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\set_date_bottomsheet_two\set_date_bottomsheet_two.dart:31:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\set_date_bottomsheet_two\set_date_bottomsheet_two.dart:121:66 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\set_date_bottomsheet_two\set_date_bottomsheet_two.dart:318:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\set_date_bottomsheet_two\set_date_bottomsheet_two.dart:322:49 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\presentation\set_date_bottomsheet_two\widgets\set_date_bottomsheet_two_item_widget.dart:5:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\share_ride_payment\models\share_ride_payment_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\share_ride_payment\notifier\share_ride_payment_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\share_ride_payment\notifier\share_ride_payment_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ShareRidePaymentState.shareRidePaymentModelObj - lib\presentation\share_ride_payment\notifier\share_ride_payment_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/share_ride_payment_notifier.dart' - lib\presentation\share_ride_payment\share_ride_payment.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\share_ride_payment\share_ride_payment.dart:9:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\share_ride_payment\share_ride_payment.dart:21:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\share_ride_payment\share_ride_payment.dart:215:44 - deprecated_member_use
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\share_ride_screen\models\movers_item_model.dart:1:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ShareRideModel.moverItemList - lib\presentation\share_ride_screen\models\share_ride_model.dart:6:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\share_ride_screen\notifier\share_ride_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\share_ride_screen\notifier\share_ride_notifier.dart:74:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ShareRideState.shareRideModelObj - lib\presentation\share_ride_screen\notifier\share_ride_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\share_ride_screen\share_ride_screen.dart:12:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoversItemWidget.moversItemModelObj - lib\presentation\share_ride_screen\widgets\movers_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\share_ride_screen\widgets\movers_item_widget.dart:7:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\share_ride_screen_one\models\share_ride_one_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\share_ride_screen_one\notifier\share_ride_one_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\share_ride_screen_one\notifier\share_ride_one_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ShareRideOneState.shareRideOneModelObj - lib\presentation\share_ride_screen_one\notifier\share_ride_one_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:4:8 - unused_import
+warning - Unused import: 'notifier/share_ride_one_notifier.dart' - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:9:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:12:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:61:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:306:44 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\sign_in_screen\models\sign_in_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:new_project/presentation/sign_in_screen/sign_in_screen.dart' - lib\presentation\sign_in_screen\notifier\sign_in_notifier.dart:3:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\sign_in_screen\notifier\sign_in_notifier.dart:17:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SignInState.emailController, SignInState.passwordController, SignInState.signInModelObj - lib\presentation\sign_in_screen\notifier\sign_in_state.dart:5:7 - must_be_immutable
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\sign_in_screen\sign_in_screen.dart:24:32 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\sign_in_screen\sign_in_screen.dart:24:32 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\sign_in_screen\sign_in_screen.dart:25:35 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\sign_in_screen\sign_in_screen.dart:25:35 - invalid_use_of_protected_member
+   info - Don't invoke 'print' in production code - lib\presentation\sign_in_screen\sign_in_screen.dart:38:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\sign_in_screen\sign_in_screen.dart:116:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\presentation\sign_in_screen\sign_in_screen.dart:119:9 - avoid_print
+   info - Parameter 'key' could be a super parameter - lib\presentation\sign_in_screen\sign_in_screen.dart:142:9 - use_super_parameters
+   info - The private field _formKey could be 'final' - lib\presentation\sign_in_screen\sign_in_screen.dart:149:24 - prefer_final_fields
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\sign_in_screen\sign_in_screen.dart:153:28 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\sign_in_screen\sign_in_screen.dart:153:28 - invalid_use_of_protected_member
+warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\sign_in_screen\sign_in_screen.dart:154:31 - invalid_use_of_visible_for_testing_member
+warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\sign_in_screen\sign_in_screen.dart:154:31 - invalid_use_of_protected_member
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\splash_screen_four\models\splash_screen_four_models.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\splash_screen_four\notifier\splash_screen_four_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\splash_screen_four\notifier\splash_screen_four_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SplashScreenFourState.splashScreenFourModelObj - lib\presentation\splash_screen_four\notifier\splash_screen_four_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/splash_screen_four_notifier.dart' - lib\presentation\splash_screen_four\splash_screen_four.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\splash_screen_four\splash_screen_four.dart:9:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\splash_screen_four\splash_screen_four.dart:81:50 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\splash_screen_one\models\splash_screen_one_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\splash_screen_one\notifier\splash_screen_one_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\splash_screen_one\notifier\splash_screen_one_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SplashScreenOneState.splashScreenOneModelObj - lib\presentation\splash_screen_one\notifier\splash_screen_one_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/splash_screen_one_notifier.dart' - lib\presentation\splash_screen_one\splash_screen_one.dart:5:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\splash_screen_three\models\splash_screen_three_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\splash_screen_three\notifier\splash_screen_three_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\splash_screen_three\notifier\splash_screen_three_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SplashScreenThreeState.splashScreenThreeModelObj - lib\presentation\splash_screen_three\notifier\splash_screen_three_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\splash_screen_three\splash_screen_three.dart:3:8 - unused_import
+warning - Unused import: 'notifier/splash_screen_three_notifier.dart' - lib\presentation\splash_screen_three\splash_screen_three.dart:5:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\splash_screen_three\splash_screen_three.dart:8:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\splash_screen_two\models\splash_screen_two_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\splash_screen_two\notifier\splash_screen_two_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\splash_screen_two\notifier\splash_screen_two_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SplashScreenTwoState.splashScreenTwoModelObj - lib\presentation\splash_screen_two\notifier\splash_screen_two_state.dart:5:7 - must_be_immutable
+warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\splash_screen_two\splash_screen_two.dart:3:8 - unused_import
+warning - Unused import: 'notifier/splash_screen_two_notifier.dart' - lib\presentation\splash_screen_two\splash_screen_two.dart:5:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\splash_screen_two\splash_screen_two.dart:8:9 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\train_log_rejected_screen\train_log_rejected_screen.dart:8:9 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\train_under_review_screen\train_under_review_screen.dart:5:9 - use_super_parameters
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\transaction_history_screen\models\month_trans_item_model.dart:1:8 - unused_import
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\transaction_history_screen\models\transaction_history_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: TransactionHistoryModel.transactionList, TransactionHistoryModel.balanceList, TransactionHistoryModel.monthTransList - lib\presentation\transaction_history_screen\models\transaction_history_model.dart:9:7 - must_be_immutable
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\transaction_history_screen\models\transaction_item_model.dart:1:8 - unused_import
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\transaction_history_screen\notifier\trans_history_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\transaction_history_screen\notifier\trans_history_notifier.dart:82:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: TransHistoryState.transactionHistoryModelObj, TransHistoryState.sliderIndex - lib\presentation\transaction_history_screen\notifier\trans_history_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\transaction_history_screen\transaction_history_screen.dart:20:9 - use_super_parameters
+warning - The declaration '_showQuickDepositSheet' isn't referenced - lib\presentation\transaction_history_screen\transaction_history_screen.dart:295:8 - unused_element
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: BalanceItemWidget.balanceItemModelObj - lib\presentation\transaction_history_screen\widgets\balance_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\transaction_history_screen\widgets\balance_item_widget.dart:7:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MonthTransItemWidget.monthTransItemModelObj - lib\presentation\transaction_history_screen\widgets\month_trans_item_widget.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\transaction_history_screen\widgets\month_trans_item_widget.dart:8:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: TransactionItemWidget.transactionItemModelObj - lib\presentation\transaction_history_screen\widgets\transaction_item_widget.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\transaction_history_screen\widgets\transaction_item_widget.dart:8:3 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\presentation\under_review_screen\under_review_screen.dart:6:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\user_delivery_bottomsheet_one\models\user_delivery_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\user_delivery_bottomsheet_one\models\user_delivery_pintab_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\user_delivery_bottomsheet_one\models\user_delivery_qrtab_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\user_delivery_bottomsheet_one\notifier\user_delivery_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\user_delivery_bottomsheet_one\notifier\user_delivery_notifier.dart:19:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: UserDeliveryState.userDeliveryModelObj, UserDeliveryState.userdeliveryqrTabModelObj, UserDeliveryState.userdeliverypinTabModelObj - lib\presentation\user_delivery_bottomsheet_one\notifier\user_delivery_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/user_delivery_notifier.dart' - lib\presentation\user_delivery_bottomsheet_one\user_delivery_bottomsheet_one.dart:5:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_one\user_delivery_bottomsheet_one.dart:38:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_one\user_delivery_bottomsheet_one.dart:323:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_one\user_delivery_bottomsheet_one.dart:332:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_one\user_delivery_bottomsheet_one.dart:345:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_one\user_delivery_bottomsheet_one.dart:354:40 - deprecated_member_use
+warning - Unused import: 'models/user_delivery_pintab_model.dart' - lib\presentation\user_delivery_bottomsheet_one\user_delivery_pin_tab.dart:3:8 - unused_import
+warning - Unused import: 'notifier/user_delivery_notifier.dart' - lib\presentation\user_delivery_bottomsheet_one\user_delivery_pin_tab.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_delivery_bottomsheet_one\user_delivery_pin_tab.dart:7:9 - use_super_parameters
+warning - Unused import: 'models/user_delivery_qrtab_model.dart' - lib\presentation\user_delivery_bottomsheet_one\user_delivery_qr_tab.dart:3:8 - unused_import
+warning - Unused import: 'notifier/user_delivery_notifier.dart' - lib\presentation\user_delivery_bottomsheet_one\user_delivery_qr_tab.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_delivery_bottomsheet_one\user_delivery_qr_tab.dart:7:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\user_delivery_bottomsheet_two\models\user_delivery_two_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\user_delivery_bottomsheet_two\models\user_delivery_two_pin_model.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\user_delivery_bottomsheet_two\models\user_delivery_two_qr_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\user_delivery_bottomsheet_two\notifier\user_delivery_two_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\user_delivery_bottomsheet_two\notifier\user_delivery_two_notifier.dart:19:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: UserDeliveryTwoState.userDeliveryTwoPinModelObj, UserDeliveryTwoState.userDeliveryTwoQrModelObj, UserDeliveryTwoState.userDeliveryTwoModelObj - lib\presentation\user_delivery_bottomsheet_two\notifier\user_delivery_two_state.dart:5:7 - must_be_immutable
+warning - Unused import: 'notifier/user_delivery_two_notifier.dart' - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:5:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:8:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:42:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:423:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:431:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:443:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:451:58 - deprecated_member_use
+warning - The declaration '_buildTabbar' isn't referenced - lib\presentation\user_delivery_bottomsheet_two\user_delivery_bottomsheet_two.dart:469:10 - unused_element
+warning - Unused import: 'models/user_delivery_two_pin_model.dart' - lib\presentation\user_delivery_bottomsheet_two\user_delivery_two_pin_tab.dart:3:8 - unused_import
+warning - Unused import: 'notifier/user_delivery_two_notifier.dart' - lib\presentation\user_delivery_bottomsheet_two\user_delivery_two_pin_tab.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_delivery_bottomsheet_two\user_delivery_two_pin_tab.dart:7:9 - use_super_parameters
+warning - Unused import: 'models/user_delivery_two_qr_model.dart' - lib\presentation\user_delivery_bottomsheet_two\user_delivery_two_qr_tab.dart:3:8 - unused_import
+warning - Unused import: 'notifier/user_delivery_two_notifier.dart' - lib\presentation\user_delivery_bottomsheet_two\user_delivery_two_qr_tab.dart:4:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_delivery_bottomsheet_two\user_delivery_two_qr_tab.dart:7:9 - use_super_parameters
+warning - Unused import: '../../../core/app_export.dart' - lib\presentation\user_move_screen\models\move_model.dart:2:8 - unused_import
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveModel.listsendpackageItemList, MoveModel.listItemList - lib\presentation\user_move_screen\models\move_model.dart:8:7 - must_be_immutable
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\user_move_screen\notifier\move_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\user_move_screen\notifier\move_notifier.dart:36:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveState.moveModelObj - lib\presentation\user_move_screen\notifier\move_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_move_screen\user_move_screen.dart:13:9 - use_super_parameters
+   info - Unnecessary instance of 'Container' - lib\presentation\user_move_screen\user_move_screen.dart:138:11 - avoid_unnecessary_containers
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ListItemWidget.listItemModelObj - lib\presentation\user_move_screen\widgets\list_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_move_screen\widgets\list_item_widget.dart:7:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: ListsendpackageItemWidget.listsendpackageItemModelObj, ListsendpackageItemWidget.onTapSendPackage, ListsendpackageItemWidget.onTapShareRide, ListsendpackageItemWidget.onTapScheduleTrip - lib\presentation\user_move_screen\widgets\listsendpackage_item_widget.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\user_move_screen\widgets\listsendpackage_item_widget.dart:7:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: VehicleInfoModel.dropdownItemList, VehicleInfoModel.dropdownItemList1, VehicleInfoModel.dropdownItemList2 - lib\presentation\vehicle_information_screen\models\vehicle_info_model.dart:6:7 - must_be_immutable
+   info - Parameter 'state' could be a super parameter - lib\presentation\vehicle_information_screen\notifier\vehicle_info_notifier.dart:63:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: VehicleInfoState.firstNameController, VehicleInfoState.selectedDropDownValue, VehicleInfoState.selectedDropDownValue1, VehicleInfoState.selectedDropDownValue2, VehicleInfoState.vehiclePhotoPath, VehicleInfoState.driverLicensePath, VehicleInfoState.vehicleReportPath, VehicleInfoState.vehicleInsurancePath, VehicleInfoState.vehicleInfoModelObj - lib\presentation\vehicle_information_screen\notifier\vehicle_info_state.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\presentation\vehicle_information_screen\vehicle_information_screen.dart:25:9 - use_super_parameters
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\vehicle_information_screen\vehicle_information_screen.dart:98:27 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\vehicle_information_screen\vehicle_information_screen.dart:416:50 - deprecated_member_use
+warning - The value of the local variable 'imageList' isn't used - lib\presentation\vehicle_information_screen\vehicle_information_screen.dart:470:20 - unused_local_variable
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\verification_screen\models\verification_model.dart:5:3 - prefer_const_constructors_in_immutables
+warning - Unused import: 'package:flutter/material.dart' - lib\presentation\verification_screen\notifier\verification_notifier.dart:1:8 - unused_import
+   info - Parameter 'state' could be a super parameter - lib\presentation\verification_screen\notifier\verification_notifier.dart:13:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: VerificationState.verificationModelObj - lib\presentation\verification_screen\notifier\verification_state.dart:6:7 - must_be_immutable
+warning - Unused import: 'notifier/verification_notifier.dart' - lib\presentation\verification_screen\verification_screen.dart:6:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\presentation\verification_screen\verification_screen.dart:9:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\verification_screen\verification_screen.dart:102:44 - deprecated_member_use
+   info - Parameter 'key' could be a super parameter - lib\presentation\verification_screen_one\verification_screen_one.dart:8:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\verification_screen_one\verification_screen_one.dart:69:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\verification_screen_one\verification_screen_one.dart:101:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\verification_screen_one\verification_screen_one.dart:140:44 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\services\google_places_service.dart:65:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\google_places_service.dart:67:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\google_places_service.dart:94:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\google_places_service.dart:107:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\google_places_service.dart:134:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\google_places_service.dart:148:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\monnify_services.dart:42:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\monnify_services.dart:43:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\monnify_services.dart:58:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\monnify_services.dart:59:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\monnify_services.dart:63:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\monnify_services.dart:69:7 - avoid_print
+warning - Unused import: '../../models/api_response.dart' - lib\services\paystack_services.dart:5:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_decoration.dart:24:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_decoration.dart:35:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_decoration.dart:50:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_decoration.dart:130:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_decoration.dart:162:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\app_decoration.dart:216:34 - deprecated_member_use
+   info - The variable name 'CircleBorder20' isn't a lowerCamelCase identifier - lib\theme\app_decoration.dart:249:29 - non_constant_identifier_names
+   info - The variable name 'CircleBorder38' isn't a lowerCamelCase identifier - lib\theme\app_decoration.dart:252:29 - non_constant_identifier_names
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_button_style.dart:99:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_button_style.dart:112:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_text_style.dart:143:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_text_style.dart:151:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_text_style.dart:232:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_text_style.dart:236:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\theme\custom_text_style.dart:334:49 - deprecated_member_use
+   info - Parameter 'state' could be a super parameter - lib\theme\notifier\theme_notifier.dart:12:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\theme\notifier\theme_state.dart:4:3 - prefer_const_constructors_in_immutables
+   info - The private field _supportedCustomColor could be 'final' - lib\theme\theme_helper.dart:12:32 - prefer_final_fields
+   info - The private field _supportedColorScheme could be 'final' - lib\theme\theme_helper.dart:17:28 - prefer_final_fields
+   info - The local variable '_newTheme' starts with an underscore - lib\theme\theme_helper.dart:22:27 - no_leading_underscores_for_local_identifiers
+   info - Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF') - lib\theme\theme_helper.dart:250:31 - use_full_hex_values_for_flutter_colors
+warning - Unused import: 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart' - lib\widgets\app_bar\appbar_image.dart:1:8 - unused_import
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_image.dart:7:9 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_leading_icon.dart:6:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_leading_icon.dart:6:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_leading_image.dart:5:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_leading_image.dart:5:3 - use_super_parameters
+warning - Unused import: 'package:new_project/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_subtitle.dart:2:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_subtitle.dart:6:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_subtitle.dart:6:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\app_bar\appbar_subtitle.dart:26:57 - deprecated_member_use
+warning - Unused import: 'package:new_project/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_title.dart:2:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_title.dart:6:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_title.dart:6:3 - use_super_parameters
+warning - Unused import: 'package:new_project/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_trailing_image.dart:2:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_trailing_image.dart:6:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_trailing_image.dart:6:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\custom_app_bar.dart:7:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\custom_app_bar.dart:7:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\app_bar\custom_app_bar.dart:87:48 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\base_button.dart:4:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\base_button.dart:4:3 - use_super_parameters
+   info - The constant name 'Home' isn't a lowerCamelCase identifier - lib\widgets\custom_bottom_bar.dart:5:21 - constant_identifier_names
+   info - The constant name 'Route' isn't a lowerCamelCase identifier - lib\widgets\custom_bottom_bar.dart:5:27 - constant_identifier_names
+   info - The constant name 'Move' isn't a lowerCamelCase identifier - lib\widgets\custom_bottom_bar.dart:5:34 - constant_identifier_names
+   info - The constant name 'Activity' isn't a lowerCamelCase identifier - lib\widgets\custom_bottom_bar.dart:5:40 - constant_identifier_names
+   info - The constant name 'Profile' isn't a lowerCamelCase identifier - lib\widgets\custom_bottom_bar.dart:5:50 - constant_identifier_names
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomBottomBar.onChanged - lib\widgets\custom_bottom_bar.dart:13:7 - must_be_immutable
+   info - Constructors for public widgets should have a named 'key' parameter - lib\widgets\custom_bottom_bar.dart:14:3 - use_key_in_widget_constructors
+warning - The value of the field '_refreshProfileImageFuture' isn't used - lib\widgets\custom_bottom_bar.dart:25:21 - unused_field
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\widgets\custom_bottom_bar.dart:63:12 - sized_box_for_whitespace
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\widgets\custom_bottom_bar.dart:78:24 - sized_box_for_whitespace
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomCheckboxButton.value - lib\widgets\custom_checkbox_button.dart:5:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_checkbox_button.dart:6:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\custom_drop_down.dart:22:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_drop_down.dart:22:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_drop_down.dart:116:57 - deprecated_member_use
+   info - Constructors for public widgets should have a named 'key' parameter - lib\widgets\custom_elevated_button.dart:6:3 - use_key_in_widget_constructors
+   info - Parameters ''margin', 'onPressed', 'buttonStyle', 'alignment', 'buttonTextStyle', 'isDisabled', 'height', 'width', and 'text'' could be super parameters - lib\widgets\custom_elevated_button.dart:6:3 - use_super_parameters
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_elevated_button.dart:47:13 - unnecessary_this
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_elevated_button.dart:48:12 - unnecessary_this
+warning - Unused import: '../theme/custom_button_style.dart' - lib\widgets\custom_floating_button.dart:3:8 - unused_import
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\custom_floating_button.dart:17:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_floating_button.dart:17:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_icon_button.dart:23:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_icon_button.dart:38:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_icon_button.dart:53:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_icon_button.dart:90:38 - deprecated_member_use
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\custom_icon_button.dart:119:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_icon_button.dart:119:3 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\custom_icon_button.dart:158:46 - deprecated_member_use
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_image_view.dart:8:8 - unnecessary_this
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_image_view.dart:8:35 - unnecessary_this
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_image_view.dart:11:13 - unnecessary_this
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_image_view.dart:14:13 - unnecessary_this
+   info - Constructors for public widgets should have a named 'key' parameter - lib\widgets\custom_image_view.dart:26:9 - use_key_in_widget_constructors
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\widgets\custom_image_view.dart:102:18 - sized_box_for_whitespace
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_image_view.dart:110:28 - unnecessary_this
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_image_view.dart:112:21 - unnecessary_this
+   info - Use a 'SizedBox' to add whitespace to a layout - lib\widgets\custom_image_view.dart:131:44 - sized_box_for_whitespace
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_live_toggle_switch.dart:10:9 - use_super_parameters
+   info - Constructors for public widgets should have a named 'key' parameter - lib\widgets\custom_outlined_button.dart:6:3 - use_key_in_widget_constructors
+   info - Parameters ''buttonStyle', 'buttonTextStyle', 'isDisabled', 'alignment', 'height', 'width', 'margin', and 'text'' could be super parameters - lib\widgets\custom_outlined_button.dart:6:3 - use_super_parameters
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_outlined_button.dart:49:13 - unnecessary_this
+   info - Unnecessary 'this.' qualifier - lib\widgets\custom_outlined_button.dart:50:12 - unnecessary_this
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\custom_phone_number.dart:12:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_phone_number.dart:12:3 - use_super_parameters
+   info - Invalid use of a private type in a public API - lib\widgets\custom_phone_number.dart:20:3 - library_private_types_in_public_api
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomPinCodeTextField.onChanged - lib\widgets\custom_pin_code_text_field.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_pin_code_text_field.dart:8:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomPinTextField.onChanged - lib\widgets\custom_pin_text_field.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_pin_text_field.dart:8:3 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_progress_bar.dart:10:9 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomRadioButton.value - lib\widgets\custom_radio_button.dart:11:9 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_radio_button.dart:12:5 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomRatingBar.onRatingUpdate - lib\widgets\custom_rating_bar.dart:6:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_rating_bar.dart:7:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\custom_search_view.dart:12:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_search_view.dart:12:3 - use_super_parameters
+warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: CustomSwitch.value - lib\widgets\custom_switch.dart:7:7 - must_be_immutable
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_switch.dart:8:3 - use_super_parameters
+   info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\custom_text_form_field.dart:50:3 - prefer_const_constructors_in_immutables
+   info - Parameter 'key' could be a super parameter - lib\widgets\custom_text_form_field.dart:50:3 - use_super_parameters
+   info - Parameter 'key' could be a super parameter - lib\widgets\loading_dialog.dart:11:9 - use_super_parameters
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\loading_dialog.dart:32:39 - deprecated_member_use
+
+835 issues found. (ran in 18.4s)

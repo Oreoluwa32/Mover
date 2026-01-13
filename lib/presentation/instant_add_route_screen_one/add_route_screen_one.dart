@@ -16,6 +16,7 @@ import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import 'models/add_route_one_item_model.dart';
 import 'notifier/add_route_one_notifier.dart';
+import 'widgets/places_autocomplete_field.dart';
 
 // ignore for file, class must be immutable
 class AddRouteScreenOne extends ConsumerStatefulWidget {
@@ -26,9 +27,23 @@ class AddRouteScreenOne extends ConsumerStatefulWidget {
 }
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
-  TextEditingController locationController = TextEditingController();
-  TextEditingController stopController = TextEditingController();
-  TextEditingController destinationController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    final notifierState = ref.read(addRouteOneNotifier);
+    notifierState.locationController?.addListener(() {
+      setState(() {});
+    });
+    notifierState.destinationController?.addListener(() {
+      setState(() {});
+    });
+    notifierState.stopController?.addListener(() {
+      setState(() {});
+    });
+    notifierState.setTimeController?.addListener(() {
+      setState(() {});
+    });
+  }
 
   Future<String?> getToken() async {
     const storage = FlutterSecureStorage();
@@ -44,10 +59,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
     final notifierState = ref.read(addRouteOneNotifier);
     final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
+        Uri.parse('https://demosystem.pythonanywhere.com/create-route');
     final requestBody = {
-      "location": notifierState.radioGroup,
-      "destination": destinationController.text,
+      "location": notifierState.locationController?.text,
+      "destination": notifierState.destinationController?.text,
       "transportation_mode":
           notifierState.addRouteOneModelObj?.transportMeansList
               .firstWhere(
@@ -56,7 +71,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
               )
               .meansTitle,
       "service_type": notifierState.serviceTypeDropDownValue?.title,
-      "departure_time": notifierState.setTimeController
+      "departure_time": notifierState.setTimeController?.text
     };
 
     try {
@@ -69,10 +84,22 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         body: jsonEncode(requestBody),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final message = jsonDecode(response.body)['message'] ??
             'Route created successfully.';
         Fluttertoast.showToast(msg: message);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.homeOneScreen,
+          (route) => false,
+          arguments: {
+            'showDialog': true,
+            'locationLat': notifierState.locationLat,
+            'locationLng': notifierState.locationLng,
+            'destinationLat': notifierState.destinationLat,
+            'destinationLng': notifierState.destinationLng,
+            'highlightRoute': true,
+          },
+        );
       } else {
         final error =
             jsonDecode(response.body)['error'] ?? 'Failed to create route.';
@@ -82,18 +109,6 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       Fluttertoast.showToast(
           msg: "An error occurred. Please check your connection.");
     }
-  }
-
-  bool _isAddRouteButtonEnabled() {
-    final notifierState = ref.watch(addRouteOneNotifier);
-    //Check if at least one transport mode is selected.
-    final isTransportModeSelected = notifierState.addRouteOneModelObj?.transportMeansList.any((item) => item.isSelected) ?? false;
-
-    return locationController.text.isNotEmpty &&
-        destinationController.text.isNotEmpty &&
-        isTransportModeSelected &&
-        notifierState.serviceTypeDropDownValue?.title.isNotEmpty == true &&
-        notifierState.setTimeController!.text.isNotEmpty;
   }
 
   @override
@@ -178,8 +193,15 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
               text: "Add Route",
             ),
             actions: [
-              AppbarTrailingImage(
-                imagePath: ImageConstant.imgPlusBlack,
+              Consumer(
+                builder: (context, ref, _) {
+                  return AppbarTrailingImage(
+                    imagePath: ImageConstant.imgPlusBlack,
+                    onTap: () {
+                      ref.read(addRouteOneNotifier.notifier).toggleStopField();
+                    },
+                  );
+                }
               ),
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgSetting,
@@ -206,14 +228,20 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
               children: [
                 Consumer(
                   builder: (context, ref, _) {
-                    return CustomTextFormField(
-                      controller: locationController,
+                    final state = ref.watch(addRouteOneNotifier);
+                    return PlacesAutocompleteField(
+                      controller: state.locationController,
                       hintText: "Enter your location",
-                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      onTap: () {
+                      radioValue: "location",
+                      onRadioChange: () {
                         ref
                             .read(addRouteOneNotifier.notifier)
-                            .changeRadioButton('location');
+                            .changeRadioBtn("location");
+                      },
+                      onPlaceSelected: (description, lat, lng) {
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .setLocationCoordinates(lat, lng);
                       },
                     );
                   },
@@ -221,33 +249,50 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                 SizedBox(height: 16.h),
                 Consumer(
                   builder: (context, ref, _) {
-                    return CustomTextFormField(
-                      controller: stopController,
-                      hintText: "Add Stop",
-                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      onTap: () {
-                        ref
-                            .read(addRouteOneNotifier.notifier)
-                            .changeRadioButton('stop');
-                      },
-                    );
-                  },
-                ),
-                SizedBox(height: 16.h),
-                Consumer(
-                  builder: (context, ref, _) {
-                    return CustomTextFormField(
-                      controller: destinationController,
+                    final state = ref.watch(addRouteOneNotifier);
+                    return PlacesAutocompleteField(
+                      controller: state.destinationController,
                       hintText: "Enter your destination",
-                      borderDecoration: TextFormFieldStyleHelper.outlineGray1,
-                      onTap: () {
+                      radioValue: "destination",
+                      onRadioChange: () {
                         ref
                             .read(addRouteOneNotifier.notifier)
-                            .changeRadioButton('destination');
+                            .changeRadioBtn("destination");
+                      },
+                      onPlaceSelected: (description, lat, lng) {
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .setDestinationCoordinates(lat, lng);
                       },
                     );
                   },
                 ),
+                if (ref.watch(addRouteOneNotifier).showStopField) ...[
+                  SizedBox(height: 16.h),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final state = ref.watch(addRouteOneNotifier);
+                      return PlacesAutocompleteField(
+                        controller: state.stopController,
+                        hintText: "Add stop",
+                        radioValue: "stop",
+                        showCloseButton: true,
+                        onRadioChange: () {
+                          ref
+                              .read(addRouteOneNotifier.notifier)
+                              .changeRadioBtn("stop");
+                        },
+                        onClose: () {
+                          ref
+                              .read(addRouteOneNotifier.notifier)
+                              .toggleStopField();
+                        },
+                        onPlaceSelected: (description, lat, lng) {
+                        },
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           )
@@ -427,6 +472,18 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                             [],
                         contentPadding: EdgeInsets.all(14.h),
                         borderDecoration: DropDownStyleHelper.outlineBlueGray,
+                        onChanged: (value) {
+                          final selectedService = ref
+                              .watch(addRouteOneNotifier)
+                              .addRouteOneModelObj
+                              ?.serviceTypeDropdown
+                              .firstWhere((item) => item.title == value);
+                          if (selectedService != null) {
+                            ref
+                                .read(addRouteOneNotifier.notifier)
+                                .selectServiceType(selectedService);
+                          }
+                        },
                       );
                     })
                   ],
@@ -501,22 +558,34 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          // CustomElevatedButton(
-          //   text: "Add route",
-          //   buttonStyle: _isAddRouteButtonEnabled() ? null : CustomButtonStyles.fillBlueGray,
-          //   onPressed: _isAddRouteButtonEnabled() ? () {
-          //     createRoute(context);
-          //   } : null,
-          // )
-          CustomElevatedButton(
-            text: "Add route",
-            buttonStyle: CustomButtonStyles.fillBlueGray,
-            onPressed: () {
-              NavigatorService.pushNamed(AppRoutes.homeOneScreen);
-            }
+          Consumer(
+            builder: (context, ref, _) {
+              ref.watch(addRouteOneNotifier);
+              return _buildAddRouteButton(context);
+            },
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildAddRouteButton(BuildContext context) {
+    final notifierState = ref.read(addRouteOneNotifier);
+    final isTransportModeSelected = notifierState.addRouteOneModelObj?.transportMeansList.any((item) => item.isSelected) ?? false;
+    final isEnabled = notifierState.locationController?.text.isNotEmpty == true &&
+        notifierState.destinationController?.text.isNotEmpty == true &&
+        isTransportModeSelected &&
+        notifierState.serviceTypeDropDownValue?.title.isNotEmpty == true &&
+        notifierState.setTimeController?.text.isNotEmpty == true;
+    
+    return CustomElevatedButton(
+      text: "Add route",
+      buttonStyle: isEnabled
+          ? CustomButtonStyles.fillPrimaryTL41
+          : CustomButtonStyles.fillBlueGray,
+      onPressed: isEnabled ? () {
+        createRoute(context);
+      } : null,
     );
   }
 
@@ -543,16 +612,9 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     );
 
     if (pickedTime != null) {
-      // Access the state using ref.watch()
-      final notifierState = ref.watch(addRouteOneNotifier);
-
-      ref.read(addRouteOneNotifier.notifier).state = notifierState.copyWith(
-          setTime: pickedTime); // Update with the pickedTime
-
-      // Format the pickedTime as needed (e.g., 'HH:mm')
       final formattedTime =
           "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-      ref.watch(addRouteOneNotifier).setTimeController?.text = formattedTime;
+      ref.read(addRouteOneNotifier.notifier).updateTimeField(formattedTime);
     }
   }
 }

@@ -11,31 +11,64 @@ import '../../widgets/custom_pin_code_text_field.dart';
 
   // Function to verify OTP with backend
   Future<void> verifyOtp(BuildContext context, CheckMailNotifier checkMailNotifier, String email) async {
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp'); // API endpoint
+    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp/'); // API endpoint
+    final otpCode = checkMailNotifier.state.otpController?.text.trim();
 
-    // Send POST request with email and OTP
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: json.encode({
-        "email": email.trim(), // Use the passed email directly
-        "code": checkMailNotifier.state.otpController?.text.trim(),    // OTP code from user input
-      }),
-    );
+    if (otpCode == null || otpCode.isEmpty) {
+      Fluttertoast.showToast(msg: "Please enter the OTP code");
+      return;
+    }
 
-    // Handle response
-    if (response.statusCode == 200) {
-      Fluttertoast.showToast(
-        msg: "Email verified successfully",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: appTheme.green50,
-        textColor: Colors.white,
+    print('Verifying OTP - Email: $email, Code: $otpCode');
+
+    try {
+      // Send POST request with email and OTP
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "email": email.trim(),
+          "code": otpCode,
+        }),
       );
-      Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
-    } else {
+
+      print('OTP verification response: ${response.statusCode} - ${response.body}');
+
+      // Handle response
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "Email verified successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: appTheme.green50,
+          textColor: Colors.white,
+        );
+        Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
+      } else {
+        try {
+          final errorData = json.decode(response.body);
+          final errorMessage = errorData['error'] ?? errorData['detail'] ?? errorData['message'] ?? 'OTP verification failed';
+          Fluttertoast.showToast(
+            msg: errorMessage,
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: appTheme.red50,
+            textColor: Colors.white,
+          );
+        } catch (e) {
+          Fluttertoast.showToast(
+            msg: "OTP verification failed: ${response.body}",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: appTheme.red50,
+            textColor: Colors.white,
+          );
+        }
+      }
+    } catch (e) {
+      print('OTP verification error: $e');
       Fluttertoast.showToast(
-        msg: "OTP verification failed: ${response.body}",
+        msg: "An error occurred. Please try again.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.red50,
@@ -45,12 +78,15 @@ import '../../widgets/custom_pin_code_text_field.dart';
   }
 
   // Function to resend OTP
-  Future<void> resendOtp(BuildContext context, String email) async {
+  Future<void> resendOtp(BuildContext context, String email, {bool showLoadingToast = true}) async {
     final url = Uri.parse('https://demosystem.pythonanywhere.com/resend-otp/'); // Resend OTP endpoint
 
     try {
-      // Show loading
-      Fluttertoast.showToast(msg: "Resending OTP...");
+      if (showLoadingToast) {
+        Fluttertoast.showToast(msg: "Sending OTP to your email...");
+      }
+
+      print('Resending OTP to: $email');
       
       final response = await http.post(
         url,
@@ -58,28 +94,41 @@ import '../../widgets/custom_pin_code_text_field.dart';
         body: json.encode({"email": email.trim()}),
       );
 
+      print('Resend OTP response: ${response.statusCode} - ${response.body}');
+
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
-          msg: "OTP resent to your email",
+          msg: "OTP sent to your email",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: appTheme.green50,
           textColor: Colors.white,
         );
       } else {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['detail'] ?? 'Failed to resend OTP';
-        Fluttertoast.showToast(
-          msg: errorMessage,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: appTheme.red50,
-          textColor: Colors.white,
-        );
+        try {
+          final errorData = json.decode(response.body);
+          final errorMessage = errorData['error'] ?? errorData['detail'] ?? errorData['message'] ?? 'Failed to resend OTP';
+          Fluttertoast.showToast(
+            msg: errorMessage,
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: appTheme.red50,
+            textColor: Colors.white,
+          );
+        } catch (e) {
+          Fluttertoast.showToast(
+            msg: "Failed to resend OTP: ${response.statusCode}",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: appTheme.red50,
+            textColor: Colors.white,
+          );
+        }
       }
     } catch (e) {
+      print('Resend OTP error: $e');
       Fluttertoast.showToast(
-        msg: "Error resending OTP: $e",
+        msg: "Error sending OTP. Check your connection.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.red50,
@@ -97,6 +146,11 @@ class CheckMailScreen extends ConsumerStatefulWidget{
 }
 
 class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

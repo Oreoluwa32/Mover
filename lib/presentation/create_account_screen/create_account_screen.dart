@@ -86,15 +86,14 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     else if (response.statusCode == 400 || response.statusCode == 409) {
       // Show error message if email already exists
       final errorData = json.decode(response.body);
-      final errorMessage = errorData['message'] ?? 'Registration failed';
-      if (errorMessage.contains('already registered')) {
-        Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
+      final errorMessage = errorData['message'] ?? '$errorData Registration failed';
+      if (errorMessage.contains('already') || errorMessage.contains('exists')) {
+        Fluttertoast.showToast(msg: errorMessage);
         if (context.mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
-            AppRoutes.checkMailScreen,
+            AppRoutes.signInScreen,
             (route) => route.isFirst,
-            arguments: {'email': email},
           );
         }
       } else {
@@ -102,7 +101,7 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       }
     } else {
       // Handle other error codes
-      Fluttertoast.showToast(msg: "Registration failed. Please try again");
+      Fluttertoast.showToast(msg: "Error ${response.statusCode}: Registration failed. Please try again.");
     }
   }
   catch (e) {

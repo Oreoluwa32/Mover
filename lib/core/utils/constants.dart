@@ -14,6 +14,9 @@ class Constants {
   static const String currentCustomer = 'current_customer';
   static const String transaction = 'transaction';
 
-  // Google Maps API Key
-  static const String googleMapsApiKey = 'AIzaSyAjeXxdRtBbs59HGHsjRko3xr1PQivmMVo';
+  // Google Maps API Key - loaded from environment variables
+  static const String googleMapsApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY',
+    defaultValue: '',
+  );
 }

@@ -25,6 +25,10 @@ class DeliveryDetailsNotifier extends StateNotifier<DeliveryDetailsState> {
     state = state.copyWith(radioGroup: value);
   }
 
+  void changeRadioBtn(String value) {
+    state = state.copyWith(radioGroup: value);
+  }
+
   void changeRadioButton1(String value) {
     state = state.copyWith(itemWeight: value);
   }

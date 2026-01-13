@@ -31,13 +31,27 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (args?['showDialog'] == true && !_dialogShown) {
-        _dialogShown = true;
-        showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => SaveYourRouteDialog(),
-        );
+      if (args != null) {
+        if (args['highlightRoute'] == true &&
+            args['locationLat'] != null &&
+            args['locationLng'] != null &&
+            args['destinationLat'] != null &&
+            args['destinationLng'] != null) {
+          ref.read(homeNotifier.notifier).setRouteCoordinates(
+            locationLat: args['locationLat'] as double,
+            locationLng: args['locationLng'] as double,
+            destinationLat: args['destinationLat'] as double,
+            destinationLng: args['destinationLng'] as double,
+          );
+        }
+        if (args['showDialog'] == true && !_dialogShown) {
+          _dialogShown = true;
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) => SaveYourRouteDialog(),
+          );
+        }
       }
     });
   }

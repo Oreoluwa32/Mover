@@ -10,13 +10,10 @@ import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/custom_switch.dart';
-import 'models/home_initial_model.dart';
 import 'notifier/home_notifier.dart';
 
 class HomeOneInitialPage extends StatefulWidget{
-  const HomeOneInitialPage({Key? key})
-    :super(key: key,
-    );
+  const HomeOneInitialPage({super.key});
 
   @override
   HomeOneInitialPageState createState() => HomeOneInitialPageState();
@@ -27,6 +24,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   final Location locationController = Location();
   LatLng? currentPosition;
 
+  static const LatLng defaultLocation = LatLng(6.6085, 3.2881);
   static const LatLng sourceLocation = LatLng(6.6085, 3.2881);
   static const LatLng destinationLocation = LatLng(6.5243, 3.3792);
 
@@ -44,6 +42,12 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   
   // Location stream subscription
   StreamSubscription? _locationSubscription;
+
+  // Polyline variables
+  List<LatLng> polylineCoordinates = [];
+  Set<Polyline> polylines = {};
+  LatLng? routeSourceLocation;
+  LatLng? routeDestinationLocation;
 
   @override
   void initState() {
@@ -86,9 +90,14 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   Future<void> _initializeLocationAndPolyline() async {
     try {
       await getLocationUpdates();
+    } catch (e) {
+      print('Error getting location updates: $e');
+    }
+    
+    try {
       await getPolylinePoints();
     } catch (e) {
-      print('Error initializing location: $e');
+      print('Error getting polyline points: $e');
     }
   }
 
@@ -154,38 +163,126 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
     );
   }
 
-  // Section widget - Full screen Google Map
   Widget _buildMaps(BuildContext context){
-    return currentPosition == null 
-      ? const Center(child: CircularProgressIndicator()) 
-      : RepaintBoundary(
+    return Consumer(
+      builder: (context, ref, _) {
+        final homeState = ref.watch(homeNotifier);
+        
+        Set<Marker> markers = {};
+        if (currentPosition != null) {
+          markers.add(
+            Marker(
+              markerId: const MarkerId('currentLocation'),
+              position: currentPosition!,
+              infoWindow: const InfoWindow(title: 'My Location'),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+            ),
+          );
+        }
+        
+        if (homeState.highlightRoute &&
+            homeState.routeLocationLat != null &&
+            homeState.routeLocationLng != null &&
+            homeState.routeDestinationLat != null &&
+            homeState.routeDestinationLng != null) {
+          final source = LatLng(homeState.routeLocationLat!, homeState.routeLocationLng!);
+          final destination = LatLng(homeState.routeDestinationLat!, homeState.routeDestinationLng!);
+          
+          markers.add(
+            Marker(
+              markerId: const MarkerId('routeSource'),
+              position: source,
+              infoWindow: const InfoWindow(title: 'Pick-up'),
+            ),
+          );
+          markers.add(
+            Marker(
+              markerId: const MarkerId('routeDestination'),
+              position: destination,
+              infoWindow: const InfoWindow(title: 'Destination'),
+            ),
+          );
+        }
+        
+        return RepaintBoundary(
           child: GoogleMap(
             mapType: MapType.normal,
             initialCameraPosition: CameraPosition(
-              target: LatLng(6.6085, 3.2881),
-              zoom: 20.0,
+              target: currentPosition ?? defaultLocation,
+              zoom: 18.0,
             ),
-            markers: {
-              Marker(
-                markerId: MarkerId('currentLocation'),
-                position: currentPosition!
-              ),
-            },
+            markers: markers,
+            polylines: polylines,
             onMapCreated: (GoogleMapController controller){
               if (!googleMapController.isCompleted) {
                 googleMapController.complete(controller);
+              }
+              
+              if (homeState.highlightRoute &&
+                  homeState.routeLocationLat != null &&
+                  homeState.routeLocationLng != null &&
+                  homeState.routeDestinationLat != null &&
+                  homeState.routeDestinationLng != null) {
+                _loadAndDisplayRoute(
+                  LatLng(homeState.routeLocationLat!, homeState.routeLocationLng!),
+                  LatLng(homeState.routeDestinationLat!, homeState.routeDestinationLng!),
+                  controller,
+                );
               }
             },
             zoomControlsEnabled: false,
             zoomGesturesEnabled: true,
             myLocationButtonEnabled: false,
-            myLocationEnabled: true,
+            myLocationEnabled: false,
             compassEnabled: false,
             mapToolbarEnabled: false,
             tiltGesturesEnabled: false,
             rotateGesturesEnabled: false,
           ),
         );
+      },
+    );
+  }
+
+  Future<void> _loadAndDisplayRoute(LatLng source, LatLng destination, GoogleMapController controller) async {
+    try {
+      final coordinates = await getPolylinePoints(
+        origin: source,
+        destination: destination,
+      );
+      
+      setState(() {
+        polylineCoordinates = coordinates;
+        polylines = {
+          Polyline(
+            polylineId: const PolylineId('route'),
+            color: theme.colorScheme.primary,
+            width: 5,
+            points: coordinates,
+          )
+        };
+      });
+      
+      if (coordinates.isNotEmpty) {
+        await _animateCameraToShowRoute(source, destination, controller);
+      }
+    } catch (e) {
+      print('Error loading route: $e');
+    }
+  }
+
+  Future<void> _animateCameraToShowRoute(LatLng source, LatLng destination, GoogleMapController controller) async {
+    final sw = LatLng(
+      source.latitude < destination.latitude ? source.latitude : destination.latitude,
+      source.longitude < destination.longitude ? source.longitude : destination.longitude,
+    );
+    final ne = LatLng(
+      source.latitude > destination.latitude ? source.latitude : destination.latitude,
+      source.longitude > destination.longitude ? source.longitude : destination.longitude,
+    );
+    
+    final bounds = LatLngBounds(southwest: sw, northeast: ne);
+    await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
   }
 
   Future<void> cameraToPosition(LatLng position) async {
@@ -201,111 +298,118 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   }
 
   Future<void> getLocationUpdates() async {
-    bool isServiceEnabled = await locationController.serviceEnabled();
-    PermissionStatus permissionGranted;
-    
-    if(isServiceEnabled) {
-      isServiceEnabled = await locationController.requestService();
-    }
-    else{
-      return;
-    }
-
-    permissionGranted = await locationController.hasPermission();
-    if(permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await locationController.requestPermission();
-      if(permissionGranted != PermissionStatus.granted) {
+    try {
+      bool isServiceEnabled = await locationController.serviceEnabled();
+      PermissionStatus permissionGranted;
+      
+      if(!isServiceEnabled) {
+        print('Location service not enabled');
         return;
       }
-    }
 
-    _locationSubscription?.cancel();
-    _locationSubscription = locationController.onLocationChanged.listen((LocationData currentLocation) {
-      if (currentLocation.latitude != null && currentLocation.longitude != null && mounted) {
-        final newPosition = LatLng(
-          currentLocation.latitude!,
-          currentLocation.longitude!,
-        );
-        
-        final bool isFirstLocation = currentPosition == null;
-        
-        if (isFirstLocation || 
-            (currentPosition!.latitude - newPosition.latitude).abs() > 0.0001 ||
-            (currentPosition!.longitude - newPosition.longitude).abs() > 0.0001) {
-          setState(() {
-            currentPosition = newPosition;
-          });
+      permissionGranted = await locationController.hasPermission();
+      if(permissionGranted == PermissionStatus.denied) {
+        print('Location permission denied');
+        return;
+      }
+
+      _locationSubscription?.cancel();
+      _locationSubscription = locationController.onLocationChanged.listen((LocationData currentLocation) {
+        if (currentLocation.latitude != null && currentLocation.longitude != null && mounted) {
+          final newPosition = LatLng(
+            currentLocation.latitude!,
+            currentLocation.longitude!,
+          );
           
-          if (isFirstLocation) {
-            cameraToPosition(newPosition);
+          final bool isFirstLocation = currentPosition == null;
+          
+          if (isFirstLocation || 
+              (currentPosition!.latitude - newPosition.latitude).abs() > 0.0001 ||
+              (currentPosition!.longitude - newPosition.longitude).abs() > 0.0001) {
+            setState(() {
+              currentPosition = newPosition;
+            });
+            
+            if (isFirstLocation) {
+              cameraToPosition(newPosition);
+            }
           }
         }
-      }
-    }, onError: (e) {
-      print('Location error: $e');
-    });
+      }, onError: (e) {
+        print('Location error: $e');
+      });
+    } catch (e) {
+      print('Error in getLocationUpdates: $e');
+    }
   }
 
-  Future<List<LatLng>> getPolylinePoints() async {
-    List<LatLng> polylineCoordinates = [];
+  Future<List<LatLng>> getPolylinePoints({
+    LatLng? origin,
+    LatLng? destination,
+  }) async {
+    List<LatLng> coordinates = [];
+    final source = origin ?? sourceLocation;
+    final dest = destination ?? destinationLocation;
+    
     polyline.PolylinePoints polylinePoints = polyline.PolylinePoints(apiKey: googleMapsApiKey);
     polyline.RoutesApiRequest request = polyline.RoutesApiRequest(
-      origin: polyline.PointLatLng(sourceLocation.latitude, sourceLocation.longitude),
-      destination: polyline.PointLatLng(destinationLocation.latitude, destinationLocation.longitude),
+      origin: polyline.PointLatLng(source.latitude, source.longitude),
+      destination: polyline.PointLatLng(dest.latitude, dest.longitude),
       travelMode: polyline.TravelMode.driving
     );
     polyline.RoutesApiResponse response = await polylinePoints.getRouteBetweenCoordinatesV2(request: request);
     if (response.routes.isNotEmpty) {
       polyline.Route route = response.routes.first;
       route.polylinePoints?.forEach((polyline.PointLatLng point) {
-        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        coordinates.add(LatLng(point.latitude, point.longitude));
       });
     }
-    return polylineCoordinates;
+    return coordinates;
   }
 
-  // Top notification bar with "1000+ routes are live"
   Widget _buildTopNotificationBar(BuildContext context) {
-    return IgnorePointer(
-      child: Positioned(
-        top: MediaQuery.of(context).size.height / 2 - 20.h,
-        left: MediaQuery.of(context).size.width / 2 - 80.h,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
-          decoration: BoxDecoration(
-            color: appTheme.gray10001,
-            borderRadius: BorderRadiusStyle.CircleBorder20,
-            boxShadow: [
-              BoxShadow(
-                color: appTheme.black900.withValues(alpha: 0.08),
-                spreadRadius: 2.h,
-                blurRadius: 2.h,
-                offset: Offset(0, 0),
-              )
-            ]
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 6.h,
-                width: 6.h,
-                decoration: BoxDecoration(
-                  color: appTheme.redA700,
-                  borderRadius: BorderRadius.circular(3.h),
-                ),
+    return currentPosition == null 
+      ? const SizedBox.shrink()
+      : IgnorePointer(
+          child: Positioned(
+            top: MediaQuery.of(context).size.height / 2 - 20.h,
+            left: MediaQuery.of(context).size.width / 2 - 80.h,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: appTheme.gray10001,
+                borderRadius: BorderRadiusStyle.CircleBorder20,
+                boxShadow: [
+                  BoxShadow(
+                    color: appTheme.black900.withValues(alpha: 0.08),
+                    spreadRadius: 2.h,
+                    blurRadius: 2.h,
+                    offset: const Offset(0, 0),
+                  )
+                ]
               ),
-              SizedBox(width: 6.h),
-              Text(
-                "1000+ routes are live",
-                style: CustomTextStyles.labelMediumInterPrimary,
-              )
-            ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 6.h,
+                    width: 6.h,
+                    decoration: BoxDecoration(
+                      color: appTheme.redA700,
+                      borderRadius: BorderRadius.circular(3.h),
+                    ),
+                  ),
+                  SizedBox(width: 6.h),
+                  Text(
+                    "1000+ routes are live",
+                    style: CustomTextStyles.labelMediumInterPrimary,
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
   }
 
   // Left sidebar with transportation modes
