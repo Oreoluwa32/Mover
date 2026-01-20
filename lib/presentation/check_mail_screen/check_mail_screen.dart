@@ -19,8 +19,6 @@ import '../../widgets/custom_pin_code_text_field.dart';
       return;
     }
 
-    print('Verifying OTP - Email: $email, Code: $otpCode');
-
     try {
       // Send POST request with email and OTP
       final response = await http.post(
@@ -31,8 +29,6 @@ import '../../widgets/custom_pin_code_text_field.dart';
           "code": otpCode,
         }),
       );
-
-      print('OTP verification response: ${response.statusCode} - ${response.body}');
 
       // Handle response
       if (response.statusCode == 200) {
@@ -66,7 +62,6 @@ import '../../widgets/custom_pin_code_text_field.dart';
         }
       }
     } catch (e) {
-      print('OTP verification error: $e');
       Fluttertoast.showToast(
         msg: "An error occurred. Please try again.",
         toastLength: Toast.LENGTH_SHORT,
@@ -86,15 +81,11 @@ import '../../widgets/custom_pin_code_text_field.dart';
         Fluttertoast.showToast(msg: "Sending OTP to your email...");
       }
 
-      print('Resending OTP to: $email');
-      
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: json.encode({"email": email.trim()}),
       );
-
-      print('Resend OTP response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
@@ -126,7 +117,6 @@ import '../../widgets/custom_pin_code_text_field.dart';
         }
       }
     } catch (e) {
-      print('Resend OTP error: $e');
       Fluttertoast.showToast(
         msg: "Error sending OTP. Check your connection.",
         toastLength: Toast.LENGTH_SHORT,

@@ -24,6 +24,7 @@ class HomeScreenDialogState extends ConsumerState<HomeScreenDialog> {
         children: [
           Container(
             width: double.maxFinite,
+            margin: EdgeInsets.symmetric(horizontal: 16.h),
             padding: EdgeInsets.all(14.h),
             decoration: AppDecoration.shadowx1.copyWith(
               borderRadius: BorderRadiusStyle.roundedBorder12,
@@ -80,11 +81,12 @@ class HomeScreenDialogState extends ConsumerState<HomeScreenDialog> {
 
   // Navigates to the verification screen
   onTapCompleteProfile(BuildContext context){
+    Navigator.pop(context);
     Navigator.pushNamed(context, AppRoutes.verificationScreen);
   }
 
-  // Navigates to the home one screen when the action is triggered
+  // Dismisses the dialog
   onTapLater(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+    Navigator.pop(context);
   }
 }

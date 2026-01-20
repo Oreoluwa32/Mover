@@ -35,7 +35,6 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
 
   try {
     final requestBody = json.encode({'email': email, 'password': password});
-    print('Login request: $requestBody');
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
@@ -49,12 +48,10 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
-      String accessToken = responseData['access_token'];
-      String refreshToken = responseData['refresh_token'];
+      String accessToken = responseData['token']['key'];
       
       // Store tokens securely
       await storage.write(key: 'auth_token', value: accessToken);
-      await storage.write(key: 'refresh_token', value: refreshToken);
       await storage.write(key: 'user_email', value: email);
       
       // Remember device
@@ -65,9 +62,18 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       await PrefUtils().setOnboardingCompleted(true);
       
       Fluttertoast.showToast(msg: "Sign-in successful");
-      // Navigate to the next screen
+      
+      // Check if user has a subscription plan
+      final userSubscriptionPlan = responseData['user']?['subscription_plan'] ?? responseData['user']?['plan_name'];
+      final hasSubscriptionPlan = userSubscriptionPlan != null && userSubscriptionPlan.toString().isNotEmpty;
+      
+      // Navigate based on subscription plan status
       if (context.mounted) {
-        Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+        if (hasSubscriptionPlan) {
+          Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+        } else {
+          Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+        }
       }
     } 
     else if (response.statusCode == 403) {
@@ -113,10 +119,8 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
         } else {
           Fluttertoast.showToast(msg: errorMessage);
         }
-        print('Login error response: ${response.body}');
       } catch (e) {
         Fluttertoast.showToast(msg: 'Invalid email or password. Please try again.');
-        print('Login error: ${response.body}');
       }
     }
     else {
@@ -427,8 +431,10 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
         
         if (authResponse != null) {
           // Store tokens securely
-          await storage.write(key: 'auth_token', value: authResponse['access_token']);
-          await storage.write(key: 'refresh_token', value: authResponse['refresh_token']);
+          final token = authResponse['token']?['key'] ?? authResponse['access_token'];
+          if (token != null) {
+            await storage.write(key: 'auth_token', value: token);
+          }
           
           // Remember device
           final deviceMemory = DeviceMemoryService();
@@ -439,8 +445,17 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           
           Fluttertoast.showToast(msg: "Sign-in successful");
           
+          // Check if user has a subscription plan
+          final userSubscriptionPlan = authResponse['user']?['subscription_plan'] ?? authResponse['user']?['plan'];
+          final hasSubscriptionPlan = userSubscriptionPlan != null && userSubscriptionPlan.toString().isNotEmpty;
+          
+          // Navigate based on subscription plan status
           if (context.mounted) {
-            Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+            if (hasSubscriptionPlan) {
+              Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+            } else {
+              Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+            }
           }
         } else {
           Fluttertoast.showToast(msg: "Failed to sign in. Please try again.");

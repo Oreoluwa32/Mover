@@ -11,12 +11,12 @@ class SavedRouteModel {
       this.time,
       this.days,
       this.id}) {
-    routetitle = routetitle ?? "Work Route";
-    liveDot = liveDot ?? true;
-    islive = islive ?? true;
-    address = address ?? "Gateway Zone, Magodo Phase II, GRA Lagos State";
-    time = time ?? "7:30AM";
-    days = days ?? "Mon - Fri";
+    routetitle = routetitle ?? "";
+    liveDot = liveDot ?? false;
+    islive = islive ?? false;
+    address = address ?? "";
+    time = time ?? "";
+    days = days ?? "";
     id = id ?? "";
   }
 

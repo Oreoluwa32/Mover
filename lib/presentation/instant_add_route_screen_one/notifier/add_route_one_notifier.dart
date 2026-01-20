@@ -104,4 +104,11 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
       destinationLng: lng,
     );
   }
+
+  void setStopCoordinates(double lat, double lng) {
+    state = state.copyWith(
+      stopLat: lat,
+      stopLng: lng,
+    );
+  }
 }

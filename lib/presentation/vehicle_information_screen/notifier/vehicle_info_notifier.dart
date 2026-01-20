@@ -8,51 +8,59 @@ part 'vehicle_info_state.dart';
 final vehicleInfoNotifier =
     StateNotifierProvider.autoDispose<VehicleInfoNotifier, VehicleInfoState>(
   (ref) => VehicleInfoNotifier(VehicleInfoState(
-    firstNameController: TextEditingController(),
+    plateNumber: TextEditingController(),
     selectedDropDownValue: SelectionPopupModel(title: ''),
     selectedDropDownValue1: SelectionPopupModel(title: ''),
     selectedDropDownValue2: SelectionPopupModel(title: ''),
     vehicleInfoModelObj: VehicleInfoModel(dropdownItemList: [
       SelectionPopupModel(
         id: 1,
-        title: "Item One",
+        title: "Car",
         isSelected: false,
       ),
       SelectionPopupModel(
         id: 2,
-        title: "Item Two",
+        title: "Bike",
       ),
       SelectionPopupModel(
         id: 3,
-        title: "Item Three",
+        title: "Truck",
       ),
     ], dropdownItemList1: [
       SelectionPopupModel(
-        id: 4,
-        title: "Item One",
+        id: 1,
+        title: "Toyota",
         isSelected: false,
       ),
       SelectionPopupModel(
-        id: 5,
-        title: "Item Two",
+        id: 2,
+        title: "Honda",
       ),
       SelectionPopupModel(
-        id: 6,
-        title: "Item Three",
+        id: 3,
+        title: "Nissan",
       ),
     ], dropdownItemList2: [
       SelectionPopupModel(
-        id: 7,
-        title: "Item One",
+        id: 1,
+        title: "Black",
         isSelected: false,
       ),
       SelectionPopupModel(
-        id: 8,
-        title: "Item Two",
+        id: 2,
+        title: "White",
       ),
       SelectionPopupModel(
-        id: 9,
-        title: "Item Three",
+        id: 3,
+        title: "Gray",
+      ),
+      SelectionPopupModel(
+        id: 4,
+        title: "Blue",
+      ),
+      SelectionPopupModel(
+        id: 5,
+        title: "Red",
       ),
     ]),
   )),
@@ -76,5 +84,17 @@ class VehicleInfoNotifier extends StateNotifier<VehicleInfoState> {
 
   void uploadVehicleInsurance(String imagePath) {
     state = state.copyWith(vehicleInsurancePath: imagePath);
+  }
+
+  void onSelected(SelectionPopupModel value) {
+    state = state.copyWith(selectedDropDownValue: value);
+  }
+
+  void onSelected1(SelectionPopupModel value) {
+    state = state.copyWith(selectedDropDownValue1: value);
+  }
+
+  void onSelected2(SelectionPopupModel value) {
+    state = state.copyWith(selectedDropDownValue2: value);
   }
 }

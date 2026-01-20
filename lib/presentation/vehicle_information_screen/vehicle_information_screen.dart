@@ -14,7 +14,7 @@ import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_drop_down.dart';
+import '../../widgets/custom_drop_down_revamped.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_text_form_field.dart';
@@ -55,20 +55,20 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
     final driverLicenseBase64 = notifierState.driverLicensePath != null
         ? base64Encode(File(notifierState.driverLicensePath!).readAsBytesSync())
         : null;
-    final vehicleInspectorReportBase64 =
-        notifierState.vehicleReportPath != null
-            ? base64Encode(
-                File(notifierState.vehicleReportPath!)
-                    .readAsBytesSync())
-            : null;
+    // final vehicleInspectorReportBase64 =
+    //     notifierState.vehicleReportPath != null
+    //         ? base64Encode(
+    //             File(notifierState.vehicleReportPath!)
+    //                 .readAsBytesSync())
+    //         : null;
     final vehicleInsuranceBase64 = notifierState.vehicleInsurancePath != null
         ? base64Encode(
             File(notifierState.vehicleInsurancePath!).readAsBytesSync())
         : null;
 
-  final url = Uri.parse('https://movr-api.onrender.com/api/v1/users/vehicle');
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-vehicle/');
   final requestBody = {
-    "vehicle_plate_number": notifierState.firstNameController?.text,
+    "vehicle_plate_number": notifierState.plateNumber?.text,
     "vehicle_type": notifierState.selectedDropDownValue?.title,
     "vehicle_brand": notifierState.selectedDropDownValue1?.title,
     "vehicle_color": notifierState.selectedDropDownValue2?.title,
@@ -76,8 +76,8 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
         "vehicle_photo": vehiclePhotoBase64,
       if (driverLicenseBase64 != null)
         "driver_license": driverLicenseBase64,
-      if (vehicleInspectorReportBase64 != null)
-        "vehicle_inspector_report": vehicleInspectorReportBase64,
+      // if (vehicleInspectorReportBase64 != null)
+      //   "vehicle_inspector_report": vehicleInspectorReportBase64,
       if (vehicleInsuranceBase64 != null)
         "vehicle_insurance": vehicleInsuranceBase64,
   };
@@ -112,210 +112,203 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
         appBar: _buildAppbar(context),
         body: Form(
           key: _formKey,
-          child: SizedBox(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.only(
-                  left: 14.h,
-                  top: 32.h,
-                  right: 14.h,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: double.maxFinite,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 292.h,
-                            child: Text(
-                              "Complete the necessary field to validate your vehicle",
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: CustomTextStyles.titleSmallGray600Medium.copyWith(height: 1.20,),
-                            ),
-                          ),
-                          SizedBox(height: 28.h),
-                          Text(
-                            "Vehicle Type",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 4.h),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              return CustomDropDown(
-                                icon: _dropdownIcon(),
-                                hintText: "Type of Vehicle",
-                                hintStyle: CustomTextStyles.bodyMediumMulishBluegray400,
-                                items: ref.watch(vehicleInfoNotifier).vehicleInfoModelObj?.dropdownItemList.map((item) => item.title).toList() ?? [],
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 14.h,
-                                  vertical: 16.h,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.only(
+                      left: 14.h,
+                      // top: 32.h,
+                      right: 14.h,
+                    ),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: double.maxFinite,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 292.h,
+                                child: Text(
+                                  "Complete the necessary field to validate your vehicle",
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyles.titleSmallGray600Medium.copyWith(height: 1.20,),
                                 ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 22.h),
-                          Text(
-                            "Vehicle Brand",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 6.h),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              return CustomDropDown(
-                                icon: _dropdownIcon(),
-                                hintText: "Brand of Vehicle",
-                                hintStyle: CustomTextStyles.bodyMediumMulishBluegray400,
-                                items: ref.watch(vehicleInfoNotifier).vehicleInfoModelObj?.dropdownItemList1.map((item) => item.title).toList() ?? [],
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 14.h,
-                                  vertical: 16.h,
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 22.h),
-                          Text(
-                            "Vehicle Color",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 6.h),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              return CustomDropDown(
-                                icon: _dropdownIcon(),
-                                hintText: "Color of Vehicle",
-                                hintStyle: CustomTextStyles.bodyMediumBluegray400,
-                                items: ref.watch(vehicleInfoNotifier).vehicleInfoModelObj?.dropdownItemList2.map((item) => item.title).toList() ?? [],
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 14.h,
-                                  vertical: 16.h,
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 22.h),
-                          Text(
-                            "Vehicle Plate Number",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 6.h),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              return CustomTextFormField(
-                                controller: ref.watch(vehicleInfoNotifier).firstNameController,
-                                hintText: "Enter your plate number",
-                                textInputAction: TextInputAction.done,
-                                contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                                validator: (value) {
-                                  if(!isText(value)) {
-                                    return "Please enter a valid text";
-                                  }
-                                  return null;
+                              ),
+                              SizedBox(height: 28.h),
+                              Text(
+                                "Vehicle Type",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 4.h),
+                              Consumer(
+                                builder: (context, ref, _) {
+                                  final state = ref.watch(vehicleInfoNotifier);
+                                  return CustomDropDownRevamped(
+                                    // prefixIcon: Icon(Icons.layers_outlined, color: Colors.grey.shade600, size: 24.h),
+                                    hintText: "Type of Vehicle",
+                                    value: (state.selectedDropDownValue?.title?.isNotEmpty ?? false) ? state.selectedDropDownValue?.title : null,
+                                    items: state.vehicleInfoModelObj?.dropdownItemList.map((item) => item.title).toList() ?? [],
+                                    onChanged: (value) {
+                                      final selected = state.vehicleInfoModelObj?.dropdownItemList.firstWhere((item) => item.title == value);
+                                      if (selected != null) {
+                                        ref.read(vehicleInfoNotifier.notifier).onSelected(selected);
+                                      }
+                                    },
+                                  );
                                 },
-                              );
-                            },
+                              ),
+                              SizedBox(height: 22.h),
+                              Text(
+                                "Vehicle Brand",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 6.h),
+                              Consumer(
+                                builder: (context, ref, _) {
+                                  final state = ref.watch(vehicleInfoNotifier);
+                                  return CustomDropDownRevamped(
+                                    // prefixIcon: Icon(Icons.layers_outlined, color: Colors.grey.shade600, size: 24.h),
+                                    hintText: "Brand of Vehicle",
+                                    value: (state.selectedDropDownValue1?.title?.isNotEmpty ?? false) ? state.selectedDropDownValue1?.title : null,
+                                    items: state.vehicleInfoModelObj?.dropdownItemList1.map((item) => item.title).toList() ?? [],
+                                    onChanged: (value) {
+                                      final selected = state.vehicleInfoModelObj?.dropdownItemList1.firstWhere((item) => item.title == value);
+                                      if (selected != null) {
+                                        ref.read(vehicleInfoNotifier.notifier).onSelected1(selected);
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                              SizedBox(height: 22.h),
+                              Text(
+                                "Vehicle Color",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 6.h),
+                              Consumer(
+                                builder: (context, ref, _) {
+                                  final state = ref.watch(vehicleInfoNotifier);
+                                  return CustomDropDownRevamped(
+                                    // prefixIcon: Icon(Icons.layers_outlined, color: Colors.grey.shade600, size: 24.h),
+                                    hintText: "Color of Vehicle",
+                                    value: (state.selectedDropDownValue2?.title?.isNotEmpty ?? false) ? state.selectedDropDownValue2?.title : null,
+                                    items: state.vehicleInfoModelObj?.dropdownItemList2.map((item) => item.title).toList() ?? [],
+                                    onChanged: (value) {
+                                      final selected = state.vehicleInfoModelObj?.dropdownItemList2.firstWhere((item) => item.title == value);
+                                      if (selected != null) {
+                                        ref.read(vehicleInfoNotifier.notifier).onSelected2(selected);
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                              SizedBox(height: 22.h),
+                              Text(
+                                "Vehicle Plate Number",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 6.h),
+                              Consumer(
+                                builder: (context, ref, _) {
+                                  return CustomTextFormField(
+                                    controller: ref.watch(vehicleInfoNotifier).plateNumber,
+                              
+                                    hintText: "Enter your plate number",
+                                    textInputAction: TextInputAction.done,
+                                    contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                                    validator: (value) {
+                                      if(!isText(value)) {
+                                        return "Please enter a valid text";
+                                      }
+                                      return null;
+                                    },
+                                  );
+                                },
+                              ),
+                              SizedBox(height: 22.h),
+                              Text(
+                                "Vehicle Photo",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 2.h),
+                              SizedBox(
+                                width: double.maxFinite,
+                                child: _buildFileuploadOne(
+                                  context,
+                                  clickToUpload: "Click to upload",
+                                  uploadSize: "PNG or JPG (max. 800x400px)",
+                                  onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehiclePhoto
+                                ),
+                              ),
+                              SizedBox(height: 22.h),
+                              Text(
+                                "Driver's License",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 2.h),
+                              SizedBox(
+                                width: double.maxFinite,
+                                child: _buildFileuploadOne(
+                                  context,
+                                  clickToUpload: "Click to upload",
+                                  uploadSize: "PNG or JPG (max. 800x400px)",
+                                  onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadDriverLicense
+                                ),
+                              ),
+                              SizedBox(height: 24.h),
+                              Text(
+                                "Vehicle Inspector Report",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(
+                                width: double.maxFinite,
+                                child: _buildFileuploadOne(
+                                  context,
+                                  clickToUpload: "Click to upload",
+                                  uploadSize: "PNG or JPG (max. 800x400px)",
+                                  onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehicleReport
+                                ),
+                              ),
+                              SizedBox(height: 22.h),
+                              Text(
+                                "Vehicle Insurance",
+                                style: CustomTextStyles.titleSmallGray600,
+                              ),
+                              SizedBox(height: 2.h),
+                              SizedBox(
+                                width: double.maxFinite,
+                                child: _buildFileuploadOne(
+                                  context,
+                                  clickToUpload: "Click to upload",
+                                  uploadSize: "PNG or JPG (max. 800x400px)",
+                                  onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehicleInsurance
+                                ),
+                              ),
+                              SizedBox(height: 24.h),
+                              _buildColumnuploadacl(context)
+                            ],
                           ),
-                          SizedBox(height: 22.h),
-                          Text(
-                            "Vehicle Photo",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 2.h),
-                          SizedBox(
-                            width: double.maxFinite,
-                            child: _buildFileuploadOne(
-                              context,
-                              clickToUpload: "Click to upload",
-                              uploadSize: "PNG or JPG (max. 800x400px)",
-                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehiclePhoto
-                            ),
-                          ),
-                          SizedBox(height: 22.h),
-                          Text(
-                            "Driver's License",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 2.h),
-                          SizedBox(
-                            width: double.maxFinite,
-                            child: _buildFileuploadOne(
-                              context,
-                              clickToUpload: "Click to upload",
-                              uploadSize: "PNG or JPG (max. 800x400px)",
-                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadDriverLicense
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
-                          Text(
-                            "Vehicle Inspector Report",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(
-                            width: double.maxFinite,
-                            child: _buildFileuploadOne(
-                              context,
-                              clickToUpload: "Click to upload",
-                              uploadSize: "PNG or JPG (max. 800x400px)",
-                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehicleReport
-                            ),
-                          ),
-                          SizedBox(height: 22.h),
-                          Text(
-                            "Vehicle Insurance",
-                            style: CustomTextStyles.titleSmallGray600,
-                          ),
-                          SizedBox(height: 2.h),
-                          SizedBox(
-                            width: double.maxFinite,
-                            child: _buildFileuploadOne(
-                              context,
-                              clickToUpload: "Click to upload",
-                              uploadSize: "PNG or JPG (max. 800x400px)",
-                              onImageSelected: ref.read(vehicleInfoNotifier.notifier).uploadVehicleInsurance
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
-                          _buildColumnuploadacl(context)
-                        ],
-                      ),
+                        ),
+                        SizedBox(height: 20.h),
+                      ],
                     ),
-                    SizedBox(height: 50.h),
-                    CustomElevatedButton(
-                      text: "Submit",
-                      buttonStyle: CustomButtonStyles.fillBlueGray,
-                      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                      onPressed: () {
-                        // Call the register function 
-                        if (_formKey.currentState?.validate() ?? false) {
-                              updateVehicleInfo(context);
-                            }
-                      },
-                    ),
-                    SizedBox(height: 15.h)
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(16.h, 16.h, 16.h, 24.h),
+                child: _buildSubmit(context),
+              )
+            ],
+          )
         )
       );
-  }
-
-  Widget _dropdownIcon() {
-    return Container(
-      margin: EdgeInsets.only(left: 16.h),
-      child: CustomImageView(
-        imagePath: ImageConstant.imgBlueGrayDownArrow,
-        height: 16.h,
-        width: 18.h,
-        fit: BoxFit.contain,
-      ),
-    );
   }
 
   // Section Widget
@@ -327,8 +320,8 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
         imagePath: ImageConstant.imgChevronLeft,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 44.h,
-          bottom: 22.h,
+          top: 24.h,
+          bottom: 42.h,
         ),
         onTap: () => Navigator.pushNamed(context, AppRoutes.verificationScreen),
       ),
@@ -336,8 +329,8 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
       title: AppbarSubtitle(
         text: "Vehicle Identification",
         margin: EdgeInsets.only(
-          top: 45.h,
-          bottom: 20.h,
+          top: 22.h,
+          bottom: 44.h,
         ),
       ),
       styleType: Style.bgOutline,
@@ -408,10 +401,11 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
 
         return GestureDetector(
           onTap: () {
-            requestCameraGalleryPermission(context);
+            requestCameraGalleryPermission(context, onImageSelected);
           },
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 14.h),
+            height: 120.h,
+            width: double.maxFinite,
             decoration: BoxDecoration(
               color: theme.colorScheme.onPrimary.withOpacity(1),
               borderRadius: BorderRadiusStyle.roundedBorder8,
@@ -421,9 +415,16 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
               ),
             ),
             child: imagePath != null
-                ? Image.file(File(imagePath))
+                ? ClipRRect(
+                    borderRadius: BorderRadiusStyle.roundedBorder8,
+                    child: Image.file(
+                      File(imagePath),
+                      fit: BoxFit.cover,
+                      width: double.maxFinite,
+                    ),
+                  )
                 : Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CustomIconButton(
                         height: 40.h,
@@ -457,6 +458,25 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
     );
   }
 
+  // Section Widget
+  Widget _buildSubmit(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        return CustomElevatedButton(
+                      text: "Submit",
+                      buttonStyle: CustomButtonStyles.fillBlueGray,
+                      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+                      onPressed: () {
+                        // Call the register function 
+                        if (_formKey.currentState?.validate() ?? false) {
+                              updateVehicleInfo(context);
+                            }
+                      },
+                    );
+      },
+    );
+  }
+
   // Navigates back to the verification screen
   onTapLeftArrow(BuildContext context){
     Navigator.pushNamed(context, AppRoutes.verificationScreen);
@@ -464,12 +484,13 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
 
   // Requests permission to access the camera and storage, and displays a model sheet for selecting images
   // Throws an error if permission is denied or an error occures while selecting images
-  requestCameraGalleryPermission(BuildContext context) async {
+  requestCameraGalleryPermission(BuildContext context, Function(String) onImageSelected) async {
     await PermissionManager.requestPermission(Permission.camera);
     await PermissionManager.requestPermission(Permission.storage);
-    List<String?>? imageList = [];
     await FileManager().showModelSheetForImage(getImages: (value) async {
-      imageList = value;
+      if (value != null && value.isNotEmpty && value[0] != null) {
+        onImageSelected(value[0]!);
+      }
     });
   }
 }

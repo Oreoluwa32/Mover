@@ -11,11 +11,11 @@ final personalInformationNotifier = StateNotifierProvider.autoDispose<PersonalIn
     firstNameController: TextEditingController(),
     lastNameController: TextEditingController(),
     emailController: TextEditingController(),
-    phoneNumberController: TextEditingController(),
+    phoneNumberController: TextEditingController(text: "+234"),
     facebookLinkController: TextEditingController(),
     instagramLinkController: TextEditingController(),
     linkedinLinkController: TextEditingController(),
-    selectedCountry: CountryPickerUtils.getCountryByPhoneCode('1'),
+    selectedCountry: CountryPickerUtils.getCountryByPhoneCode('234'),
   )),
 );
 

@@ -22,11 +22,18 @@ class CustomPhoneNumber extends StatefulWidget{
 
 class _CustomPhoneNumberState extends State<CustomPhoneNumber> {
   late Country selectedCountry;
+  final FocusNode focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     selectedCountry = widget.country;
+  }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -71,8 +78,8 @@ class _CustomPhoneNumberState extends State<CustomPhoneNumber> {
               width: 260.h,
               margin: EdgeInsets.only(left: 8.h),
               child: TextFormField(
-                focusNode: FocusNode(),
-                autofocus: true,
+                focusNode: focusNode,
+                autofocus: false,
                 controller: widget.controller,
                 style: CustomTextStyles.bodyMediumMulishGray800,
                 decoration: InputDecoration(

@@ -8,7 +8,8 @@ import 'notifier/save_route_notifier.dart'; //ignore for file, class must be imm
 
 // ignore for file, class must be immutable
 class SaveYourRouteDialog extends ConsumerStatefulWidget {
-  const SaveYourRouteDialog({Key? key})
+  final Function(String)? onSave;
+  const SaveYourRouteDialog({Key? key, this.onSave})
       : super(
           key: key,
         );
@@ -52,7 +53,7 @@ class SaveYourRouteDialogState extends ConsumerState<SaveYourRouteDialog> {
                       return CustomTextFormField(
                         controller:
                             ref.watch(saveRouteNotifier).textController,
-                        hintText: "Work",
+                        hintText: "Route Name",
                         // hintStyle: CustomTextStyles.bodyMediumGray80001,
                         textInputAction: TextInputAction.done,
                         contentPadding:
@@ -67,7 +68,11 @@ class SaveYourRouteDialogState extends ConsumerState<SaveYourRouteDialog> {
                       buttonTextStyle:
                           CustomTextStyles.titleSmallOnPrimaryMedium,
                       onPressed: () {
-                        Navigator.pop(context);
+                        final routeName = ref.read(saveRouteNotifier).textController?.text ?? "";
+                        if (routeName.isNotEmpty) {
+                          Navigator.pop(context);
+                          widget.onSave?.call(routeName);
+                        }
                       },
                     ),
                     SizedBox(height: 12.h),

@@ -16,7 +16,9 @@ class AddRouteOneState extends Equatable {
       this.locationLat,
       this.locationLng,
       this.destinationLat,
-      this.destinationLng});
+      this.destinationLng,
+      this.stopLat,
+      this.stopLng});
 
   TextEditingController? locationController;
   TextEditingController? stopController;
@@ -31,6 +33,8 @@ class AddRouteOneState extends Equatable {
   double? locationLng;
   double? destinationLat;
   double? destinationLng;
+  double? stopLat;
+  double? stopLng;
 
   @override
   List<Object?> get props => [
@@ -46,7 +50,9 @@ class AddRouteOneState extends Equatable {
         locationLat,
         locationLng,
         destinationLat,
-        destinationLng
+        destinationLng,
+        stopLat,
+        stopLng
       ];
   AddRouteOneState copyWith({
     TextEditingController? locationController,
@@ -62,6 +68,8 @@ class AddRouteOneState extends Equatable {
     double? locationLng,
     double? destinationLat,
     double? destinationLng,
+    double? stopLat,
+    double? stopLng,
   }) {
     return AddRouteOneState(
         locationController: locationController ?? this.locationController,
@@ -77,6 +85,8 @@ class AddRouteOneState extends Equatable {
         locationLat: locationLat ?? this.locationLat,
         locationLng: locationLng ?? this.locationLng,
         destinationLat: destinationLat ?? this.destinationLat,
-        destinationLng: destinationLng ?? this.destinationLng);
+        destinationLng: destinationLng ?? this.destinationLng,
+        stopLat: stopLat ?? this.stopLat,
+        stopLng: stopLng ?? this.stopLng);
   }
 }

@@ -21,111 +21,75 @@ class SavedrouteItemWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.onPrimary.withOpacity(1),
         borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(
-          color: appTheme.gray20001,
-          width: 1.h
-        ),
+        border: Border.all(color: appTheme.gray20001, width: 1.h),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   savedrouteItemModelObj.routetitle!,
-                  style: CustomTextStyles.labelLargeGray800,
-                ),
-                Spacer(),
-                // Align(
-                //   alignment: Alignment.topCenter,
-                //   child: Container(
-                //     height: 6.h,
-                //     width: 6.h,
-                //     margin: EdgeInsets.only(top: 1.h),
-                //     decoration: BoxDecoration(
-                //       color: appTheme.redA700,
-                //       borderRadius: BorderRadius.circular(
-                //         3.h,
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                Padding(
-                  padding: EdgeInsets.only(left: 4.h),
-                  child: Text(
-                    savedrouteItemModelObj.islive! ? "Live" : "",
-                    style: CustomTextStyles.labelMediumInterRedA700,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: appTheme.gray800,
+                    fontWeight: FontWeight.w600,
                   ),
-                )
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  savedrouteItemModelObj.address!,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: appTheme.gray600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    CustomImageView(
+                      imagePath: ImageConstant.imgClock,
+                      height: 16.h,
+                      width: 16.h,
+                      color: appTheme.gray600,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 6.h),
+                      child: Text(
+                        savedrouteItemModelObj.time!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: appTheme.gray600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16.h),
+                    CustomImageView(
+                      imagePath: ImageConstant.imgCalendar,
+                      height: 16.h,
+                      width: 16.h,
+                      color: appTheme.gray600,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 6.h),
+                      child: Text(
+                        savedrouteItemModelObj.days!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: appTheme.gray600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          SizedBox(height: 6.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          savedrouteItemModelObj.address!,
-                          overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyles.bodySmallInterGray60010,
-                        ),
-                        SizedBox(height: 6.h),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Row(
-                            children: [
-                              CustomImageView(
-                                imagePath: ImageConstant.imgClock,
-                                height: 12.h,
-                                width: 12.h,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 8.h),
-                                child: Text(
-                                  savedrouteItemModelObj.time!,
-                                  style: CustomTextStyles.bodySmallInterGray60010,
-                                ),
-                              ),
-                              CustomImageView(
-                                imagePath: ImageConstant.imgCalendar,
-                                height: 12.h,
-                                width: 12.h,
-                                margin: EdgeInsets.only(left: 10.h),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 8.h),
-                                child: Text(
-                                  savedrouteItemModelObj.days!,
-                                  style: CustomTextStyles.bodySmallInterGray60010,
-                                ),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgChevronRightBlack,
-                  height: 16.h,
-                  width: 16.h,
-                  margin: EdgeInsets.only(top: 8.h),
-                )
-              ],
-            ),
-          )
+          CustomImageView(
+            imagePath: ImageConstant.imgChevronRightBlack,
+            height: 20.h,
+            width: 20.h,
+            margin: EdgeInsets.only(left: 8.h),
+          ),
         ],
       ),
     );

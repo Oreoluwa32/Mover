@@ -54,3 +54,48 @@ bool isValidPassword(String? inputString, {bool isRequired = false}) {
   }
   return isInputStringValid;
 }
+
+/// Checks if string is a valid facebook link
+bool isValidFacebook(String? inputString, {bool isRequired = false}) {
+  bool isInputStringValid = false;
+  if (!isRequired && (inputString == null ? true : inputString.isEmpty)) {
+    isInputStringValid = true;
+  }
+  if (inputString != null && inputString.isNotEmpty) {
+    const pattern =
+        r'^(https?:\/\/)?(www\.)?facebook\.com\/[a-zA-Z0-9(\.\?)?]+';
+    final regExp = RegExp(pattern);
+    isInputStringValid = regExp.hasMatch(inputString);
+  }
+  return isInputStringValid;
+}
+
+/// Checks if string is a valid instagram link
+bool isValidInstagram(String? inputString, {bool isRequired = false}) {
+  bool isInputStringValid = false;
+  if (!isRequired && (inputString == null ? true : inputString.isEmpty)) {
+    isInputStringValid = true;
+  }
+  if (inputString != null && inputString.isNotEmpty) {
+    const pattern =
+        r'^(https?:\/\/)?(www\.)?instagram\.com\/[a-zA-Z0-9(\.\?)?]+';
+    final regExp = RegExp(pattern);
+    isInputStringValid = regExp.hasMatch(inputString);
+  }
+  return isInputStringValid;
+}
+
+/// Checks if string is a valid linkedin link
+bool isValidLinkedin(String? inputString, {bool isRequired = false}) {
+  bool isInputStringValid = false;
+  if (!isRequired && (inputString == null ? true : inputString.isEmpty)) {
+    isInputStringValid = true;
+  }
+  if (inputString != null && inputString.isNotEmpty) {
+    const pattern =
+        r'^(https?:\/\/)?(www\.)?linkedin\.com\/(in|company)\/[a-zA-Z0-9(\.\?)?]+';
+    final regExp = RegExp(pattern);
+    isInputStringValid = regExp.hasMatch(inputString);
+  }
+  return isInputStringValid;
+}

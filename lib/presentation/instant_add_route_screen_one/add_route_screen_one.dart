@@ -60,21 +60,45 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     final notifierState = ref.read(addRouteOneNotifier);
     final url =
         Uri.parse('https://demosystem.pythonanywhere.com/create-route');
+    
+    final now = DateTime.now();
+    final pickedTime = notifierState.setTimeController?.text.split(':');
+    final departureDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.tryParse(pickedTime?[0] ?? '0') ?? 0,
+      int.tryParse(pickedTime?[1] ?? '0') ?? 0,
+    ).toUtc();
+    
     final requestBody = {
       "location": notifierState.locationController?.text,
+      "location_latitude": notifierState.locationLat,
+      "location_longitude": notifierState.locationLng,
       "destination": notifierState.destinationController?.text,
+      "destination_latitude": notifierState.destinationLat,
+      "destination_longitude": notifierState.destinationLng,
       "transportation_mode":
-          notifierState.addRouteOneModelObj?.transportMeansList
+          (notifierState.addRouteOneModelObj?.transportMeansList
               .firstWhere(
                 (item) => item.isSelected,
                 orElse: () => AddRouteOneItemModel(),
               )
-              .meansTitle,
-      "service_type": notifierState.serviceTypeDropDownValue?.title,
-      "departure_time": notifierState.setTimeController?.text
+              .meansTitle ?? "")
+              .toLowerCase(),
+      "service_type": (notifierState.serviceTypeDropDownValue?.title ?? "")
+              .toLowerCase(),
+      "departure_time": departureDateTime.toIso8601String()
     };
+    
+    if (notifierState.stopController?.text.isNotEmpty == true) {
+      requestBody['stop_location'] = notifierState.stopController?.text;
+      requestBody['stop_location_latitude'] = notifierState.stopLat ?? 0;
+      requestBody['stop_location_longitude'] = notifierState.stopLng ?? 0;
+    }
 
     try {
+      print('Creating route with body: $requestBody');
       final response = await http.post(
         url,
         headers: {
@@ -82,7 +106,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(requestBody),
-      );
+      ).timeout(const Duration(seconds: 30));
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final message = jsonDecode(response.body)['message'] ??
@@ -101,11 +128,16 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
           },
         );
       } else {
-        final error =
-            jsonDecode(response.body)['error'] ?? 'Failed to create route.';
+        String error = 'Failed to create route.';
+        try {
+          error = jsonDecode(response.body)['error'] ?? error;
+        } catch (e) {
+          error = 'Server error: ${response.statusCode}';
+        }
         Fluttertoast.showToast(msg: error);
       }
     } catch (e) {
+      print('Route creation error: $e');
       Fluttertoast.showToast(
           msg: "An error occurred. Please check your connection.");
     }
@@ -288,6 +320,9 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                               .toggleStopField();
                         },
                         onPlaceSelected: (description, lat, lng) {
+                          ref
+                              .read(addRouteOneNotifier.notifier)
+                              .setStopCoordinates(lat, lng);
                         },
                       );
                     },

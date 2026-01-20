@@ -24,6 +24,7 @@ import '../../widgets/custom_icon_button.dart';
 import 'models/add_route_item_model.dart';
 import 'notifier/add_route_two_notifier.dart';
 import 'widgets/places_autocomplete_field.dart';
+import '../save_your_route_dialog/save_your_route_dialog.dart';
 
 class AddRouteScreenThree extends ConsumerStatefulWidget {
   const AddRouteScreenThree({super.key});
@@ -998,79 +999,13 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
   }
 
   void _showSaveRouteDialog(BuildContext context) {
-    final routeNameController = TextEditingController();
-
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.h),
-              ),
-              title: Text(
-                'Save Route',
-                style: theme.textTheme.titleLarge,
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Enter a name for your route:',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  SizedBox(height: 16.h),
-                  TextField(
-                    controller: routeNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Route name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.h),
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 14.h,
-                        vertical: 12.h,
-                      ),
-                    ),
-                    onChanged: (_) {
-                      setState(() {});
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: Text(
-                    'Cancel',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: routeNameController.text.isEmpty
-                      ? null
-                      : () {
-                          Navigator.of(dialogContext).pop();
-                          createRoute(context, routeNameController.text);
-                        },
-                  child: Text(
-                    'Save Route',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: routeNameController.text.isEmpty
-                          ? Colors.grey
-                          : theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ],
-            );
+        return SaveYourRouteDialog(
+          onSave: (routeName) {
+            createRoute(context, routeName);
           },
         );
       },

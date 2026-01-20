@@ -25,6 +25,7 @@ import '../presentation/set_date_bottomsheet_two/set_date_bottomsheet_two.dart';
 import '../presentation/personal_information_screen/personal_information_screen.dart';
 import '../presentation/verification_screen/verification_screen.dart';
 import '../presentation/vehicle_information_screen/vehicle_information_screen.dart';
+import '../presentation/identification_screen/identification_screen.dart';
 // import '../presentation/my_route_plus_page/my_route_plus_page.dart';
 import '../presentation/verification_screen_one/verification_screen_one.dart';
 import '../presentation/under_review_screen/under_review_screen.dart';
@@ -102,6 +103,8 @@ class AppRoutes {
       '/personal_information_screen';
 
   static const String vehicleInformationScreen = '/vehicle_information_screen';
+
+  static const String identificationScreen = '/identification_screen';
 
   static const String underReviewScreen = '/under_review_screen';
 
@@ -272,6 +275,8 @@ class AppRoutes {
 
     vehicleInformationScreen: (context) => VehicleInformationScreen(),
 
+    identificationScreen: (context) => IdentificationScreen(),
+
     rideSharingDetailsScreen: (context) => RideSharingDetailsScreen(),
 
     underReviewScreen: (context) => UnderReviewScreen(),
@@ -378,7 +383,7 @@ class AppRoutes {
 
     scheduleMoveBottomsheet: (context) => ScheduleMoveBottomsheet(),
 
-    initialRoute: (context) => HomeOneScreen()
+    initialRoute: (context) => CreateAccountScreen()
   };
 
   /// Handle routes with parameters

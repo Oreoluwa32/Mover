@@ -4,7 +4,7 @@ part of 'vehicle_info_notifier.dart';
 // ignore for file, class must be immtable
 class VehicleInfoState extends Equatable {
   VehicleInfoState({
-    this.firstNameController,
+    this.plateNumber,
     this.selectedDropDownValue,
     this.selectedDropDownValue1,
     this.selectedDropDownValue2,
@@ -15,7 +15,7 @@ class VehicleInfoState extends Equatable {
     this.vehicleInfoModelObj,
   });
 
-  TextEditingController? firstNameController;
+  TextEditingController? plateNumber;
   SelectionPopupModel? selectedDropDownValue;
   SelectionPopupModel? selectedDropDownValue1;
   SelectionPopupModel? selectedDropDownValue2;
@@ -27,7 +27,7 @@ class VehicleInfoState extends Equatable {
 
   @override
   List<Object?> get props => [
-        firstNameController,
+        plateNumber,
         selectedDropDownValue,
         selectedDropDownValue1,
         selectedDropDownValue2,
@@ -38,7 +38,7 @@ class VehicleInfoState extends Equatable {
         vehicleInfoModelObj
       ];
   VehicleInfoState copyWith({
-    TextEditingController? firstNameController,
+    TextEditingController? plateNumber,
     SelectionPopupModel? selectedDropDownValue,
     SelectionPopupModel? selectedDropDownValue1,
     SelectionPopupModel? selectedDropDownValue2,
@@ -49,7 +49,7 @@ class VehicleInfoState extends Equatable {
     VehicleInfoModel? vehicleInfoModelObj,
   }) {
     return VehicleInfoState(
-      firstNameController: firstNameController ?? this.firstNameController,
+      plateNumber: plateNumber ?? this.plateNumber,
       selectedDropDownValue:
           selectedDropDownValue ?? this.selectedDropDownValue,
       selectedDropDownValue1:

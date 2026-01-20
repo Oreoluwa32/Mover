@@ -111,29 +111,33 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
   // Section Widget
   Widget _buildSavedroute(BuildContext context) {
     return Expanded(child: Consumer(builder: (context, ref, _) {
-      return ListView.separated(
-        padding: EdgeInsets.zero,
-        physics: const BouncingScrollPhysics(),
-        shrinkWrap: true,
-        separatorBuilder: (context, index) {
-          return SizedBox(
-            height: 12.h,
-          );
-        },
-        itemCount: ref
-                .watch(myRouteNotifier)
-                .myRouteModelObj
-                ?.savedrouteItemList
-                .length ??
-            0,
-        itemBuilder: (context, index) {
-          SavedRouteModel model = ref
+      return RefreshIndicator(
+        onRefresh: () =>
+            ref.read(myRouteNotifier.notifier).fetchScheduledRoutes(),
+        child: ListView.separated(
+          padding: EdgeInsets.zero,
+          physics: const AlwaysScrollableScrollPhysics(),
+          shrinkWrap: true,
+          separatorBuilder: (context, index) {
+            return SizedBox(
+              height: 12.h,
+            );
+          },
+          itemCount: ref
                   .watch(myRouteNotifier)
                   .myRouteModelObj
-                  ?.savedrouteItemList[index] ??
-              SavedRouteModel();
-          return SavedrouteItemWidget(model);
-        },
+                  ?.savedrouteItemList
+                  .length ??
+              0,
+          itemBuilder: (context, index) {
+            SavedRouteModel model = ref
+                    .watch(myRouteNotifier)
+                    .myRouteModelObj
+                    ?.savedrouteItemList[index] ??
+                SavedRouteModel();
+            return SavedrouteItemWidget(model);
+          },
+        ),
       );
     }));
   }

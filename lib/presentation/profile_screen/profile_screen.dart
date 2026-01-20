@@ -233,7 +233,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }
                   ),
                 ),
-                SizedBox(height: 50.h,),
+                SizedBox(height: 150.h,),
               ],
             ),
           ),
@@ -337,7 +337,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                             width: 50.h,
                             height: 50.h,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withValues(alpha:0.3),
                               borderRadius: BorderRadius.circular(24.h),
                             ),
                             child: Center(

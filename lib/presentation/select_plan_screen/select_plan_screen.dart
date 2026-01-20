@@ -86,7 +86,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     return;
   }
 
-  final url = Uri.parse('https://movr-api.onrender.com/api/v1/subscription');
+  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-subscription/');
   final requestBody = {
     "plan_name": planName,
   };
@@ -102,12 +102,24 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     );
 
     if (response.statusCode == 200) {
-      final message = jsonDecode(response.body)['message'] ?? 'Subscription updated successfully';
-      Fluttertoast.showToast(msg: message);
-      Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
+      Fluttertoast.showToast(msg: "Plan updated successfully");
+      Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+      Future.delayed(Duration(milliseconds: 300), () {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) => HomeScreenDialog(),
+          );
+        }
+      });
     } else {
-      final error = jsonDecode(response.body)['error'] ?? 'Failed to update subscription plan';
-      Fluttertoast.showToast(msg: error);
+      try {
+        final error = jsonDecode(response.body)['error'] ?? 'Failed to update subscription plan';
+        Fluttertoast.showToast(msg: error);
+      } catch (e) {
+        Fluttertoast.showToast(msg: "Failed to update subscription plan");
+      }
     }
   } catch (e) {
     Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
@@ -168,7 +180,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
           bottom: 22.h,
         ),
         onTap: () {
-          Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
+          Navigator.pushNamed(context, AppRoutes.homeOneScreen);
         },
       ),
       centerTitle: true,

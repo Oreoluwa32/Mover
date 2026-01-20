@@ -398,8 +398,10 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
   onSuccessGoogleAuthResponse(GoogleSignInAccount googleUser, BuildContext context, Map<String, dynamic> authResponse) async {
     // Store tokens securely
     final storage = FlutterSecureStorage();
-    await storage.write(key: 'auth_token', value: authResponse['access_token']);
-    await storage.write(key: 'refresh_token', value: authResponse['refresh_token']);
+    final token = authResponse['token']?['key'] ?? authResponse['access_token'];
+    if (token != null) {
+      await storage.write(key: 'auth_token', value: token);
+    }
     await storage.write(key: 'user_email', value: googleUser.email);
     
     // Remember device

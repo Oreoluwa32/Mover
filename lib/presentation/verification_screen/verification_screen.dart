@@ -3,6 +3,7 @@ import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import '../../presentation/home_screen_dialog/home_screen_dialog.dart';
 import 'notifier/verification_notifier.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget{
@@ -22,7 +23,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
           width: double.maxFinite,
           padding: EdgeInsets.only(
             left: 16.h,
-            top: 32.h,
+            top: 22.h,
             right: 16.h,
           ),
           child: Column(
@@ -41,7 +42,9 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
               SizedBox(
                 width: double.maxFinite,
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    onTapIdentification(context);
+                  },
                   child: _buildAccountcardOne(
                     context,
                     identification: "Identification",
@@ -75,8 +78,8 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 44.h,
-          bottom: 22.h,
+          top: 24.h,
+          bottom: 42.h,
         ),
         onTap: () {onTapLeftArrow1(context);},
       ),
@@ -84,8 +87,8 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
       title: AppbarSubtitle(
         text: "Verification",
         margin: EdgeInsets.only(
-          top: 45.h,
-          bottom: 20.h,
+          top: 22.h,
+          bottom: 44.h,
         ),
       ),
       styleType: Style.bgOutline,
@@ -99,7 +102,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12.h),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -120,9 +123,18 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     );
   }
 
-  // Naviagtes back to the home one dialog screen
+  // Navigates back to the home one screen with dialog
   onTapLeftArrow1(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.homeScreenDialog);
+    Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+    Future.delayed(Duration(milliseconds: 100), () {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => HomeScreenDialog(),
+        );
+      }
+    });
   }
 
   // Navigates to the personal info screen when the action is triggered
@@ -135,8 +147,8 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     Navigator.pushNamed(context, AppRoutes.vehicleInformationScreen);
   }
 
-  // Navigates to the sign in screen when the action is triggered
-  onTapIdentification(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.underReviewScreen);
+  // Navigates to the identification screen when the action is triggered
+  onTapIdentification(BuildContext context) {
+    Navigator.pushNamed(context, AppRoutes.identificationScreen);
   }
 }
