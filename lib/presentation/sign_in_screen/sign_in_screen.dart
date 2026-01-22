@@ -54,6 +54,17 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
       await storage.write(key: 'auth_token', value: accessToken);
       await storage.write(key: 'user_email', value: email);
       
+      // Store user name if available
+      final user = responseData['user'];
+      if (user != null) {
+        final firstName = user['first_name'] ?? '';
+        final lastName = user['last_name'] ?? '';
+        final fullName = '$firstName $lastName'.trim();
+        if (fullName.isNotEmpty) {
+          await storage.write(key: 'user_name', value: fullName);
+        }
+      }
+      
       // Remember device
       final deviceMemory = DeviceMemoryService();
       await deviceMemory.rememberDevice(userEmail: email);

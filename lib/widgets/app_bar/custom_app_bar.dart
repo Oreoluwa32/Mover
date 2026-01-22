@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 
@@ -14,7 +15,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
       this.leading,
       this.title,
       this.centerTitle,
-      this.actions
+      this.actions,
+      this.systemOverlayStyle,
     }
   ) : super(key: key,);
 
@@ -26,6 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   final Widget? title;
   final bool? centerTitle;
   final List<Widget>? actions;
+  final SystemUiOverlayStyle? systemOverlayStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +47,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
       titleSpacing: 0,
       centerTitle: centerTitle ?? false,
       actions: actions,
+      systemOverlayStyle: systemOverlayStyle,
     );
   }
 
   @override
   Size get preferredSize => Size(
     SizeUtils.width,
-    height ?? 24.h,
+    (height ?? 24.h) + SizeUtils.statusBarHeight,
   );
   _getStyle(){
     switch (styleType){
       case Style.bgOutline_1:
         return Container(
-          height: 92.h,
           width: 374.h,
           decoration: BoxDecoration(
             color: theme.colorScheme.onPrimary,
@@ -70,7 +73,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
         );
       case Style.bgOutline:
         return Container(
-          height: 90.h,
           width: 374.h,
           decoration: BoxDecoration(
             border: Border(
@@ -83,7 +85,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
         );
       case Style.bgFill:
         return Container(
-          height: 90.h,
           width: 374.h,
           decoration: BoxDecoration(
             color: theme.colorScheme.onPrimary.withValues(alpha: 1)

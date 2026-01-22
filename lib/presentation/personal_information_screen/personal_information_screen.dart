@@ -156,6 +156,10 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
       );
 
       if (response.statusCode == 200) {
+        // Save the updated name to secure storage
+        final storage = FlutterSecureStorage();
+        await storage.write(key: 'user_name', value: '$firstName $lastName'.trim());
+        
         Fluttertoast.showToast(
           msg: "Personal information updated successfully.",
           backgroundColor: appTheme.green50,
@@ -186,7 +190,7 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
                     width: double.maxFinite,
                     padding: EdgeInsets.only(
                       left: 16.h,
-                      // top: 22.h,
+                      top: 22.h,
                       right: 16.h,
                     ),
                     child: Column(
@@ -279,14 +283,13 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
   // Section Widget 
   PreferredSizeWidget _buildAppbar(BuildContext context){
     return CustomAppBar(
-      height: 90.h,
+      height: 45.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 24.h,
-          bottom: 42.h,
+          top: 20.h,
         ),
         onTap: () {onTapLeftArrow(context);},
       ),
@@ -294,8 +297,7 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
       title: AppbarSubtitle(
         text: "Personal Information",
         margin: EdgeInsets.only(
-          top: 22.h,
-          bottom: 44.h,
+          top: 20.h,
         ),
       ),
       styleType: Style.bgOutline,

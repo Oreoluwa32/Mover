@@ -62,9 +62,7 @@ class GooglePlacesService {
     Dio? dio,
   }) : dio = dio ?? Dio() {
     if (apiKey.isEmpty) {
-      print('WARNING: Google Places API key is empty!');
-    } else {
-      print('Google Places Service initialized with API key');
+      print('WARNING: Google Places API key is empty! Search will not work.');
     }
   }
 

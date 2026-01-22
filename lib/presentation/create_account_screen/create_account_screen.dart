@@ -403,6 +403,9 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
       await storage.write(key: 'auth_token', value: token);
     }
     await storage.write(key: 'user_email', value: googleUser.email);
+    if (googleUser.displayName != null && googleUser.displayName!.isNotEmpty) {
+      await storage.write(key: 'user_name', value: googleUser.displayName);
+    }
     
     // Remember device
     final deviceMemory = DeviceMemoryService();

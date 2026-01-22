@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +13,11 @@ part 'profile_screen_state.dart';
 final profileScreenNotifier = StateNotifierProvider.autoDispose<ProfileScreenNotifier, ProfileScreenState>(
   (ref) => ProfileScreenNotifier(ProfileScreenState()),
 );
+
+final userNameProvider = FutureProvider.autoDispose<String?>((ref) async {
+  const storage = FlutterSecureStorage();
+  return await storage.read(key: 'user_name');
+});
 
 // A notifier class that is used to manage the state of the profile screen according to the event that is dispatched to it
 class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{

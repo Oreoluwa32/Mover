@@ -224,7 +224,7 @@ class AppRoutes {
 
   static const String monnifyPaymentScreen = '/monnify_payment_screen';
 
-  static const String initialRoute = '/initialRoute';
+  static const String initialRoute = splashScreenOne;
 
   static Map<String, WidgetBuilder> routes = {
     splashScreenOne: (context) => SplashScreenOne(),
@@ -382,8 +382,6 @@ class AppRoutes {
     notificationScreen: (context) => NotificationScreen(),
 
     scheduleMoveBottomsheet: (context) => ScheduleMoveBottomsheet(),
-
-    initialRoute: (context) => CreateAccountScreen()
   };
 
   /// Handle routes with parameters

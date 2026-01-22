@@ -59,6 +59,8 @@ class SizeUtils {
   // Device's width
   static late double width;
 
+  static late double statusBarHeight;
+
   static void setScreenSize(
     BuildContext context,
     BoxConstraints constraints,
@@ -72,6 +74,7 @@ class SizeUtils {
     // Use MediaQuery to get full width/height minus safe areas
     width = mediaQuery.size.width;
     height = mediaQuery.size.height;
+    statusBarHeight = mediaQuery.padding.top;
 
     deviceType = DeviceType.mobile;
   }

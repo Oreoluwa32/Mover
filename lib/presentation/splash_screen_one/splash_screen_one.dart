@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../services/device_memory_service.dart';
+import '../../core/utils/location_manager.dart';
 import 'notifier/splash_screen_one_notifier.dart';
 
 class SplashScreenOne extends ConsumerStatefulWidget{
@@ -25,6 +26,9 @@ class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
     final deviceMemory = DeviceMemoryService();
     await deviceMemory.init();
     
+    // Check and request location permission/service
+    await LocationManager.checkAndRequestLocationPermission();
+    
     // Check if onboarding is completed
     final onboardingCompleted = await PrefUtils().getOnboardingCompleted();
     
@@ -35,14 +39,14 @@ class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
       if (onboardingCompleted) {
         if (isDeviceRemembered) {
           // User already logged in, navigate to home
-          NavigatorService.pushNamed(AppRoutes.homeOneScreen);
+          NavigatorService.pushNamedAndRemoveUntil(AppRoutes.homeOneScreen);
         } else {
           // Onboarding done but not logged in, navigate to login
-          NavigatorService.pushNamed(AppRoutes.signInScreen);
+          NavigatorService.pushNamedAndRemoveUntil(AppRoutes.signInScreen);
         }
       } else {
         // First time user, show onboarding splash screens
-        NavigatorService.pushNamed(AppRoutes.splashScreenTwo);
+        NavigatorService.pushNamedAndRemoveUntil(AppRoutes.splashScreenTwo);
       }
     });
   }

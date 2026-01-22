@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../models/balance_item_model.dart';
+import '../notifier/trans_history_notifier.dart';
 
 // ignore for file, class must be immutable
-class BalanceItemWidget extends StatelessWidget{
+class BalanceItemWidget extends ConsumerWidget {
   BalanceItemWidget(this.balanceItemModelObj, {Key? key})
     : super(
       key: key,
     );
 
-  BalanceItemModel balanceItemModelObj;
+  final BalanceItemModel balanceItemModelObj;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isVisible = ref.watch(transHistoryNotifier.select((s) => s.isBalanceVisible));
+    
     return Container(
       width: double.maxFinite,
+      margin: EdgeInsets.symmetric(horizontal: 8.h),
       padding: EdgeInsets.symmetric(
         vertical: 24.h
       ),
@@ -31,15 +35,19 @@ class BalanceItemWidget extends StatelessWidget{
                 balanceItemModelObj.title!,
                 style: CustomTextStyles.bodyMediumWhiteA700,
               ),
+              SizedBox(width: 8.h),
               CustomImageView(
-                imagePath: balanceItemModelObj.icon!,
-                height: 14.h,
-                width: 14.h,
+                imagePath: isVisible ? ImageConstant.imgEye : ImageConstant.imgEyeClosed,
+                height: 16.h,
+                width: 16.h,
+                onTap: () {
+                  ref.read(transHistoryNotifier.notifier).toggleBalanceVisibility();
+                },
               )
             ],
           ),
           Text(
-            balanceItemModelObj.balance!,
+            isVisible ? balanceItemModelObj.balance! : "****",
             style: CustomTextStyles.headlineLargeOnPrimary,
           ),
           SizedBox(height: 15.h,)

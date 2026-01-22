@@ -14,9 +14,16 @@ class Constants {
   static const String currentCustomer = 'current_customer';
   static const String transaction = 'transaction';
 
-  // Google Maps API Key - loaded from environment variables
+  // Google Maps and Places API Keys
+  // These should be provided via --dart-define or --dart-define-from-file
+  // See: https://developer.android.com/studio/build/secrets-gradle-plugin
   static const String googleMapsApiKey = String.fromEnvironment(
     'GOOGLE_MAPS_API_KEY',
     defaultValue: '',
+  );
+
+  static const String googlePlacesApiKey = String.fromEnvironment(
+    'GOOGLE_PLACES_API_KEY',
+    defaultValue: String.fromEnvironment('GOOGLE_MAPS_API_KEY', defaultValue: ''),
   );
 }

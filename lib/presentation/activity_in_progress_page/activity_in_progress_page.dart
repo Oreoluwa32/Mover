@@ -77,19 +77,19 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 42.h,),
           CustomAppBar(
-            height: 26.h,
+            height: 45.h,
             centerTitle: true,
             title: AppbarSubtitle(
               text: "Activity",
+              margin: EdgeInsets.only(top: 20.h),
             ),
             actions: [
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgFilter,
                 margin: EdgeInsets.only(
                   right: 15.h,
-                  bottom: 2.h
+                  top: 20.h,
                 ),
               )
             ],

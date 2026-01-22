@@ -50,8 +50,8 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
       type: BottomBarEnum.Activity,
     ),
     BottomMenuMode1(
-      icon: ImageConstant.imgProfile,
-      activeIcon: ImageConstant.imgProfile,
+      icon: ImageConstant.imgDefaultProfile,
+      activeIcon: ImageConstant.imgDefaultProfile,
       title: "Profile",
       type: BottomBarEnum.Profile,
       isProfileImage: true,
@@ -114,6 +114,13 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
                   decoration: BoxDecoration(
                     color: Color(0xFF6A19D3),
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF6A19D3).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: CustomImageView(
@@ -363,12 +370,12 @@ class BottomBarPainter extends CustomPainter {
 
     // First, draw the shadow with blur
     Paint shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.15)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10);
+      ..color = Colors.black.withValues(alpha: 0.1)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12);
 
     // Create shadow path (full rectangle with rounded corners)
     Path shadowPath = _createFullBarPath(size);
-    canvas.drawPath(shadowPath.shift(Offset(0, -3)), shadowPaint);
+    canvas.drawPath(shadowPath.shift(Offset(0, -4)), shadowPaint);
 
     // Draw the main bar (full rectangle with white color)
     Paint backgroundPaint = Paint()

@@ -18,15 +18,15 @@ def loadApiKey() {
     if (secretsFile.exists()) {
         def secrets = new Properties()
         secrets.load(new FileInputStream(secretsFile))
-        return secrets.getProperty('MAPS_API_KEY', 'AIzaSyAFTxq5MJy_Xn2bzlbZPaqzDoT0sBwjCzA')
+        return secrets.getProperty('MAPS_API_KEY', '')
     } else {
         def defaultFile = rootProject.file('local.defaults.properties')
         if (defaultFile.exists()) {
             def defaults = new Properties()
             defaults.load(new FileInputStream(defaultFile))
-            return defaults.getProperty('MAPS_API_KEY', 'AIzaSyAFTxq5MJy_Xn2bzlbZPaqzDoT0sBwjCzA')
+            return defaults.getProperty('MAPS_API_KEY', '')
         }
-        return 'AIzaSyAFTxq5MJy_Xn2bzlbZPaqzDoT0sBwjCzA'
+        return ''
     }
 }
 def mapsApiKey = loadApiKey()

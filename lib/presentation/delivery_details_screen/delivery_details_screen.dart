@@ -145,14 +145,13 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 45.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgLeftArrow,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 26.h,
-          bottom: 32.h,
+          top: 20.h,
         ),
         onTap: () {
           onTapBack(context);
@@ -162,8 +161,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       title: AppbarSubtitle(
         text: "Send a package",
         margin: EdgeInsets.only(
-          top: 26.h,
-          bottom: 32.h,
+          top: 20.h,
         ),
       ),
       styleType: Style.bgOutline,

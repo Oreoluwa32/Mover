@@ -6,6 +6,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polylin
 import 'package:new_project/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
+import '../../core/utils/location_manager.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_bottom_bar.dart';
@@ -142,21 +143,23 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           // _buildBottomNavigation(context),
           _buildFloatingactionb(context),
           // Temporary notification for isLive status with fade animation
-          IgnorePointer(
-            child: Consumer(
-              builder: (context, ref, child) {
-                final homeState = ref.watch(homeNotifier);
-                return Positioned(
-                  top: 160.h,
-                  left: 16.h,
+          Consumer(
+            builder: (context, ref, child) {
+              final homeState = ref.watch(homeNotifier);
+              return Positioned(
+                top: 160.h,
+                left: 16.h,
+                right: 16.h,
+                child: IgnorePointer(
+                  ignoring: !homeState.showLiveNotification,
                   child: AnimatedOpacity(
                     opacity: homeState.showLiveNotification ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: _buildLiveRouteNotificationContent(context, homeState.isLive),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -204,8 +207,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           );
         }
         
-        return RepaintBoundary(
-          child: GoogleMap(
+        return GoogleMap(
             mapType: MapType.normal,
             initialCameraPosition: CameraPosition(
               target: currentPosition ?? defaultLocation,
@@ -238,8 +240,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
             mapToolbarEnabled: false,
             tiltGesturesEnabled: false,
             rotateGesturesEnabled: false,
-          ),
-        );
+          );
       },
     );
   }
@@ -299,17 +300,10 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
 
   Future<void> getLocationUpdates() async {
     try {
-      bool isServiceEnabled = await locationController.serviceEnabled();
-      PermissionStatus permissionGranted;
+      bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
       
-      if(!isServiceEnabled) {
-        print('Location service not enabled');
-        return;
-      }
-
-      permissionGranted = await locationController.hasPermission();
-      if(permissionGranted == PermissionStatus.denied) {
-        print('Location permission denied');
+      if (!hasPermission) {
+        print('Location permission or service not granted/enabled');
         return;
       }
 
@@ -368,48 +362,47 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   }
 
   Widget _buildTopNotificationBar(BuildContext context) {
-    return currentPosition == null 
-      ? const SizedBox.shrink()
-      : IgnorePointer(
-          child: Positioned(
-            top: MediaQuery.of(context).size.height / 2 - 20.h,
-            left: MediaQuery.of(context).size.width / 2 - 80.h,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: appTheme.gray10001,
-                borderRadius: BorderRadiusStyle.CircleBorder20,
-                boxShadow: [
-                  BoxShadow(
-                    color: appTheme.black900.withValues(alpha: 0.08),
-                    spreadRadius: 2.h,
-                    blurRadius: 2.h,
-                    offset: const Offset(0, 0),
-                  )
-                ]
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 6.h,
-                    width: 6.h,
-                    decoration: BoxDecoration(
-                      color: appTheme.redA700,
-                      borderRadius: BorderRadius.circular(3.h),
-                    ),
-                  ),
-                  SizedBox(width: 6.h),
-                  Text(
-                    "1000+ routes are live",
-                    style: CustomTextStyles.labelMediumInterPrimary,
-                  )
-                ],
-              ),
-            ),
+    if (currentPosition == null) return const SizedBox.shrink();
+    return Positioned(
+      top: 65.h,
+      left: 72.h,
+      child: IgnorePointer(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: appTheme.gray10001,
+            borderRadius: BorderRadius.circular(20.h),
+            boxShadow: [
+              BoxShadow(
+                color: appTheme.black900.withValues(alpha: 0.08),
+                spreadRadius: 2.h,
+                blurRadius: 2.h,
+                offset: const Offset(0, 0),
+              )
+            ]
           ),
-        );
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: 6.h,
+                width: 6.h,
+                decoration: BoxDecoration(
+                  color: appTheme.redA700,
+                  borderRadius: BorderRadius.circular(3.h),
+                ),
+              ),
+              SizedBox(width: 6.h),
+              Text(
+                "1000+ routes are live",
+                style: CustomTextStyles.labelMediumInterPrimary,
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // Left sidebar with transportation modes
@@ -417,10 +410,9 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
     return Positioned(
       left: 23.h,
       top: 110.h,
-      child: RepaintBoundary(
-        child: SlideTransition(
-          position: _sidebarSlideAnimation,
-          child: Container(
+      child: SlideTransition(
+        position: _sidebarSlideAnimation,
+        child: Container(
             width: 34.h,
             padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 10.h),
             decoration: BoxDecoration(
@@ -455,7 +447,6 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -530,21 +521,21 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
 
   // IsLive toggle switch positioned below notification button
   Widget _buildIsLiveToggleSwitch(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final homeState = ref.watch(homeNotifier);
-        return Positioned(
-          top: 112.h,
-          right: 20.h,
-          child: CustomSwitch(
+    return Positioned(
+      top: 112.h,
+      right: 20.h,
+      child: Consumer(
+        builder: (context, ref, child) {
+          final homeState = ref.watch(homeNotifier);
+          return CustomSwitch(
             value: homeState.isLive,
             isDisabled: homeState.isToggling,
             onChange: (value) {
               ref.read(homeNotifier.notifier).toggleIsLive(value);
             },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -556,7 +547,6 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
     final messageColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
     
     return Container(
-      margin: EdgeInsets.only(top: 160.h, right: 16.h, left: 16.h),
       padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -620,38 +610,36 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
       top: 60.h,
       child: GestureDetector(
         onTap: _toggleSidebar,
-        child: RepaintBoundary(
-          child: AnimatedBuilder(
-            animation: _filterButtonRotationAnimation,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: _filterButtonRotationAnimation.value * 2 * 3.14159,
-                child: Container(
-                  width: 40.h,
-                  height: 40.h,
-                  decoration: BoxDecoration(
-                    color: _isSidebarVisible ? Color(0xFF6A19D3) : Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8.h,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: CustomImageView(
-                      imagePath: ImageConstant.imgFilter,
-                      height: 20.h,
-                      width: 20.h,
-                      color: _isSidebarVisible ? Colors.white : Color(0xFF6D6D6D),
+        child: AnimatedBuilder(
+          animation: _filterButtonRotationAnimation,
+          builder: (context, child) {
+            return Transform.rotate(
+              angle: _filterButtonRotationAnimation.value * 2 * 3.14159,
+              child: Container(
+                width: 40.h,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: _isSidebarVisible ? Color(0xFF6A19D3) : Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8.h,
+                      offset: Offset(0, 2),
                     ),
+                  ],
+                ),
+                child: Center(
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgFilter,
+                    height: 20.h,
+                    width: 20.h,
+                    color: _isSidebarVisible ? Colors.white : Color(0xFF6D6D6D),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -896,7 +884,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
   }
 
   onTapNotification(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.notificationScreen);
+    NavigatorService.pushNamed(AppRoutes.notificationScreen);
   }
 
   // Asks the user for permission to access location

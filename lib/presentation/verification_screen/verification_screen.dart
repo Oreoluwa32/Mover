@@ -72,14 +72,13 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context){
     return CustomAppBar(
-      height: 90.h,
+      height: 45.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 24.h,
-          bottom: 42.h,
+          top: 20.h,
         ),
         onTap: () {onTapLeftArrow1(context);},
       ),
@@ -87,8 +86,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
       title: AppbarSubtitle(
         text: "Verification",
         margin: EdgeInsets.only(
-          top: 22.h,
-          bottom: 44.h,
+          top: 20.h,
         ),
       ),
       styleType: Style.bgOutline,

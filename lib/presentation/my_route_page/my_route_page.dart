@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/app_export.dart';
 import '../instant_add_route_screen_one/add_route_screen_one.dart';
 import '../add_route_screen_three/add_route_screen_three.dart';
@@ -59,20 +60,33 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: false,
-      appBar: _buildAppbar(context),
-      body: Stack(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Stack(
         children: [
-          Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.symmetric(horizontal: 16.h),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [_buildSavedroute(context)],
-            ),
+          Container(color: theme.colorScheme.onPrimary),
+          Column(
+            children: [
+              SafeArea(
+                bottom: false,
+                child: _buildAppbar(context),
+              ),
+              Expanded(
+                child: Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.symmetric(horizontal: 16.h),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [_buildSavedroute(context)],
+                  ),
+                ),
+              ),
+            ],
           ),
           if (_isExpanded)
             Positioned.fill(
@@ -83,15 +97,19 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                 ),
               ),
             ),
+          Positioned(
+            right: 16.h,
+            bottom: 180.h,
+            child: _buildFloatingactionb(context),
+          ),
           if (_isExpanded)
             Positioned(
-              right: 16.h,
-              bottom: 80.h,
+              right: 24.h,
+              bottom: 245.h,
               child: _buildOverlayButtons(context),
             ),
         ],
       ),
-      floatingActionButton: _buildFloatingactionb(context),
     );
   }
 
@@ -102,9 +120,19 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
       leadingWidth: 40.h,
       centerTitle: true,
       title: AppbarSubtitle(
+        margin: EdgeInsets.only(
+          // left: 16.h,
+          top: 24.h,
+          // bottom: 22.h,
+        ),
         text: "My Route",
       ),
       styleType: Style.bgOutline,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
     );
   }
 
@@ -144,24 +172,21 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
 
   // Section Widget
   Widget _buildFloatingactionb(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 43.h, right: 1.5.h),
-      child: RotationTransition(
-        turns: _rotationAnimation,
-        child: CustomFloatingButton(
-          height: 48,
-          width: 48,
-          backgroundColor: theme.colorScheme.primary,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(100.h),
-          ),
-          child: Icon(
-            _isExpanded ? Icons.close : Icons.add,
-            color: Colors.white,
-            size: 24.h,
-          ),
-          onTap: _toggleExpanded,
+    return RotationTransition(
+      turns: _rotationAnimation,
+      child: CustomFloatingButton(
+        height: 48,
+        width: 48,
+        backgroundColor: theme.colorScheme.primary,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100.h),
         ),
+        child: Icon(
+          _isExpanded ? Icons.close : Icons.add,
+          color: Colors.white,
+          size: 24.h,
+        ),
+        onTap: _toggleExpanded,
       ),
     );
   }
@@ -278,24 +303,25 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
             ),
           ],
         ),
-        SizedBox(height: 12.h),
-        RotationTransition(
-          turns: _rotationAnimation,
-          child: CustomFloatingButton(
-            height: 48,
-            width: 48,
-            backgroundColor: theme.colorScheme.primary,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100.h),
-            ),
-            child: Icon(
-              Icons.close,
-              color: Colors.white,
-              size: 24.h,
-            ),
-            onTap: _toggleExpanded,
-          ),
-        ),
+        // SizedBox(height: 12.h),
+        // RotationTransition(
+        //   turns: _rotationAnimation,
+        //   child: CustomFloatingButton(
+        //     height: 48,
+        //     width: 48,
+        //     backgroundColor: theme.colorScheme.primary,
+        //     decoration: BoxDecoration(
+        //       borderRadius: BorderRadius.circular(100.h),
+        //     ),
+        //     child: Icon(
+        //       Icons.close,
+        //       color: Colors.white,
+        //       size: 24.h,
+        //     ),
+        //     onTap: _toggleExpanded,
+        //   ),
+        // ),
+        // Padding(padding: EdgeInsets.only(bottom: 158.h)),
       ],
     );
   }

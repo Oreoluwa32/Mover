@@ -251,12 +251,15 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 10.h),
           CustomAppBar(
+            height: 45.h,
             leadingWidth: 40.h,
             leading: AppbarLeadingImage(
               imagePath: ImageConstant.imgCancel,
-              margin: EdgeInsets.only(left: 16.h),
+              margin: EdgeInsets.only(
+                left: 16.h,
+                top: 20.h,
+              ),
               onTap: () {
                 onTapBack(context);
               },
@@ -264,13 +267,17 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
             centerTitle: true,
             title: AppbarSubtitle(
               text: "Add Route",
+              margin: EdgeInsets.only(top: 20.h),
             ),
             actions: [
               Consumer(
                 builder: (context, ref, _) {
                   return AppbarTrailingImage(
                     imagePath: ImageConstant.imgPlusBlack,
-                    margin: EdgeInsets.only(right: 15.h),
+                    margin: EdgeInsets.only(
+                      right: 15.h,
+                      top: 20.h,
+                    ),
                     onTap: () {
                       ref.read(addRouteTwoNotifier.notifier).toggleStopField();
                     },

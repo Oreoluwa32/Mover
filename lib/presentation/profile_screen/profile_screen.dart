@@ -1,3 +1,4 @@
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -24,18 +25,34 @@ final storage = FlutterSecureStorage();
 // Function to handle to log out the user 
 Future<void> logoutUser(BuildContext context) async {
   try {
+    final token = await storage.read(key: 'auth_token');
+    
+    if (token != null) {
+      final url = Uri.parse('https://demosystem.pythonanywhere.com/logout/');
+      // We don't necessarily need to wait for the response to clear local data, 
+      // but it's good practice to attempt the server-side logout.
+      await http.post(
+        url,
+        headers: {
+          "Authorization": "Token $token",
+          "Content-Type": "application/json"
+        },
+      );
+    }
+
     await storage.deleteAll();
     if (context.mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      NavigatorService.pushNamedAndRemoveUntil(
         AppRoutes.signInScreen,
-        (route) => false,
       );
     }
   } catch (e) {
     print('Logout error: $e');
+    // Still clear storage and navigate even if API fails
+    await storage.deleteAll();
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error during logout: $e')),
+      NavigatorService.pushNamedAndRemoveUntil(
+        AppRoutes.signInScreen,
       );
     }
   }
@@ -51,7 +68,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 // ignore for file, class must be immutable
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
-  GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
   @override
   void initState() {
@@ -93,7 +109,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 50.h,
       leadingWidth: 40.h,
       centerTitle: true,
       title: AppbarSubtitle(
@@ -233,7 +249,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }
                   ),
                 ),
-                SizedBox(height: 150.h,),
+                SizedBox(height: 100.h,),
               ],
             ),
           ),
@@ -249,166 +265,163 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         final profileState = ref.watch(profileScreenNotifier);
         final isUploading = profileState.isUploadingProfileImage;
         final profileImagePath = ref.watch(profileImagePathProvider);
+        final userName = ref.watch(userNameProvider);
 
         return SizedBox(
           width: double.maxFinite,
           child: Row(
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Display uploaded profile image or default
-                        profileImagePath.when(
-                          loading: () => Container(
-                            width: 50.h,
-                            height: 50.h,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(24.h),
-                            ),
-                            child: Center(
-                              child: SizedBox(
-                                width: 20.h,
-                                height: 20.h,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Display uploaded profile image or default
+                  profileImagePath.when(
+                    loading: () => Container(
+                      width: 50.h,
+                      height: 50.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(24.h),
+                      ),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20.h,
+                          height: 20.h,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
                           ),
-                          error: (_, __) => CustomImageView(
-                            imagePath: ImageConstant.imgProfile,
-                            width: 50.h,
-                            height: 50.h,
-                            radius: BorderRadius.circular(24.h),
-                            onTap: isUploading ? null : () {
-                              requestCameraGalleryPermission(context);
-                            },
-                          ),
-                          data: (imagePath) {
-                            if (imagePath != null && imagePath.isNotEmpty) {
-                              return GestureDetector(
-                                onTap: isUploading ? null : () {
-                                  requestCameraGalleryPermission(context);
-                                },
-                                child: Container(
-                                  width: 50.h,
-                                  height: 50.h,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(24.h),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(24.h),
-                                    child: Image.file(
-                                      File(imagePath),
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return CustomImageView(
-                                          imagePath: ImageConstant.imgProfile,
-                                          width: 50.h,
-                                          height: 50.h,
-                                          radius: BorderRadius.circular(24.h),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              );
-                            } else {
-                              return CustomImageView(
-                                imagePath: ImageConstant.imgProfile,
-                                width: 50.h,
-                                height: 50.h,
-                                radius: BorderRadius.circular(24.h),
-                                onTap: isUploading ? null : () {
-                                  requestCameraGalleryPermission(context);
-                                },
-                              );
-                            }
-                          },
                         ),
-                        
-                        // Loading indicator overlay
-                        if (isUploading)
-                          Container(
+                      ),
+                    ),
+                    error: (_, __) => CustomImageView(
+                      imagePath: ImageConstant.imgDefaultProfile,
+                      width: 50.h,
+                      height: 50.h,
+                      radius: BorderRadius.circular(24.h),
+                      onTap: isUploading ? null : () {
+                        requestCameraGalleryPermission(context);
+                      },
+                    ),
+                    data: (imagePath) {
+                      if (imagePath != null && imagePath.isNotEmpty) {
+                        return GestureDetector(
+                          onTap: isUploading ? null : () {
+                            requestCameraGalleryPermission(context);
+                          },
+                          child: Container(
                             width: 50.h,
                             height: 50.h,
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha:0.3),
                               borderRadius: BorderRadius.circular(24.h),
                             ),
-                            child: Center(
-                              child: SizedBox(
-                                width: 20.h,
-                                height: 20.h,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24.h),
+                              child: Image.file(
+                                File(imagePath),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return CustomImageView(
+                                    imagePath: ImageConstant.imgDefaultProfile,
+                                    width: 50.h,
+                                    height: 50.h,
+                                    radius: BorderRadius.circular(24.h),
+                                  );
+                                },
                               ),
                             ),
                           ),
+                        );
+                      } else {
+                        return CustomImageView(
+                          imagePath: ImageConstant.imgDefaultProfile,
+                          width: 50.h,
+                          height: 50.h,
+                          radius: BorderRadius.circular(24.h),
+                          onTap: isUploading ? null : () {
+                            requestCameraGalleryPermission(context);
+                          },
+                        );
+                      }
+                    },
+                  ),
+                  
+                  // Loading indicator overlay
+                  if (isUploading)
+                    Container(
+                      width: 50.h,
+                      height: 50.h,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha:0.3),
+                        borderRadius: BorderRadius.circular(24.h),
+                      ),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20.h,
+                          height: 20.h,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              SizedBox(width: 16.h,),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    NavigatorService.pushNamed(AppRoutes.personalInformationScreen);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              userName.when(
+                                data: (name) => Text(
+                                  name ?? "John Doe",
+                                  style: CustomTextStyles.titleMediumGray80001Medium,
+                                ),
+                                loading: () => Text(
+                                  "Loading...",
+                                  style: CustomTextStyles.titleMediumGray80001Medium,
+                                ),
+                                error: (_, __) => Text(
+                                  "User",
+                                  style: CustomTextStyles.titleMediumGray80001Medium,
+                                ),
+                              ),
+                              SizedBox(height: 2.h,),
+                              Text(
+                                "Profile Information",
+                                style: CustomTextStyles.bodySmall110,
+                              ),
+                            ],
+                          ),
+                        ),
+                        CustomImageView(
+                          imagePath: ImageConstant.imgChevronRightBlack,
+                          width: 16.h,
+                          height: 16.h,
+                        )
                       ],
                     ),
-                    SizedBox(width: 16.h,),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "John Doe",
-                            style: CustomTextStyles.titleMediumGray80001Medium,
-                          ),
-                          SizedBox(height: 2.h,),
-                          Text(
-                            "Profile Information",
-                            style: CustomTextStyles.bodySmall110,
-                          ),
-                          // Show error message if any
-                          if (profileState.profileImageError != null && profileState.profileImageError!.isNotEmpty)
-                            Padding(
-                              padding: EdgeInsets.only(top: 4.h),
-                              child: Text(
-                                profileState.profileImageError!,
-                                style: CustomTextStyles.bodySmall110.copyWith(
-                                  color: Colors.red,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                        ],
-                      ),
-                    )
-                  ],
+                  ),
                 ),
               ),
-              CustomImageView(
-                imagePath: ImageConstant.imgChevronRightBlack,
-                width: 16.h,
-                height: 16.h,
-              )
             ],
           ),
         );
       },
     );
   }
-
-  // Section Widget
-  // Widget _buildBottombar(BuildContext context) {
-  //   return SizedBox(
-  //     width: double.maxFinite,
-  //     child: CustomBottomBar(
-  //       onChanged: (BottomBarEnum type) {
-  //         Navigator.pushNamed(navigatorKey.currentContext!, getCurrentRoute(type));
-  //       },
-  //     ),
-  //   );
-  // }
 
   // Common Widget
   Widget _buildCard(BuildContext context, {
@@ -425,7 +438,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
           vertical: 16.h
         ),
         decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withOpacity(1),
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         ),
         child: Row(
           children: [
@@ -455,22 +468,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // Handling route based on the bottom click actions
-  // String getCurrentRoute(BottomBarEnum type) {
-  //   switch (type) {
-  //     case BottomBarEnum.Home:
-  //       return AppRoutes.homeOneInitialPage;
-  //     case BottomBarEnum.Route:
-  //       return AppRoutes.myRoutePage;
-  //     case BottomBarEnum.Activity:
-  //       return AppRoutes.activityInProgressPage;
-  //     case BottomBarEnum.Profile:
-  //       return AppRoutes.profileScreen;
-  //     default:
-  //       return "/";
-  //   }
-  // }
-
   // Requests permission to access the camera and storage, and displays a dialog for selecting images
   // Allows user to choose between camera and gallery
   requestCameraGalleryPermission(BuildContext context) async {
@@ -478,39 +475,109 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     await PermissionManager.requestPermission(Permission.camera);
     await PermissionManager.requestPermission(Permission.storage);
 
-    // Show dialog to choose between camera and gallery
+    // Show modern bottom sheet to choose between camera and gallery
     if (!mounted) return;
     
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Change Profile Picture'),
-          content: Text('Choose how you want to upload your profile picture:'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel'),
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.onPrimary,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24.h),
+              topRight: Radius.circular(24.h),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _uploadFromCamera(context);
-              },
-              child: Text('Camera'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _uploadFromGallery(context);
-              },
-              child: Text('Gallery'),
-            ),
-          ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 24.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Change Profile Picture',
+                    style: CustomTextStyles.titleMediumGray80001Bold,
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: appTheme.gray600),
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                'Choose how you want to upload your profile picture',
+                style: CustomTextStyles.bodyMediumGray600,
+              ),
+              SizedBox(height: 24.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildUploadOption(
+                      context,
+                      icon: Icons.camera_alt_outlined,
+                      label: 'Camera',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _uploadFromCamera(context);
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 16.h),
+                  Expanded(
+                    child: _buildUploadOption(
+                      context,
+                      icon: Icons.image_outlined,
+                      label: 'Gallery',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _uploadFromGallery(context);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+            ],
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildUploadOption(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 20.h),
+        decoration: BoxDecoration(
+          color: appTheme.gray50,
+          borderRadius: BorderRadius.circular(16.h),
+          border: Border.all(color: appTheme.deepPurple50, width: 1),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: theme.colorScheme.primary, size: 28.h),
+            SizedBox(height: 12.h),
+            Text(
+              label,
+              style: CustomTextStyles.titleSmallGray80001,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -524,14 +591,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         // Refresh the profile image provider so the bottom bar updates
         ref.invalidate(profileImagePathProvider);
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile picture updated successfully!')),
-        );
+        Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error ?? 'Failed to upload profile picture')),
-        );
+        Fluttertoast.showToast(msg: error ?? 'Failed to upload profile picture');
       }
     }
   }
@@ -546,14 +609,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         // Refresh the profile image provider so the bottom bar updates
         ref.invalidate(profileImagePathProvider);
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile picture updated successfully!')),
-        );
+        Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error ?? 'Failed to upload profile picture')),
-        );
+        Fluttertoast.showToast(msg: error ?? 'Failed to upload profile picture');
       }
     }
   }

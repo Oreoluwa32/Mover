@@ -19,12 +19,12 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
       body: Container(
           width: double.maxFinite,
-          padding: EdgeInsets.only(left: 16.h, top: 28.h,right: 16.h),
+          padding: EdgeInsets.only(left: 16.h, right: 16.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [_buildNotification(context)],

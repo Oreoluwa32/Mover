@@ -223,11 +223,14 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 92.h,
+      height: 45.h,
       leadingWidth: 24.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
-        margin: EdgeInsets.only(left: 16.h, top: 44.h, bottom: 24.h),
+        margin: EdgeInsets.only(
+          left: 16.h,
+          top: 20.h,
+        ),
         onTap: () {
           onTapBack(context);
         },
@@ -235,7 +238,9 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Debit/Credit Card",
-        margin: EdgeInsets.only(top: 44.h, bottom: 23.h),
+        margin: EdgeInsets.only(
+          top: 20.h,
+        ),
       ),
       styleType: Style.bgOutline,
     );

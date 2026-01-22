@@ -122,7 +122,7 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // SizedBox(height: 20.h),
+                            SizedBox(height: 20.h),
                             SizedBox(
                               width: 292.h,
                               child: Text(
@@ -167,14 +167,13 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 45.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 24.h,
-          bottom: 42.h,
+          top: 20.h,
         ),
         onTap: () {
           onTapLeftArrow(context);
@@ -184,8 +183,7 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
       title: AppbarSubtitle(
         text: "Identification",
         margin: EdgeInsets.only(
-          top: 22.h,
-          bottom: 44.h,
+          top: 20.h,
         ),
       ),
       styleType: Style.bgOutline,

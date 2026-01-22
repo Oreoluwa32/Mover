@@ -395,4 +395,7 @@ class ImageConstant {
 
   // Calenadar add schedule
   static String imgCalendarAdd = '$imagePath/img_calendar_add.svg';
+
+  // Default profile image
+  static String imgDefaultProfile = '$imagePath/img_default_profile.svg';
 }

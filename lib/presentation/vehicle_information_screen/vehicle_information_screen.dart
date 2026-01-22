@@ -120,7 +120,7 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
                     width: double.maxFinite,
                     padding: EdgeInsets.only(
                       left: 14.h,
-                      // top: 32.h,
+                      top: 22.h,
                       right: 14.h,
                     ),
                     child: Column(

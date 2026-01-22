@@ -38,14 +38,13 @@ class VerificationScreenOne extends StatelessWidget{
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context){
     return CustomAppBar(
-      height: 90.h,
+      height: 45.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgLeftArrow1,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 44.h,
-          bottom: 22.h,
+          top: 20.h,
         ),
         onTap: () {},
       ),
@@ -53,8 +52,7 @@ class VerificationScreenOne extends StatelessWidget{
       title: AppbarSubtitle(
         text: "Verification",
         margin: EdgeInsets.only(
-          top: 45.h,
-          bottom: 20.h,
+          top: 20.h,
         ),
       ),
       styleType: Style.bgOutline,

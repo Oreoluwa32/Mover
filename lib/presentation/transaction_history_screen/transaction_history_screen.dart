@@ -27,53 +27,64 @@ class TransactionHistoryScreen extends ConsumerStatefulWidget{
 class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScreen>{
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(transHistoryNotifier).isLoading;
+
     return Scaffold(
       extendBody: true,
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
-      body: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                children: [
-                  SizedBox(height: 24.h),
-                  _buildBalance(context),
-                  SizedBox(height: 24.h),
-                  _buildButtons(context),
-                  SizedBox(height: 26.h),
-                  _buildMonthTrans(context),
-                  SizedBox(height: 14.h,),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: EdgeInsets.only(left: 16.h),
-                      child: Text(
-                        "Dec 2024",
-                        style: CustomTextStyles.bodySmallErrorContainer,
-                      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(transHistoryNotifier.notifier).fetchWalletData(),
+              child: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    width: double.maxFinite,
+                    child: Column(
+                      children: [
+                        SizedBox(height: 24.h),
+                        _buildBalance(context),
+                        SizedBox(height: 24.h),
+                        _buildButtons(context),
+                        SizedBox(height: 26.h),
+                        _buildMonthTrans(context),
+                        SizedBox(height: 14.h),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 16.h),
+                            child: Text(
+                              "Recent Transactions",
+                              style: CustomTextStyles.bodySmallErrorContainer,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        _buildTrans(context),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 4.h),
-                  _buildTrans(context),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-      );
+    );
   }
 
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 55.h,
+      height: 90.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
-          left: 16.h
+          left: 16.h,
+          top: 24.h,
+          bottom: 42.h
         ),
         onTap: () {
           onTapBack(context);
@@ -83,8 +94,8 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
       title: AppbarSubtitle(
         text: "Wallet",
         margin: EdgeInsets.only(
-          top: 20.h,
-          bottom: 30.h,
+          top: 22.h,
+          bottom: 44.h,
         ),
       ),
       styleType: Style.bgOutline,
@@ -96,7 +107,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
     return Container(
       height: 146.h,
       width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 16.h),
+      margin: EdgeInsets.symmetric(horizontal: 8.h),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -104,7 +115,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
             builder: (context, ref, _) {
               return CarouselSlider.builder(
                 options: CarouselOptions(
-                  height: 146.h,
+                  height: 149.h,
                   initialPage: 0,
                   viewportFraction: 1.0,
                   scrollDirection: Axis.horizontal,
@@ -148,48 +159,43 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
 
   // Section Widget
   Widget _buildMonthTrans(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 16.h),
-            child: Text(
-              "Transactions",
-              style: CustomTextStyles.bodySmallErrorContainer,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          Padding(
-            padding: EdgeInsets.only(left: 16.h),
-            child: Text(
-              "Jan",
-              style: CustomTextStyles.bodySmallErrorContainer,
-            ),
-          ),
-          SizedBox(height: 4.h),
-          Consumer(
-            builder: (context, ref, _) {
-              return ListView.separated(
+    return Consumer(
+      builder: (context, ref, _) {
+        final monthTransList = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.monthTransList ?? [];
+        if (monthTransList.isEmpty) return const SizedBox.shrink();
+        
+        return SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 16.h),
+                child: Text(
+                  "Transactions",
+                  style: CustomTextStyles.bodySmallErrorContainer,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              ListView.separated(
                 padding: EdgeInsets.zero,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
-                  MonthTransItemModel model = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.monthTransList[index] ?? MonthTransItemModel();
+                  MonthTransItemModel model = monthTransList[index];
                   return MonthTransItemWidget(
                     model,
                   );
-                }, 
+                },
                 separatorBuilder: (context, index) {
                   return SizedBox(height: 8.h);
-                }, 
-                itemCount: ref.watch(transHistoryNotifier).transactionHistoryModelObj?.monthTransList.length ?? 0,
-              );
-            }
-          )
-        ],
-      ),
+                },
+                itemCount: monthTransList.length,
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -197,12 +203,26 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   Widget _buildTrans(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
+        final transactionList = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList ?? [];
+        
+        if (transactionList.isEmpty) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 20.h),
+            child: Center(
+              child: Text(
+                "No transactions yet",
+                style: CustomTextStyles.bodySmallErrorContainer,
+              ),
+            ),
+          );
+        }
+
         return ListView.separated(
           padding: EdgeInsets.zero,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemBuilder: (context, index) {
-            TransactionItemModel model = ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList[index] ?? TransactionItemModel();
+            TransactionItemModel model = transactionList[index];
             return TransactionItemWidget(
               model,
             );
@@ -217,7 +237,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
               ),
             );
           },
-          itemCount: ref.watch(transHistoryNotifier).transactionHistoryModelObj?.transactionList.length ?? 0,
+          itemCount: transactionList.length,
         );
       },
     );

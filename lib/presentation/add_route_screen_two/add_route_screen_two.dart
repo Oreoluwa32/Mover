@@ -81,27 +81,35 @@ class AddRouteScreenTwo extends StatelessWidget{
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 20.h),
           CustomAppBar(
+            height: 45.h,
             leadingWidth: 40.h,
             leading: AppbarLeadingImage(
               imagePath: ImageConstant.imgCancel,
-              margin: EdgeInsets.only(left: 16.h),
+              margin: EdgeInsets.only(
+                left: 16.h,
+                top: 20.h,
+              ),
             ),
             centerTitle: true,
             title: AppbarSubtitle(
               text: "Add Route",
+              margin: EdgeInsets.only(top: 20.h),
             ),
             actions: [
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgPlus,
-                margin: EdgeInsets.only(right: 15.h),
+                margin: EdgeInsets.only(
+                  right: 15.h,
+                  top: 20.h,
+                ),
               ),
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgSetting,
                 margin: EdgeInsets.only(
                   left: 22.h,
                   right: 15.h,
+                  top: 20.h,
                 ),
               )
             ],
