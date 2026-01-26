@@ -308,27 +308,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           onTap: isUploading ? null : () {
                             requestCameraGalleryPermission(context);
                           },
-                          child: Container(
+                          child: CustomImageView(
+                            imagePath: imagePath,
                             width: 50.h,
                             height: 50.h,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24.h),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24.h),
-                              child: Image.file(
-                                File(imagePath),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return CustomImageView(
-                                    imagePath: ImageConstant.imgDefaultProfile,
-                                    width: 50.h,
-                                    height: 50.h,
-                                    radius: BorderRadius.circular(24.h),
-                                  );
-                                },
-                              ),
-                            ),
+                            radius: BorderRadius.circular(24.h),
+                            fit: BoxFit.cover,
+                            placeHolder: ImageConstant.imgDefaultProfile,
                           ),
                         );
                       } else {

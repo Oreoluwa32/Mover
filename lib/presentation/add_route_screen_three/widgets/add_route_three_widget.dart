@@ -30,7 +30,7 @@ class AddRouteThreeWidget extends StatelessWidget {
           CustomImageView(
             imagePath: addRouteItemModelObj.tabImage!,
             height: 54.h,
-            width: double.maxFinite,
+            width: 36.h,
           ),
           Text(
             addRouteItemModelObj.tabTitle!,

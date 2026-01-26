@@ -74,13 +74,13 @@ extension RadioStyleHelper on CustomRadioButton{
       SizedBox(
         width: text != null && text!.isNotEmpty ? 8 : 0,
       ),
-      textWidget
+      isExpandedText ? Expanded(child: textWidget) : textWidget
     ],
   );
   Widget get rightSideRadioButton => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      textWidget,
+      isExpandedText ? Expanded(child: textWidget) : textWidget,
       SizedBox(
         width: text != null && text!.isNotEmpty ? 8 : 0,
       ),
@@ -91,6 +91,7 @@ extension RadioStyleHelper on CustomRadioButton{
     text ?? "",
     textAlign: textAlignment ?? TextAlign.start,
     style: textStyle ?? CustomTextStyles.bodySmallOnPrimaryContainer,
+    overflow: overflow,
   );
   Widget get radioButtonWidget {
     final size = iconSize ?? 20.0;

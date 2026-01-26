@@ -17,9 +17,17 @@ class AddRouteTwoState extends Equatable {
       this.maxCapDropdownValue,
       this.radioGroup = "",
       this.returnRadio = "",
+      this.returnDestination = "",
+      this.isReturnTrip = false,
       this.setTime,
       this.imagePath,
       this.showStopField = false,
+      this.locationLat,
+      this.locationLng,
+      this.stopLat,
+      this.stopLng,
+      this.destinationLat,
+      this.destinationLng,
       this.addRouteTwoModelObj});
 
   TextEditingController? locationController;
@@ -36,9 +44,17 @@ class AddRouteTwoState extends Equatable {
   AddRouteTwoModel? addRouteTwoModelObj;
   String radioGroup;
   String returnRadio;
+  String returnDestination;
+  bool isReturnTrip;
   TimeOfDay? setTime;
   String? imagePath;
   bool showStopField;
+  double? locationLat;
+  double? locationLng;
+  double? stopLat;
+  double? stopLng;
+  double? destinationLat;
+  double? destinationLng;
 
   @override
   List<Object?> get props => [
@@ -55,9 +71,17 @@ class AddRouteTwoState extends Equatable {
         maxCapDropdownValue,
         radioGroup,
         returnRadio,
+        returnDestination,
+        isReturnTrip,
         setTime,
         imagePath,
         showStopField,
+        locationLat,
+        locationLng,
+        stopLat,
+        stopLng,
+        destinationLat,
+        destinationLng,
         addRouteTwoModelObj
       ];
   AddRouteTwoState copyWith(
@@ -75,13 +99,22 @@ class AddRouteTwoState extends Equatable {
       AddRouteTwoModel? addRouteTwoModelObj,
       String? radioGroup,
       String? returnRadio,
+      String? returnDestination,
+      bool? isReturnTrip,
       TimeOfDay? setTime,
       String? imagePath,
-      bool? showStopField}) {
+      bool? showStopField,
+      double? locationLat,
+      double? locationLng,
+      double? stopLat,
+      double? stopLng,
+      double? destinationLat,
+      double? destinationLng}) {
     return AddRouteTwoState(
         locationController: locationController ?? this.locationController,
         stopController: stopController ?? this.stopController,
-        destinationController: destinationController ?? this.destinationController,
+        destinationController:
+            destinationController ?? this.destinationController,
         setDateController: setDateController ?? this.setDateController,
         setTimeController: setTimeController ?? this.setTimeController,
         setTimeBeginController:
@@ -93,9 +126,17 @@ class AddRouteTwoState extends Equatable {
         maxCapDropdownValue: maxCapDropdownValue ?? this.maxCapDropdownValue,
         radioGroup: radioGroup ?? this.radioGroup,
         returnRadio: returnRadio ?? this.returnRadio,
+        returnDestination: returnDestination ?? this.returnDestination,
+        isReturnTrip: isReturnTrip ?? this.isReturnTrip,
         setTime: setTime ?? this.setTime,
         imagePath: imagePath ?? this.imagePath,
         showStopField: showStopField ?? this.showStopField,
+        locationLat: locationLat ?? this.locationLat,
+        locationLng: locationLng ?? this.locationLng,
+        stopLat: stopLat ?? this.stopLat,
+        stopLng: stopLng ?? this.stopLng,
+        destinationLat: destinationLat ?? this.destinationLat,
+        destinationLng: destinationLng ?? this.destinationLng,
         addRouteTwoModelObj: addRouteTwoModelObj ?? this.addRouteTwoModelObj);
   }
 }

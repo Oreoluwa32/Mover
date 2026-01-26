@@ -92,31 +92,59 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final destination = notifierState.destinationController?.text;
     final departureDate = notifierState.setDateController?.text;
     final departureTime = notifierState.setTimeController?.text;
-    final returnRoute = notifierState.returnRadio;
+    final returnRoute = notifierState.isReturnTrip 
+        ? (notifierState.returnDestination.isNotEmpty 
+            ? notifierState.returnDestination 
+            : location) 
+        : "No";
     final timeBegin = notifierState.setTimeBeginController?.text;
     final timeEnd = notifierState.setTimeEndController?.text;
+
+    // Construct departure_time in ISO8601 format
+    String? formattedDepartureTime;
+    if (departureDate != null && departureTime != null) {
+      try {
+        final dateParts = departureDate.split('/');
+        final timeParts = departureTime.split(':');
+        final departureDateTime = DateTime(
+          int.parse(dateParts[2]),
+          int.parse(dateParts[0]),
+          int.parse(dateParts[1]),
+          int.parse(timeParts[0]),
+          int.parse(timeParts[1]),
+        ).toUtc();
+        formattedDepartureTime = "${departureDateTime.toIso8601String().split('.').first}Z";
+      } catch (e) {
+        print('Error formatting date: $e');
+      }
+    }
 
     final url = Uri.parse(
         'https://demosystem.pythonanywhere.com/create-scheduled-route/');
     final requestBody = {
       "route_name": routeName,
       "location": location,
-      if (stop != null && stop.isNotEmpty) "stop": stop,
+      "location_latitude": notifierState.locationLat?.toStringAsFixed(6),
+      "location_longitude": notifierState.locationLng?.toStringAsFixed(6),
       "destination": destination,
+      "destination_latitude": notifierState.destinationLat?.toStringAsFixed(6),
+      "destination_longitude": notifierState.destinationLng?.toStringAsFixed(6),
+      "stop_location": stop ?? "",
+      "stop_location_latitude": (stop?.isNotEmpty == true) ? notifierState.stopLat?.toStringAsFixed(6) : null,
+      "stop_location_longitude": (stop?.isNotEmpty == true) ? notifierState.stopLng?.toStringAsFixed(6) : null,
       "transportation_mode":
           notifierState.addRouteTwoModelObj?.transportMeansList
               .firstWhere(
                 (item) => item.isSelected,
                 orElse: () => AddRouteItemModel(),
               )
-              .tabTitle,
-      "service_type": notifierState.serviceDropdownValue?.title,
+              .tabTitle?.toLowerCase(),
+      "service_type": notifierState.serviceDropdownValue?.title?.toLowerCase(),
       "departure_date": departureDate,
-      "departure_time": departureTime,
+      "departure_time": formattedDepartureTime ?? departureTime,
       "return_route": returnRoute,
       "time_begin": timeBegin,
       "time_end": timeEnd,
-      // if (itemImageBase64 != null) "item_image": itemImageBase64,
     };
 
     try {
@@ -136,7 +164,14 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoutes.homeOneScreen,
           (route) => false,
-          arguments: {'showDialog': true},
+          arguments: {
+            'showDialog': false,
+            // 'locationLat': notifierState.locationLat,
+            // 'locationLng': notifierState.locationLng,
+            // 'destinationLat': notifierState.destinationLat,
+            // 'destinationLng': notifierState.destinationLng,
+            'highlightRoute': false,
+          },
         );
       } else {
         final error =
@@ -190,8 +225,20 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                                 ),
                                 SizedBox(height: 10.h),
                                 _buildDoyouwantto(context),
-                                SizedBox(height: 22.h),
-                                _buildColumnreturn(context),
+                                Consumer(
+                                  builder: (context, ref, _) {
+                                    final isReturnTrip = ref.watch(addRouteTwoNotifier).isReturnTrip;
+                                    if (!isReturnTrip) return const SizedBox.shrink();
+                                    
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 22.h),
+                                        _buildColumnreturn(context),
+                                      ],
+                                    );
+                                  },
+                                ),
                                 SizedBox(height: 24.h),
                                 _buildTimeRange(context),
                                 SizedBox(
@@ -306,6 +353,11 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                             .changeRadioBtn("location");
                       },
                       onPlaceSelected: (description, lat, lng) {
+                        if (lat != null && lng != null) {
+                          ref
+                              .read(addRouteTwoNotifier.notifier)
+                              .updateLocationCoords(lat, lng);
+                        }
                       },
                     );
                   },
@@ -324,6 +376,11 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                             .changeRadioBtn("destination");
                       },
                       onPlaceSelected: (description, lat, lng) {
+                        if (lat != null && lng != null) {
+                          ref
+                              .read(addRouteTwoNotifier.notifier)
+                              .updateDestinationCoords(lat, lng);
+                        }
                       },
                     );
                   },
@@ -349,6 +406,11 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                               .toggleStopField();
                         },
                         onPlaceSelected: (description, lat, lng) {
+                          if (lat != null && lng != null) {
+                            ref
+                                .read(addRouteTwoNotifier.notifier)
+                                .updateStopCoords(lat, lng);
+                          }
                         },
                       );
                     },
@@ -709,35 +771,26 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
   // Section Widget
   Widget _buildGateway(BuildContext context) {
-    // return CustomElevatedButton(
-    //   text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-    //   leftIcon: Container(
-    //     margin: EdgeInsets.only(right: 12.h),
-    //     child: CustomImageView(
-    //       imagePath: ImageConstant.imgSearch,
-    //       height: 24.h,
-    //       width: 24.h,
-    //       fit: BoxFit.contain,
-    //     ),
-    //   ),
-    //   buttonStyle: CustomButtonStyles.fillGray,
-    //   buttonTextStyle: CustomTextStyles.bodySmallOnPrimaryContainer,
-    // );
     return Consumer(
       builder: (context, ref, _) {
+        final state = ref.watch(addRouteTwoNotifier);
+        final address = (state.locationController?.text.isNotEmpty ?? false)
+            ? state.locationController!.text
+            : "Enter a location above";
+
         return CustomRadioButton(
-                  text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                  value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-                  groupValue: ref.watch(addRouteTwoNotifier).returnRadio,
-                  padding: EdgeInsets.symmetric(vertical: 2.h),
-                  textStyle: theme.textTheme.labelLarge,
-                  onChange: (value) {
-                    ref
-                        .read(addRouteTwoNotifier.notifier)
-                        .returnRouteBtn(value);
-                  },
-                );
-      });
+          isExpandedText: true,
+          text: address,
+          value: address,
+          groupValue: state.returnDestination,
+          padding: EdgeInsets.symmetric(vertical: 2.h),
+          textStyle: theme.textTheme.labelLarge,
+          onChange: (value) {
+            ref.read(addRouteTwoNotifier.notifier).setReturnDestination(value);
+          },
+        );
+      },
+    );
   }
 
   // Section Widget
@@ -968,17 +1021,26 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final hasServiceType = (state.serviceDropdownValue?.title ?? '').isNotEmpty;
     final hasDepartureDate = state.setDateController?.text.isNotEmpty ?? false;
     final hasDepartureTime = state.setTimeController?.text.isNotEmpty ?? false;
-    final hasReturnRoute = state.returnRadio.isNotEmpty;
+    
+    final hasValidCoords = state.locationLat != null && 
+                          state.locationLng != null && 
+                          state.destinationLat != null && 
+                          state.destinationLng != null;
+
+    final hasAnsweredReturn = state.returnRadio.isNotEmpty;
+    final hasValidReturn = !state.isReturnTrip || state.returnDestination.isNotEmpty;
     final hasTimeBegin = state.setTimeBeginController?.text.isNotEmpty ?? false;
     final hasTimeEnd = state.setTimeEndController?.text.isNotEmpty ?? false;
 
     return hasLocation &&
         hasDestination &&
+        hasValidCoords &&
         hasTransportMode &&
         hasServiceType &&
         hasDepartureDate &&
         hasDepartureTime &&
-        hasReturnRoute &&
+        hasAnsweredReturn &&
+        hasValidReturn &&
         hasTimeBegin &&
         hasTimeEnd;
   }
@@ -1073,6 +1135,29 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: theme.colorScheme.primary,
+              onPrimary: theme.colorScheme.onPrimary,
+              onSurface: appTheme.black900,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              hourMinuteColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.primary.withValues(alpha: 0.1)),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : Colors.transparent),
+              dayPeriodTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
+              dialHandColor: theme.colorScheme.primary,
+              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,
@@ -1098,6 +1183,29 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: theme.colorScheme.primary,
+              onPrimary: theme.colorScheme.onPrimary,
+              onSurface: appTheme.black900,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              hourMinuteColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.primary.withValues(alpha: 0.1)),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : Colors.transparent),
+              dayPeriodTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
+              dialHandColor: theme.colorScheme.primary,
+              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,
@@ -1123,6 +1231,29 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: theme.colorScheme.primary,
+              onPrimary: theme.colorScheme.onPrimary,
+              onSurface: appTheme.black900,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              hourMinuteColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.primary.withValues(alpha: 0.1)),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : Colors.transparent),
+              dayPeriodTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
+              dialHandColor: theme.colorScheme.primary,
+              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,

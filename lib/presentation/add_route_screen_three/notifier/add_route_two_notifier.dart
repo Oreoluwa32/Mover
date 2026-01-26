@@ -26,12 +26,7 @@ final addRouteTwoNotifier =
       AddRouteItemModel(
           tabImage: ImageConstant.imgWalkingMan, tabTitle: "Public"),
       AddRouteItemModel(tabImage: ImageConstant.img3DBike, tabTitle: "Bike"),
-      AddRouteItemModel(tabImage: ImageConstant.img3DCar, tabTitle: "Car"),
-      AddRouteItemModel(tabImage: ImageConstant.img3DTruck, tabTitle: "Truck"),
-      AddRouteItemModel(tabImage: ImageConstant.img3DBus, tabTitle: "Bus"),
-      AddRouteItemModel(
-          tabImage: ImageConstant.img3DPlane, tabTitle: "Airplane"),
-      AddRouteItemModel(tabImage: ImageConstant.img3DTrain, tabTitle: "Train"),
+      AddRouteItemModel(tabImage: ImageConstant.img3DCar, tabTitle: "Car")
     ], serviceDropdown: [
       SelectionPopupModel(id: 1, title: "Ride-sharing", isSelected: true),
       SelectionPopupModel(id: 2, title: "Delivery")
@@ -55,7 +50,28 @@ class AddRouteTwoNotifier extends StateNotifier<AddRouteTwoState> {
   }
 
   void returnRouteBtn(String value) {
-    state = state.copyWith(returnRadio: value);
+    if (value == "Yes" || value == "No") {
+      state = state.copyWith(
+        returnRadio: value,
+        isReturnTrip: value == "Yes",
+        returnDestination:
+            value == "Yes" ? (state.locationController?.text ?? "") : "",
+      );
+    } else {
+      state = state.copyWith(returnDestination: value);
+    }
+  }
+
+  void setIsReturnTrip(bool value) {
+    state = state.copyWith(
+      isReturnTrip: value,
+      returnRadio: value ? "Yes" : "No",
+      returnDestination: value ? (state.locationController?.text ?? "") : "",
+    );
+  }
+
+  void setReturnDestination(String value) {
+    state = state.copyWith(returnDestination: value);
   }
 
   void selectTransportMode(int index) {
@@ -110,5 +126,17 @@ class AddRouteTwoNotifier extends StateNotifier<AddRouteTwoState> {
   void updateTimeEndField(String timeText) {
     state.setTimeEndController?.text = timeText;
     state = state.copyWith();
+  }
+
+  void updateLocationCoords(double lat, double lng) {
+    state = state.copyWith(locationLat: lat, locationLng: lng);
+  }
+
+  void updateStopCoords(double lat, double lng) {
+    state = state.copyWith(stopLat: lat, stopLng: lng);
+  }
+
+  void updateDestinationCoords(double lat, double lng) {
+    state = state.copyWith(destinationLat: lat, destinationLng: lng);
   }
 }

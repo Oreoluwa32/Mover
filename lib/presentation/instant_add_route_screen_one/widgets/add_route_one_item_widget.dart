@@ -32,7 +32,7 @@ class AddRouteOneItemWidget extends StatelessWidget{
           CustomImageView(
             imagePath: addRouteOneItemModelObj.meansImage!,
             height: 54.h,
-            width: double.maxFinite,
+            width: 36.h,
           ),
           Text(
             addRouteOneItemModelObj.meansTitle!,

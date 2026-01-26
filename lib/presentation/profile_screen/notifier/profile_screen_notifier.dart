@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../../../core/app_export.dart';
@@ -71,12 +73,12 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
         return false;
       }
 
-      // Upload to backend (placeholder for now)
-      bool uploadSuccess = await _uploadProfileImageToBackend(imagePath);
+      // Upload to backend
+      String? uploadedImageUrl = await _uploadProfileImageToBackend(imagePath);
 
-      if (uploadSuccess) {
-        // Save image path locally for backend purposes
-        await PrefUtils().setProfileImagePath(imagePath);
+      if (uploadedImageUrl != null) {
+        // Save image URL locally for syncing purposes
+        await PrefUtils().setProfileImagePath(uploadedImageUrl);
         
         state = state.copyWith(
           isUploadingProfileImage: false,
@@ -84,9 +86,9 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
         );
         return true;
       } else {
+        // profileImageError is already set in _uploadProfileImageToBackend if it failed
         state = state.copyWith(
           isUploadingProfileImage: false,
-          profileImageError: 'Failed to upload image. Please try again.',
         );
         return false;
       }
@@ -124,25 +126,83 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
   }
 
   /// Uploads the profile image to the backend
-  /// TODO: Replace with actual backend endpoint when ready
-  Future<bool> _uploadProfileImageToBackend(String imagePath) async {
+  /// Returns the URL of the uploaded image if successful, null otherwise
+  Future<String?> _uploadProfileImageToBackend(String imagePath) async {
     try {
-      // Placeholder implementation
-      // Replace this with your actual API endpoint and logic
-      final file = File(imagePath);
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'auth_token');
       
-      // Example using multipart request:
-      // var request = http.MultipartRequest('POST', Uri.parse('YOUR_API_ENDPOINT'));
-      // request.files.add(await http.MultipartFile.fromPath('file', imagePath));
-      // var response = await request.send();
-      // return response.statusCode == 200;
+      if (token == null) {
+        debugPrint('No auth token found');
+        state = state.copyWith(profileImageError: 'Session expired. Please log in again.');
+        return null;
+      }
 
-      // For now, simulate successful upload
-      await Future.delayed(Duration(seconds: 1));
-      return true;
+      final url = Uri.parse('https://demosystem.pythonanywhere.com/upload-profile-image/');
+      var request = http.MultipartRequest('POST', url);
+      
+      // Add authorization header
+      request.headers['Authorization'] = 'Token $token';
+      
+      // Add the file with explicit MIME type
+      final extension = path.extension(imagePath).replaceFirst('.', '').toLowerCase();
+      final mimeType = extension == 'png' ? 'image/png' : 'image/jpeg';
+      
+      request.files.add(await http.MultipartFile.fromPath(
+        'profile_picture',
+        imagePath,
+        contentType: MediaType.parse(mimeType),
+      ));
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        debugPrint('Upload success. Response body: ${response.body}');
+        
+        // Extract URL from root or nested 'user' object
+        var imageUrl = responseData['profile_picture'] ?? 
+                       responseData['profile_image'] ?? 
+                       responseData['image_url'] ?? 
+                       responseData['image'];
+                       
+        if (imageUrl == null && responseData['user'] != null) {
+          imageUrl = responseData['user']['profile_picture'] ?? 
+                     responseData['user']['profile_image'] ?? 
+                     responseData['user']['image_url'] ?? 
+                     responseData['user']['image'];
+        }
+        
+        if (imageUrl == null) {
+          state = state.copyWith(profileImageError: 'Image uploaded but URL not found in response');
+          return null;
+        }
+        
+        // Prepend base URL if it's a relative path
+        String finalUrl = imageUrl.toString();
+        if (finalUrl.startsWith('/')) {
+          finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
+        }
+        
+        return finalUrl;
+      } else {
+        debugPrint('Upload failed with status: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
+        
+        String errorMessage = 'Failed to upload image (${response.statusCode})';
+        try {
+          final errorData = json.decode(response.body);
+          errorMessage = errorData['detail'] ?? errorData['message'] ?? errorData['error'] ?? errorMessage;
+        } catch (_) {}
+        
+        state = state.copyWith(profileImageError: errorMessage);
+        return null;
+      }
     } catch (e) {
       debugPrint('Error uploading profile image: $e');
-      return false;
+      state = state.copyWith(profileImageError: 'An error occurred: $e');
+      return null;
     }
   }
 

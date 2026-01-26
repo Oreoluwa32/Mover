@@ -11,7 +11,7 @@ extension ImageTypeExtension on String {
     else if(this.endsWith('.svg')){
       return ImageType.svg;
     }
-    else if(this.startsWith('file://')){
+    else if(this.startsWith('file://') || this.startsWith('/') || this.contains(':/') || this.contains(':\\')){
       return ImageType.file;
     }
     else{

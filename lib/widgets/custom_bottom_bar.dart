@@ -268,29 +268,13 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
             }
 
             // Display the actual profile image in a circle
-            return Container(
+            return CustomImageView(
+              imagePath: imagePath,
               height: 24.h,
               width: 24.h,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: ClipOval(
-                child: Image.file(
-                  File(imagePath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[200],
-                      child: CustomImageView(
-                        imagePath: bottomMenuList[4].icon,
-                        height: 12.h,
-                        width: 12.h,
-                        color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
-                      ),
-                    );
-                  },
-                ),
-              ),
+              radius: BorderRadius.circular(12.h),
+              fit: BoxFit.cover,
+              placeHolder: bottomMenuList[4].icon,
             );
           },
         );

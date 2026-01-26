@@ -34,7 +34,7 @@ final addRouteOneNotifier =
     ], serviceTypeDropdown: [
       SelectionPopupModel(
         id: 1,
-        title: "Ride Sharing",
+        title: "Ride",
         isSelected: true,
       ),
       SelectionPopupModel(

@@ -58,8 +58,16 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     }
 
     final notifierState = ref.read(addRouteOneNotifier);
+    
+    // Validate that coordinates are selected
+    if (notifierState.locationLat == null || notifierState.locationLng == null ||
+        notifierState.destinationLat == null || notifierState.destinationLng == null) {
+      Fluttertoast.showToast(msg: "Please select locations from the suggestions to get coordinates.");
+      return;
+    }
+
     final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/create-route');
+        Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
     
     final now = DateTime.now();
     final pickedTime = notifierState.setTimeController?.text.split(':');
@@ -71,13 +79,16 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       int.tryParse(pickedTime?[1] ?? '0') ?? 0,
     ).toUtc();
     
+    // Format to YYYY-MM-DDTHH:MM:SSZ to match the working example exactly
+    final formattedDepartureTime = "${departureDateTime.toIso8601String().split('.').first}Z";
+    
     final requestBody = {
       "location": notifierState.locationController?.text,
-      "location_latitude": notifierState.locationLat,
-      "location_longitude": notifierState.locationLng,
+      "location_latitude": notifierState.locationLat?.toStringAsFixed(6),
+      "location_longitude": notifierState.locationLng?.toStringAsFixed(6),
       "destination": notifierState.destinationController?.text,
-      "destination_latitude": notifierState.destinationLat,
-      "destination_longitude": notifierState.destinationLng,
+      "destination_latitude": notifierState.destinationLat?.toStringAsFixed(6),
+      "destination_longitude": notifierState.destinationLng?.toStringAsFixed(6),
       "transportation_mode":
           (notifierState.addRouteOneModelObj?.transportMeansList
               .firstWhere(
@@ -88,14 +99,12 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
               .toLowerCase(),
       "service_type": (notifierState.serviceTypeDropDownValue?.title ?? "")
               .toLowerCase(),
-      "departure_time": departureDateTime.toIso8601String()
+      "departure_time": formattedDepartureTime
     };
     
-    if (notifierState.stopController?.text.isNotEmpty == true) {
-      requestBody['stop_location'] = notifierState.stopController?.text;
-      requestBody['stop_location_latitude'] = notifierState.stopLat ?? 0;
-      requestBody['stop_location_longitude'] = notifierState.stopLng ?? 0;
-    }
+    requestBody['stop_location'] = notifierState.stopController?.text ?? "";
+    requestBody['stop_location_latitude'] = (notifierState.stopController?.text.isNotEmpty == true) ? notifierState.stopLat?.toStringAsFixed(6) : null;
+    requestBody['stop_location_longitude'] = (notifierState.stopController?.text.isNotEmpty == true) ? notifierState.stopLng?.toStringAsFixed(6) : null;
 
     try {
       print('Creating route with body: $requestBody');
@@ -119,7 +128,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
           AppRoutes.homeOneScreen,
           (route) => false,
           arguments: {
-            'showDialog': true,
+            'showDialog': false,
             'locationLat': notifierState.locationLat,
             'locationLng': notifierState.locationLng,
             'destinationLat': notifierState.destinationLat,
@@ -639,6 +648,29 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: theme.colorScheme.primary,
+              onPrimary: theme.colorScheme.onPrimary,
+              onSurface: appTheme.black900,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              hourMinuteColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.primary.withValues(alpha: 0.1)),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.primary
+                      : Colors.transparent),
+              dayPeriodTextColor: WidgetStateColor.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary),
+              dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
+              dialHandColor: theme.colorScheme.primary,
+              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,

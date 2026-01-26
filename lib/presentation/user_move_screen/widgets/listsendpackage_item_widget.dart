@@ -36,7 +36,7 @@ class ListsendpackageItemWidget extends StatelessWidget{
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              width: 166.h,
+              width: 197.h,
               margin: EdgeInsets.only(left: 14.h),
               child: Column(
                 children: [
@@ -70,7 +70,7 @@ class ListsendpackageItemWidget extends StatelessWidget{
             ),
             CustomImageView(
               imagePath: listsendpackageItemModelObj.titleImg!,
-              height: 110.h,
+              height: 112.h,
               width: 112.h,
             )
           ],
