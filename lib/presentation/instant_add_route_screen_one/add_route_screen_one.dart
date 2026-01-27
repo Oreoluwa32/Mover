@@ -133,6 +133,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
             'locationLng': notifierState.locationLng,
             'destinationLat': notifierState.destinationLat,
             'destinationLng': notifierState.destinationLng,
+            'destinationName': notifierState.destinationController?.text,
             'highlightRoute': true,
           },
         );
@@ -274,6 +275,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                       controller: state.locationController,
                       hintText: "Enter your location",
                       radioValue: "location",
+                      suffixIcon: ImageConstant.imgLocationPrimary,
+                      onSuffixTap: () {
+                        ref.read(addRouteOneNotifier.notifier).fetchCurrentLocation();
+                      },
                       onRadioChange: () {
                         ref
                             .read(addRouteOneNotifier.notifier)

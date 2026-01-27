@@ -42,6 +42,7 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
             locationLng: args['locationLng'] as double,
             destinationLat: args['destinationLat'] as double,
             destinationLng: args['destinationLng'] as double,
+            destinationName: args['destinationName'] as String?,
           );
         }
         if (args['showDialog'] == true && !_dialogShown) {

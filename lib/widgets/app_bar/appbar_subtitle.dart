@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:new_project/widgets/custom_bottom_bar.dart';
+import 'package:movr/widgets/custom_bottom_bar.dart';
 import '../../core/app_export.dart';
 
 class AppbarSubtitle extends StatelessWidget{

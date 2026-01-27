@@ -34,7 +34,7 @@ class CustomImageView extends StatelessWidget {
     this.radius,
     this.margin,
     this.border,
-    this.placeHolder = 'assets/images/image_not_found.png'});
+    this.placeHolder = 'assets/images/img_profile.jpeg'});
 
   // [imagePath] is required parameter for showing image
   final String? imagePath;
@@ -96,7 +96,7 @@ class CustomImageView extends StatelessWidget {
   }
 
   Widget _buildImageView(){
-    if(imagePath != null){
+    if(imagePath != null && imagePath!.isNotEmpty && imagePath != "null"){
       switch(imagePath!.imageType){
         case ImageType.svg:
           return Container(
@@ -120,6 +120,7 @@ class CustomImageView extends StatelessWidget {
             width: width,
             fit: fit ?? BoxFit.cover,
             color: color,
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
           );
         case ImageType.web:
           return CachedNetworkImage(
@@ -136,24 +137,61 @@ class CustomImageView extends StatelessWidget {
                 backgroundColor: Colors.grey.shade100,
               ),
             ),
-            errorWidget: (context, url, error) => Image.asset(
-              placeHolder,
-              height: height,
-              width: width,
-              fit: fit ?? BoxFit.cover,
-            ),
+            errorWidget: (context, url, error) => _buildPlaceholderImage(),
           );
         case ImageType.png:
         default:
+          if (imagePath!.endsWith('.svg')) {
+            return Container(
+              height: height,
+              width: width,
+              child: SvgPicture.asset(
+                imagePath!,
+                height: height,
+                width: width,
+                fit: fit ?? BoxFit.contain,
+                colorFilter: this.color != null
+                    ? ColorFilter.mode(
+                        this.color ?? Colors.transparent, BlendMode.srcIn)
+                    : null,
+              ),
+            );
+          }
           return Image.asset(
             imagePath!,
             height: height,
             width: width,
             fit: fit ?? BoxFit.cover,
             color: color,
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
           );
       }
     }
-    return SizedBox();
+    return _buildPlaceholderImage();
+  }
+
+  Widget _buildPlaceholderImage() {
+    if (placeHolder.isEmpty) return SizedBox();
+    
+    switch (placeHolder.imageType) {
+      case ImageType.svg:
+        return Container(
+          height: height,
+          width: width,
+          child: SvgPicture.asset(
+            placeHolder,
+            height: height,
+            width: width,
+            fit: fit ?? BoxFit.contain,
+          ),
+        );
+      default:
+        return Image.asset(
+          placeHolder,
+          height: height,
+          width: width,
+          fit: fit ?? BoxFit.cover,
+        );
+    }
   }
 }

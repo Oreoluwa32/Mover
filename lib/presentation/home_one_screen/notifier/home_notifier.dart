@@ -68,6 +68,7 @@ class HomeNotifier extends StateNotifier<HomeState>{
     required double locationLng,
     required double destinationLat,
     required double destinationLng,
+    String? destinationName,
   }) {
     state = state.copyWith(
       highlightRoute: true,
@@ -75,6 +76,22 @@ class HomeNotifier extends StateNotifier<HomeState>{
       routeLocationLng: locationLng,
       routeDestinationLat: destinationLat,
       routeDestinationLng: destinationLng,
+      routeDestinationName: destinationName,
+    );
+  }
+
+  void startNavigation() {
+    state = state.copyWith(isNavigationActive: true);
+  }
+
+  void stopNavigation() {
+    state = state.copyWith(
+      isNavigationActive: false,
+      highlightRoute: false,
+      routeLocationLat: null,
+      routeLocationLng: null,
+      routeDestinationLat: null,
+      routeDestinationLng: null,
     );
   }
 }

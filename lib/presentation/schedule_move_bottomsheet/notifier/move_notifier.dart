@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-import 'package:new_project/presentation/user_move_screen/notifier/move_notifier.dart';
+import 'package:movr/presentation/user_move_screen/notifier/move_notifier.dart';
 import '../../../core/app_export.dart';
 import '../models/move_model.dart';
 import '../models/move_item_model.dart';

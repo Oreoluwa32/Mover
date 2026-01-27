@@ -76,7 +76,7 @@ warning - This class (or a class that this class inherits from) is marked as '@i
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen_two\add_route_screen_two.dart:338:44 - deprecated_member_use
    info - Parameter 'key' could be a super parameter - lib\presentation\add_route_screen_two\widgets\add_route_two_item_widget.dart:5:9 - use_super_parameters
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\add_route_screen_two\widgets\add_route_two_item_widget.dart:17:44 - deprecated_member_use
-warning - Unused import: 'package:new_project/theme/custom_button_style.dart' - lib\presentation\check_mail_screen\check_mail_screen.dart:6:8 - unused_import
+warning - Unused import: 'package:movr/theme/custom_button_style.dart' - lib\presentation\check_mail_screen\check_mail_screen.dart:6:8 - unused_import
 warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\check_mail_screen\check_mail_screen.dart:15:39 - invalid_use_of_visible_for_testing_member
 warning - The member 'state' can only be used within instance members of subclasses of 'StateNotifier' - lib\presentation\check_mail_screen\check_mail_screen.dart:15:39 - invalid_use_of_protected_member
    info - Don't use 'BuildContext's across async gaps - lib\presentation\check_mail_screen\check_mail_screen.dart:42:29 - use_build_context_synchronously
@@ -186,7 +186,7 @@ warning - This class (or a class that this class inherits from) is marked as '@i
    info - Parameter 'key' could be a super parameter - lib\presentation\deposit_screen\widgets\deposit_item_widget.dart:8:3 - use_super_parameters
 warning - Unused import: 'dart:convert' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:1:8 - unused_import
 warning - Unused import: 'package:http/http.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:2:8 - unused_import
-warning - Unused import: 'package:new_project/services/paystack_services.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:6:8 - unused_import
+warning - Unused import: 'package:movr/services/paystack_services.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:6:8 - unused_import
 warning - Unused import: '../../models/transactions.dart' - lib\presentation\deposit_screen_two\deposit_screen_two.dart:8:8 - unused_import
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: DepositItemTwoModel.image, DepositItemTwoModel.cardNum, DepositItemTwoModel.cardType, DepositItemTwoModel.radioBtn, DepositItemTwoModel.id - lib\presentation\deposit_screen_two\models\deposit_item_two_model.dart:6:7 - must_be_immutable
 warning - Unused import: '../../../core/app_export.dart' - lib\presentation\deposit_screen_two\models\deposit_model_two.dart:2:8 - unused_import
@@ -226,7 +226,7 @@ warning - Unused import: 'notifier/hire_mover_one_notifier.dart' - lib\presentat
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\hire_mover_bottomsheet_one\hire_mover_bottomsheet_one.dart:20:46 - deprecated_member_use
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\hire_mover_bottomsheet_one\models\hire_mover_one_model.dart:5:3 - prefer_const_constructors_in_immutables
 warning - Unused import: 'package:flutter/material.dart' - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:1:8 - unused_import
-warning - Unused import: 'package:new_project/presentation/hire_mover_screen_one/notifier/hire_mover_one_notifier.dart' - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:3:8 - unused_import
+warning - Unused import: 'package:movr/presentation/hire_mover_screen_one/notifier/hire_mover_one_notifier.dart' - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:3:8 - unused_import
    info - Parameter 'state' could be a super parameter - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_notifier.dart:14:3 - use_super_parameters
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: HireMoverOneState.hireMoverOneModelObj - lib\presentation\hire_mover_bottomsheet_one\notifier\hire_mover_one_state.dart:5:7 - must_be_immutable
 warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\hire_mover_bottomsheet_two\hire_mover_bottomsheet_two.dart:3:8 - unused_import
@@ -311,7 +311,7 @@ warning - This class (or a class that this class inherits from) is marked as '@i
 warning - Unused import: '../../../core/app_export.dart' - lib\presentation\home_screen\models\home_model.dart:2:8 - unused_import
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\home_screen\models\home_model.dart:6:3 - prefer_const_constructors_in_immutables
 warning - Unused import: 'package:flutter/material.dart' - lib\presentation\home_screen\notifier\home_notifier.dart:1:8 - unused_import
-warning - Unused import: 'package:new_project/presentation/home_one_screen/notifier/home_notifier.dart' - lib\presentation\home_screen\notifier\home_notifier.dart:3:8 - unused_import
+warning - Unused import: 'package:movr/presentation/home_one_screen/notifier/home_notifier.dart' - lib\presentation\home_screen\notifier\home_notifier.dart:3:8 - unused_import
    info - Parameter 'state' could be a super parameter - lib\presentation\home_screen\notifier\home_notifier.dart:14:3 - use_super_parameters
 warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\home_screen_dialog\home_screen_dialog.dart:3:8 - unused_import
 warning - Unused import: 'notifier/home_dialog_notifier.dart' - lib\presentation\home_screen_dialog\home_screen_dialog.dart:5:8 - unused_import
@@ -345,7 +345,7 @@ warning - This class (or a class that this class inherits from) is marked as '@i
    info - The import of '../../theme/custom_text_style.dart' is unnecessary because all of the used elements are also provided by the import of '../../core/app_export.dart' - lib\presentation\monnify_payment_screen\monnify_payment_screen.dart:11:8 - unnecessary_import
    info - Parameter 'key' could be a super parameter - lib\presentation\monnify_payment_screen\monnify_payment_screen.dart:19:9 - use_super_parameters
 warning - The left operand can't be null, so the right operand is never executed - lib\presentation\monnify_payment_screen\monnify_payment_screen.dart:113:54 - dead_null_aware_expression
-warning - Unused import: 'package:new_project/presentation/my_route_page/widgets/savedroute_item_widget.dart' - lib\presentation\my_route_page\models\my_route_model.dart:2:8 - unused_import
+warning - Unused import: 'package:movr/presentation/my_route_page/widgets/savedroute_item_widget.dart' - lib\presentation\my_route_page\models\my_route_model.dart:2:8 - unused_import
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MyRouteModel.savedrouteItemList - lib\presentation\my_route_page\models\my_route_model.dart:7:7 - must_be_immutable
 warning - Unused import: '../../../core/app_export.dart' - lib\presentation\my_route_page\models\saved_route_model.dart:1:8 - unused_import
 warning - Unused import: '../instant_add_route_screen_one/add_route_screen_one.dart' - lib\presentation\my_route_page\my_route_page.dart:4:8 - unused_import
@@ -460,7 +460,7 @@ warning - This class (or a class that this class inherits from) is marked as '@i
 warning - Unused import: 'package:flutter/material.dart' - lib\presentation\ride_sharing_pickup_two\notifier\ride_sharing_pickup_notifier.dart:1:8 - unused_import
    info - Parameter 'state' could be a super parameter - lib\presentation\ride_sharing_pickup_two\notifier\ride_sharing_pickup_notifier.dart:33:3 - use_super_parameters
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: RideSharingPickupState.rideSharingPickupModelObj - lib\presentation\ride_sharing_pickup_two\notifier\ride_sharing_pickup_state.dart:6:7 - must_be_immutable
-warning - Unused import: 'package:new_project/presentation/delivery_pickup_screen_two/notifier/pickup_notifier.dart' - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:2:8 - unused_import
+warning - Unused import: 'package:movr/presentation/delivery_pickup_screen_two/notifier/pickup_notifier.dart' - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:2:8 - unused_import
 warning - Unused import: '../../theme/custom_button_style.dart' - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:6:8 - unused_import
    info - Parameter 'key' could be a super parameter - lib\presentation\ride_sharing_pickup_two\ride_sharing_pickup_two.dart:12:9 - use_super_parameters
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: PickupTwoOneItemWidget.rideSharingItemModelObj - lib\presentation\ride_sharing_pickup_two\widgets\pickup_two_one_item_widget.dart:6:7 - must_be_immutable
@@ -503,7 +503,7 @@ warning - This class (or a class that this class inherits from) is marked as '@i
 warning - Unused import: '../../../core/app_export.dart' - lib\presentation\schedule_move_bottomsheet\models\move_model.dart:2:8 - unused_import
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveModel.moveItemList - lib\presentation\schedule_move_bottomsheet\models\move_model.dart:8:7 - must_be_immutable
 warning - Unused import: 'package:flutter/material.dart' - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:1:8 - unused_import
-warning - Unused import: 'package:new_project/presentation/user_move_screen/notifier/move_notifier.dart' - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:3:8 - unused_import
+warning - Unused import: 'package:movr/presentation/user_move_screen/notifier/move_notifier.dart' - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:3:8 - unused_import
    info - Parameter 'state' could be a super parameter - lib\presentation\schedule_move_bottomsheet\notifier\move_notifier.dart:28:3 - use_super_parameters
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: MoveState.moveModelObj - lib\presentation\schedule_move_bottomsheet\notifier\move_state.dart:6:7 - must_be_immutable
    info - Parameter 'key' could be a super parameter - lib\presentation\schedule_move_bottomsheet\schedule_move_bottomsheet.dart:9:9 - use_super_parameters
@@ -581,7 +581,7 @@ warning - Unused import: 'notifier/share_ride_one_notifier.dart' - lib\presentat
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:61:44 - deprecated_member_use
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\share_ride_screen_one\share_ride_screen_one.dart:306:44 - deprecated_member_use
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\presentation\sign_in_screen\models\sign_in_model.dart:5:3 - prefer_const_constructors_in_immutables
-warning - Unused import: 'package:new_project/presentation/sign_in_screen/sign_in_screen.dart' - lib\presentation\sign_in_screen\notifier\sign_in_notifier.dart:3:8 - unused_import
+warning - Unused import: 'package:movr/presentation/sign_in_screen/sign_in_screen.dart' - lib\presentation\sign_in_screen\notifier\sign_in_notifier.dart:3:8 - unused_import
    info - Parameter 'state' could be a super parameter - lib\presentation\sign_in_screen\notifier\sign_in_notifier.dart:17:3 - use_super_parameters
 warning - This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: SignInState.emailController, SignInState.passwordController, SignInState.signInModelObj - lib\presentation\sign_in_screen\notifier\sign_in_state.dart:5:7 - must_be_immutable
 warning - The member 'state' can only be used within 'package:state_notifier/state_notifier.dart' or a test - lib\presentation\sign_in_screen\sign_in_screen.dart:24:32 - invalid_use_of_visible_for_testing_member
@@ -748,14 +748,14 @@ warning - Unused import: 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_pa
    info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_leading_icon.dart:6:3 - use_super_parameters
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_leading_image.dart:5:3 - prefer_const_constructors_in_immutables
    info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_leading_image.dart:5:3 - use_super_parameters
-warning - Unused import: 'package:new_project/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_subtitle.dart:2:8 - unused_import
+warning - Unused import: 'package:movr/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_subtitle.dart:2:8 - unused_import
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_subtitle.dart:6:3 - prefer_const_constructors_in_immutables
    info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_subtitle.dart:6:3 - use_super_parameters
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\app_bar\appbar_subtitle.dart:26:57 - deprecated_member_use
-warning - Unused import: 'package:new_project/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_title.dart:2:8 - unused_import
+warning - Unused import: 'package:movr/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_title.dart:2:8 - unused_import
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_title.dart:6:3 - prefer_const_constructors_in_immutables
    info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_title.dart:6:3 - use_super_parameters
-warning - Unused import: 'package:new_project/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_trailing_image.dart:2:8 - unused_import
+warning - Unused import: 'package:movr/widgets/custom_bottom_bar.dart' - lib\widgets\app_bar\appbar_trailing_image.dart:2:8 - unused_import
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\appbar_trailing_image.dart:6:3 - prefer_const_constructors_in_immutables
    info - Parameter 'key' could be a super parameter - lib\widgets\app_bar\appbar_trailing_image.dart:6:3 - use_super_parameters
    info - Constructors in '@immutable' classes should be declared as 'const' - lib\widgets\app_bar\custom_app_bar.dart:8:3 - prefer_const_constructors_in_immutables

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:new_project/domain/googleauth/google_auth_helper.dart';
-import 'package:new_project/presentation/check_mail_screen/check_mail_screen.dart';
+import 'package:movr/domain/googleauth/google_auth_helper.dart';
+import 'package:movr/presentation/check_mail_screen/check_mail_screen.dart';
 import '../../services/device_memory_service.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
@@ -16,6 +16,7 @@ import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/loading_dialog.dart';
 import 'notifier/create_account_notifier.dart';
 import '../../core/utils/progress_dialog_utils.dart';
+import '../profile_screen/notifier/profile_screen_notifier.dart';
 
 class CreateAccountScreen extends ConsumerStatefulWidget{
   const CreateAccountScreen({Key? key})
@@ -405,6 +406,18 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
     await storage.write(key: 'user_email', value: googleUser.email);
     if (googleUser.displayName != null && googleUser.displayName!.isNotEmpty) {
       await storage.write(key: 'user_name', value: googleUser.displayName);
+    }
+    
+    // Sync profile image from Google if available
+    if (googleUser.photoUrl != null && googleUser.photoUrl!.isNotEmpty) {
+      await PrefUtils().setProfileImagePath(googleUser.photoUrl!);
+      
+      // Update the global provider for immediate UI update
+      try {
+        ref.read(globalProfileImagePathProvider.notifier).updatePath(googleUser.photoUrl);
+      } catch (e) {
+        debugPrint('Error updating globalProfileImagePathProvider: $e');
+      }
     }
     
     // Remember device

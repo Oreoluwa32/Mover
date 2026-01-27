@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-import 'package:new_project/presentation/sign_in_screen/sign_in_screen.dart';
+import 'package:movr/presentation/sign_in_screen/sign_in_screen.dart';
 import '../../../core/app_export.dart';
 import '../models/sign_in_model.dart';
 part 'sign_in_state.dart';

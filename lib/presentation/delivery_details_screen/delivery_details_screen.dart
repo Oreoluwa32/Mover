@@ -72,6 +72,10 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       "item_weight": state.itemWeight,
       "receiver_name": state.nameController?.text,
       "reciever_phone_number": state.phoneController?.text,
+      "pickup_latitude": state.pickupLatitude,
+      "pickup_longitude": state.pickupLongitude,
+      "destination_latitude": state.destinationLatitude,
+      "destination_longitude": state.destinationLongitude,
       if (itemImageBase64 != null) "item_image": itemImageBase64,
     };
 
@@ -88,7 +92,20 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
         if (response.statusCode == 200) {
           // final message = jsonDecode(response.body)['message'] ?? 'Update successful';
           // Fluttertoast.showToast(msg: message);
-          Navigator.pushNamed(context, AppRoutes.searchMoverBottomsheet);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.homeOneScreen,
+            (route) => false,
+          );
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => const SearchMoverBottomsheet(),
+                isScrollControlled: true,
+              );
+            }
+          });
         }
         else {
           // final error = jsonDecode(response.body)['error'] ?? 'Failed to update vehicle information';
@@ -174,6 +191,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       width: double.maxFinite,
       child: Column(
         children: [
+          SizedBox(height: 16.h),
           Consumer(
             builder: (context, ref, _) {
               final state = ref.watch(deliveryDetailsNotifier);
@@ -186,7 +204,26 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       .read(deliveryDetailsNotifier.notifier)
                       .changeRadioBtn("location");
                 },
-                onPlaceSelected: (description, lat, lng) {},
+                onChanged: (value) {
+                  ref.read(deliveryDetailsNotifier.notifier).onPickupChange(value);
+                },
+                onPlaceSelected: (description, lat, lng) {
+                  ref
+                      .read(deliveryDetailsNotifier.notifier)
+                      .setPickupLocation(description, lat, lng);
+                },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    Icons.my_location,
+                    color: theme.colorScheme.primary,
+                    size: 20.h,
+                  ),
+                  onPressed: () {
+                    ref
+                        .read(deliveryDetailsNotifier.notifier)
+                        .getCurrentLocation();
+                  },
+                ),
               );
             },
           ),
@@ -203,7 +240,14 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                       .read(deliveryDetailsNotifier.notifier)
                       .changeRadioBtn("destination");
                 },
-                onPlaceSelected: (description, lat, lng) {},
+                onChanged: (value) {
+                  ref.read(deliveryDetailsNotifier.notifier).onDestinationChange(value);
+                },
+                onPlaceSelected: (description, lat, lng) {
+                  ref
+                      .read(deliveryDetailsNotifier.notifier)
+                      .setDestinationLocation(description, lat, lng);
+                },
               );
             },
           )
@@ -307,6 +351,9 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           maxLines: 5,
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 12.h),
           borderDecoration: TextFormFieldStyleHelper.outlineBlueGray,
+          onChanged: (value) {
+            ref.read(deliveryDetailsNotifier.notifier).updateState();
+          },
         );
       },
     );
@@ -407,6 +454,9 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
         controller: ref.watch(deliveryDetailsNotifier).nameController,
         hintText: "Receiver Name",
         contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+        onChanged: (value) {
+          ref.read(deliveryDetailsNotifier.notifier).updateState();
+        },
         validator: (value) {
           if (!isText(value)) {
             return "Please enter a valid text";
@@ -444,6 +494,9 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
         textInputAction: TextInputAction.done,
         textInputType: TextInputType.phone,
         contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+        onChanged: (value) {
+          ref.read(deliveryDetailsNotifier.notifier).updateState();
+        },
         validator: (value) {
           if (!isValidPhone(value)) {
             return "Please enter a valid phone number";
@@ -466,7 +519,8 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
             style: theme.textTheme.labelLarge,
           ),
           SizedBox(height: 4.h),
-          _buildPhone(context)
+          _buildPhone(context),
+          SizedBox(height: 16.h),
         ],
       ),
     );
@@ -474,24 +528,20 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
 
   // Section Widget
   Widget _buildFindMover(BuildContext context) {
-    return CustomElevatedButton(
-      text: "Find Mover",
-      buttonStyle: CustomButtonStyles.fillBlueGray,
-      onPressed: () {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.homeOneScreen,
-          (route) => false,
+    return Consumer(
+      builder: (context, ref, _) {
+        ref.watch(deliveryDetailsNotifier);
+        final isComplete =
+            ref.read(deliveryDetailsNotifier.notifier).isFormComplete;
+        return CustomElevatedButton(
+          text: "Find Mover",
+          buttonStyle: isComplete
+              ? CustomButtonStyles.fillPrimaryTL41
+              : CustomButtonStyles.fillBlueGray,
+          onPressed: () {
+            deliveryDetails(ref);
+          },
         );
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted) {
-            showModalBottomSheet(
-              context: context,
-              builder: (context) => const SearchMoverBottomsheet(),
-              isScrollControlled: true,
-            );
-          }
-        });
       },
     );
   }

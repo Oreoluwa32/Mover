@@ -12,6 +12,7 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/loading_dialog.dart';
 import '../../services/device_memory_service.dart';
+import '../profile_screen/notifier/profile_screen_notifier.dart';
 import 'notifier/sign_in_notifier.dart';
 
 // Secure storage instance
@@ -20,9 +21,10 @@ final storage = FlutterSecureStorage();
 bool _obscurePassword = true;
 
 // Function to handle user sign-in
-Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) async {
-  final email = signInNotifier.state.emailController?.text ?? '';
-  final password = signInNotifier.state.passwordController?.text ?? '';
+Future<void> signInUser(BuildContext context, WidgetRef ref) async {
+  final notifier = ref.read(signInNotifier.notifier);
+  final email = notifier.state.emailController?.text ?? '';
+  final password = notifier.state.passwordController?.text ?? '';
   final url = Uri.parse('https://demosystem.pythonanywhere.com/login/'); // Login endpoint
 
   if (email.isEmpty || password.isEmpty) {
@@ -66,12 +68,25 @@ Future<void> signInUser(BuildContext context, SignInNotifier signInNotifier) asy
         
         // Sync profile image from backend
         var profileImage = user['profile_picture'] ?? user['profile_image'] ?? user['image_url'] ?? user['image'];
-        if (profileImage != null && profileImage.toString().isNotEmpty) {
+        if (profileImage != null && profileImage.toString().isNotEmpty && profileImage.toString() != "null") {
           String finalUrl = profileImage.toString();
-          if (finalUrl.startsWith('/')) {
-            finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
+          // Normalize URL
+          if (!finalUrl.startsWith('http') && !finalUrl.startsWith('file')) {
+            if (finalUrl.startsWith('/')) {
+              finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
+            } else {
+              finalUrl = 'https://demosystem.pythonanywhere.com/$finalUrl';
+            }
           }
           await PrefUtils().setProfileImagePath(finalUrl);
+          
+          // Also update the global provider for immediate UI update
+          // Import it first if needed, but since it's global we can try to read it
+          try {
+            ref.read(globalProfileImagePathProvider.notifier).updatePath(finalUrl);
+          } catch (e) {
+            debugPrint('Error updating globalProfileImagePathProvider: $e');
+          }
         }
       }
       
@@ -396,7 +411,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
           onPressed: () {
             if(_formKey.currentState?.validate() ?? false) {
-              signInUser(context, ref.read(signInNotifier.notifier));
+              signInUser(context, ref);
             }
           },
         );

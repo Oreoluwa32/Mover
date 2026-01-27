@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:new_project/presentation/delivery_pickup_screen_two/notifier/pickup_notifier.dart';
+import 'package:movr/presentation/delivery_pickup_screen_two/notifier/pickup_notifier.dart';
 import 'package:timelines_plus/timelines_plus.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';

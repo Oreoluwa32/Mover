@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:location/location.dart';
 import '../../../core/app_export.dart';
+import '../../../core/utils/location_manager.dart';
 import '../../../data/models/selectionPopupModel/selection_popup_model.dart';
+import '../../../services/google_places_service.dart';
 import '../models/add_route_one_item_model.dart';
 import '../models/add_route_one_model.dart';
+import 'places_autocomplete_notifier.dart';
 part 'add_route_one_state.dart';
 
 final addRouteOneNotifier =
     StateNotifierProvider.autoDispose<AddRouteOneNotifier, AddRouteOneState>(
-  (ref) => AddRouteOneNotifier(AddRouteOneState(
+  (ref) => AddRouteOneNotifier(ref, AddRouteOneState(
     locationController: TextEditingController(),
     stopController: TextEditingController(),
     destinationController: TextEditingController(),
@@ -47,7 +51,8 @@ final addRouteOneNotifier =
 
 // A notifier that manages the state of the screen according to the event that is dispatched to it
 class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
-  AddRouteOneNotifier(AddRouteOneState state) : super(state);
+  final Ref _ref;
+  AddRouteOneNotifier(this._ref, AddRouteOneState state) : super(state);
 
   void changeRadioButton(String value) {
     state = state.copyWith(radioGroup: value);
@@ -110,5 +115,33 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
       stopLat: lat,
       stopLng: lng,
     );
+  }
+
+  Future<void> fetchCurrentLocation() async {
+    try {
+      bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
+      if (!hasPermission) return;
+
+      Location location = Location();
+      LocationData locationData = await location.getLocation();
+
+      if (locationData.latitude != null && locationData.longitude != null) {
+        final placesService = _ref.read(googlePlacesServiceProvider);
+        final address = await placesService.getAddressFromLatLng(
+          locationData.latitude!,
+          locationData.longitude!,
+        );
+
+        if (address != null) {
+          state.locationController?.text = address;
+          state = state.copyWith(
+            locationLat: locationData.latitude,
+            locationLng: locationData.longitude,
+          );
+        }
+      }
+    } catch (e) {
+      print('Error fetching current location: $e');
+    }
   }
 }

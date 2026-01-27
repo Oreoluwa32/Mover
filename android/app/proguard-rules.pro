@@ -33,7 +33,7 @@
 -renamesourcefileattribute SourceFile
 
 # Keep Main Activity
--keep public class com.example.new_project.MainActivity { *; }
+-keep public class com.example.movr.MainActivity { *; }
 
 # Do not warn about unused classes
 -dontwarn com.google.android.gms.**

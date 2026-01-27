@@ -13,6 +13,8 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
   final bool showCloseButton;
   final VoidCallback? onClose;
   final String? prefix;
+  final Widget? suffixIcon;
+  final Function(String)? onChanged;
 
   const PlacesAutocompleteField({
     this.controller,
@@ -23,6 +25,8 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
     this.showCloseButton = false,
     this.onClose,
     this.prefix,
+    this.suffixIcon,
+    this.onChanged,
     super.key,
   });
 
@@ -114,11 +118,22 @@ class _PlacesAutocompleteFieldState
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          onTap: () {
-                            ref
+                          onTap: () async {
+                            final selectedPrediction = prediction;
+                            await ref
                                 .read(placesAutocompleteProvider.notifier)
-                                .selectPlace(prediction);
-                            widget.controller?.text = prediction.description;
+                                .selectPlace(selectedPrediction);
+                            
+                            final details = ref.read(placesAutocompleteProvider).selectedPlaceDetails;
+                            if (details != null && widget.onPlaceSelected != null) {
+                              widget.onPlaceSelected!(
+                                selectedPrediction.description,
+                                details.latitude,
+                                details.longitude,
+                              );
+                            }
+                            
+                            widget.controller?.text = selectedPrediction.description;
                             _focusNode.unfocus();
                           },
                         );
@@ -147,6 +162,9 @@ class _PlacesAutocompleteFieldState
             controller: widget.controller,
             focusNode: _focusNode,
             onChanged: (value) {
+              if (widget.onChanged != null) {
+                widget.onChanged!(value);
+              }
               try {
                 ref
                     .read(placesAutocompleteProvider.notifier)
@@ -193,7 +211,7 @@ class _PlacesAutocompleteFieldState
                 ),
               ),
               prefixIconConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
-              suffixIcon: widget.showCloseButton
+              suffixIcon: widget.suffixIcon ?? (widget.showCloseButton
                   ? Padding(
                       padding: EdgeInsets.only(right: 8.h),
                       child: CustomImageView(
@@ -203,8 +221,8 @@ class _PlacesAutocompleteFieldState
                         onTap: widget.onClose,
                       ),
                     )
-                  : null,
-              suffixIconConstraints: widget.showCloseButton
+                  : null),
+              suffixIconConstraints: (widget.suffixIcon != null || widget.showCloseButton)
                   ? BoxConstraints(maxHeight: 44.h)
                   : null,
               filled: true,

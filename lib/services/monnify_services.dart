@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:new_project/core/utils/keys.dart';
+import 'package:movr/core/utils/keys.dart';
 import '../models/monnify_auth_response.dart';
 
 /// MonnifyServices - Frontend should NEVER touch Monnify secret keys

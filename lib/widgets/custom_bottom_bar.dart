@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../core/app_export.dart';
+import '../presentation/profile_screen/notifier/profile_screen_notifier.dart';
 
 enum BottomBarEnum {Home, Route, Move, Activity, Profile}
-
-// Provider to watch profile image path
-final profileImagePathProvider = FutureProvider.autoDispose<String?>((ref) async {
-  return await PrefUtils().getProfileImagePath();
-});
 
 // Ignore for file: must be immutable
 class CustomBottomBar extends ConsumerStatefulWidget {
@@ -211,30 +207,11 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
   Widget _buildProfileImageCircle(bool isSelected) {
     return Consumer(
       builder: (context, ref, child) {
-        final profileImagePath = ref.watch(profileImagePathProvider);
+        final profileImagePath = ref.watch(globalProfileImagePathProvider);
 
-        return profileImagePath.when(
-          loading: () => Container(
-            height: 20.h,
-            width: 20.h,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              // color: Colors.grey[200],
-            ),
-            child: Center(
-              child: SizedBox(
-                height: 12.h,
-                width: 12.h,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          error: (error, stack) => Container(
+        // If no image path stored, show default icon
+        if (profileImagePath == null || profileImagePath.isEmpty) {
+          return Container(
             height: 24.h,
             width: 24.h,
             decoration: BoxDecoration(
@@ -247,36 +224,17 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
               width: 12.h,
               color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
             ),
-          ),
-          data: (imagePath) {
-            // If no image path stored, show default icon
-            if (imagePath == null || imagePath.isEmpty) {
-              return Container(
-                height: 24.h,
-                width: 24.h,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.grey[200],
-                ),
-                child: CustomImageView(
-                  imagePath: bottomMenuList[4].icon,
-                  height: 12.h,
-                  width: 12.h,
-                  color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
-                ),
-              );
-            }
+          );
+        }
 
-            // Display the actual profile image in a circle
-            return CustomImageView(
-              imagePath: imagePath,
-              height: 24.h,
-              width: 24.h,
-              radius: BorderRadius.circular(12.h),
-              fit: BoxFit.cover,
-              placeHolder: bottomMenuList[4].icon,
-            );
-          },
+        // Display the actual profile image in a circle
+        return CustomImageView(
+          imagePath: profileImagePath,
+          height: 24.h,
+          width: 24.h,
+          radius: BorderRadius.circular(12.h),
+          fit: BoxFit.cover,
+          placeHolder: bottomMenuList[4].icon,
         );
       },
     );

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:equatable/equatable.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
@@ -13,7 +12,7 @@ import '../models/profile_screen_model.dart';
 part 'profile_screen_state.dart';
 
 final profileScreenNotifier = StateNotifierProvider.autoDispose<ProfileScreenNotifier, ProfileScreenState>(
-  (ref) => ProfileScreenNotifier(ProfileScreenState()),
+  (ref) => ProfileScreenNotifier(ref, ProfileScreenState()),
 );
 
 final userNameProvider = FutureProvider.autoDispose<String?>((ref) async {
@@ -21,9 +20,41 @@ final userNameProvider = FutureProvider.autoDispose<String?>((ref) async {
   return await storage.read(key: 'user_name');
 });
 
+// Helper provider to read the initial profile image path from SharedPreferences
+final profileImagePathProvider = FutureProvider.autoDispose<String?>((ref) async {
+  return await PrefUtils().getProfileImagePath();
+});
+
+// A provider to track the profile image path globally and allow immediate UI updates
+final globalProfileImagePathProvider = StateNotifierProvider<GlobalProfileImageNotifier, String?>((ref) {
+  return GlobalProfileImageNotifier(ref);
+});
+
+class GlobalProfileImageNotifier extends StateNotifier<String?> {
+  GlobalProfileImageNotifier(this.ref) : super(null) {
+    _init();
+  }
+
+  final Ref ref;
+
+  Future<void> _init() async {
+    final initialPath = await ref.read(profileImagePathProvider.future);
+    if (state == null && initialPath != null) {
+      state = initialPath;
+    }
+  }
+
+  void updatePath(String? path) {
+    debugPrint('Updating global profile image path to: $path');
+    state = path;
+  }
+}
+
 // A notifier class that is used to manage the state of the profile screen according to the event that is dispatched to it
 class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
-  ProfileScreenNotifier(ProfileScreenState state) : super(state);
+  ProfileScreenNotifier(this.ref, ProfileScreenState state) : super(state);
+
+  final Ref ref;
 
   // Image constraints
   static const int maxFileSize = 5 * 1024 * 1024; // 5MB
@@ -63,9 +94,17 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
       }
 
       String imagePath = selectedImages.first ?? '';
+      debugPrint('Selected image path: $imagePath');
+      
+      // Update state with local path immediately for UI feedback
+      state = state.copyWith(selectedLocalImagePath: imagePath);
+      // Also update global provider for bottom bar
+      debugPrint('Updating globalProfileImagePathProvider with local path');
+      ref.read(globalProfileImagePathProvider.notifier).updatePath(imagePath);
       
       // Validate image
       if (!_validateImage(imagePath)) {
+        debugPrint('Image validation failed');
         state = state.copyWith(
           isUploadingProfileImage: false,
           profileImageError: 'Invalid image file',
@@ -74,11 +113,17 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
       }
 
       // Upload to backend
+      debugPrint('Starting upload to backend...');
       String? uploadedImageUrl = await _uploadProfileImageToBackend(imagePath);
 
       if (uploadedImageUrl != null) {
+        debugPrint('Upload successful, URL: $uploadedImageUrl');
         // Save image URL locally for syncing purposes
         await PrefUtils().setProfileImagePath(uploadedImageUrl);
+        
+        // Update global provider with the network URL
+        debugPrint('Updating globalProfileImagePathProvider with network URL');
+        ref.read(globalProfileImagePathProvider.notifier).updatePath(uploadedImageUrl);
         
         state = state.copyWith(
           isUploadingProfileImage: false,
@@ -86,7 +131,7 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
         );
         return true;
       } else {
-        // profileImageError is already set in _uploadProfileImageToBackend if it failed
+        debugPrint('Upload failed or URL is null');
         state = state.copyWith(
           isUploadingProfileImage: false,
         );
@@ -179,10 +224,21 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
           return null;
         }
         
-        // Prepend base URL if it's a relative path
         String finalUrl = imageUrl.toString();
-        if (finalUrl.startsWith('/')) {
-          finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
+        
+        // Handle "null" string or empty response
+        if (finalUrl == "null" || finalUrl.isEmpty) {
+          state = state.copyWith(profileImageError: 'Invalid image URL received from server');
+          return null;
+        }
+        
+        // Prepend base URL if it's a relative path
+        if (!finalUrl.startsWith('http') && !finalUrl.startsWith('file')) {
+          if (finalUrl.startsWith('/')) {
+            finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
+          } else {
+            finalUrl = 'https://demosystem.pythonanywhere.com/$finalUrl';
+          }
         }
         
         return finalUrl;

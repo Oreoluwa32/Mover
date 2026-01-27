@@ -13,6 +13,8 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
   final bool showCloseButton;
   final VoidCallback? onClose;
   final String? prefix;
+  final VoidCallback? onSuffixTap;
+  final String? suffixIcon;
 
   const PlacesAutocompleteField({
     this.controller,
@@ -23,6 +25,8 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
     this.showCloseButton = false,
     this.onClose,
     this.prefix,
+    this.onSuffixTap,
+    this.suffixIcon,
     super.key,
   });
 
@@ -213,8 +217,18 @@ class _PlacesAutocompleteFieldState
                         onTap: widget.onClose,
                       ),
                     )
-                  : null,
-              suffixIconConstraints: widget.showCloseButton
+                  : widget.suffixIcon != null
+                      ? Padding(
+                          padding: EdgeInsets.only(right: 8.h),
+                          child: CustomImageView(
+                            imagePath: widget.suffixIcon!,
+                            height: 20.h,
+                            width: 20.h,
+                            onTap: widget.onSuffixTap,
+                          ),
+                        )
+                      : null,
+              suffixIconConstraints: (widget.showCloseButton || widget.suffixIcon != null)
                   ? BoxConstraints(maxHeight: 44.h)
                   : null,
               filled: true,

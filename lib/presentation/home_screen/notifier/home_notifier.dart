@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-import 'package:new_project/presentation/home_one_screen/notifier/home_notifier.dart';
+import 'package:movr/presentation/home_one_screen/notifier/home_notifier.dart';
 import '../../../core/app_export.dart';
 import '../models/home_model.dart';
 part 'home_state.dart';

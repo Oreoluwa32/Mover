@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:new_project/core/utils/keys.dart';
+import 'package:movr/core/utils/keys.dart';
 import '../models/paystack_auth_response.dart';
 import '../../models/api_response.dart';
 import '../models/transactions.dart';

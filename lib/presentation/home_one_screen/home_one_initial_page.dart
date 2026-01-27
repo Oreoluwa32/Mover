@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
-import 'package:new_project/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
+import 'package:movr/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/location_manager.dart';
@@ -13,7 +13,7 @@ import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/custom_switch.dart';
 import 'notifier/home_notifier.dart';
 
-class HomeOneInitialPage extends StatefulWidget{
+class HomeOneInitialPage extends ConsumerStatefulWidget{
   const HomeOneInitialPage({super.key});
 
   @override
@@ -21,7 +21,7 @@ class HomeOneInitialPage extends StatefulWidget{
 }
 
 // ignore for file: must be immutabel
-class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProviderStateMixin {
+class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with TickerProviderStateMixin {
   final Location locationController = Location();
   LatLng? currentPosition;
 
@@ -139,8 +139,10 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
           _buildLeftSidebar(context),
           _buildFilterButton(context),
           _buildTopNotificationBar(context),
+          _buildNavigationPanel(context),
           // _buildTaskNotification(context),
           // _buildBottomNavigation(context),
+          _buildStartRideButton(context),
           _buildFloatingactionb(context),
           // Temporary notification for isLive status with fade animation
           Consumer(
@@ -324,7 +326,7 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
               currentPosition = newPosition;
             });
             
-            if (isFirstLocation) {
+            if (isFirstLocation || ref.read(homeNotifier).isNavigationActive) {
               cameraToPosition(newPosition);
             }
           }
@@ -856,6 +858,166 @@ class HomeOneInitialPageState extends State<HomeOneInitialPage> with TickerProvi
                 )
               ],
             ),
+    );
+  }
+
+  // Navigation panel that appears when a ride is started
+  Widget _buildNavigationPanel(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        
+        if (!homeState.isNavigationActive) {
+          return const SizedBox.shrink();
+        }
+        
+        return Positioned(
+          top: 110.h,
+          left: 16.h,
+          right: 16.h,
+          child: Container(
+            padding: EdgeInsets.all(16.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.h),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 10.h,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                width: 1.h,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.h),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.navigation,
+                        color: theme.colorScheme.primary,
+                        size: 20.h,
+                      ),
+                    ),
+                    SizedBox(width: 12.h),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Navigating to",
+                            style: CustomTextStyles.bodySmallErrorContainer.copyWith(
+                              fontSize: 12.fSize,
+                            ),
+                          ),
+                          Text(
+                            homeState.routeDestinationName ?? "Destination",
+                            style: CustomTextStyles.titleSmallInter.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        ref.read(homeNotifier.notifier).stopNavigation();
+                      },
+                    ),
+                  ],
+                ),
+                Divider(height: 24.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 16.h,
+                    ),
+                    SizedBox(width: 8.h),
+                    Text(
+                      "On your way...",
+                      style: CustomTextStyles.bodySmallErrorContainer,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Start ride button that appears when a route is highlighted
+  Widget _buildStartRideButton(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        
+        if (!homeState.highlightRoute) {
+          return const SizedBox.shrink();
+        }
+        
+        return Positioned(
+          bottom: 120.h,
+          left: 20.h,
+          right: 20.h,
+          child: GestureDetector(
+            onTap: () {
+              if (homeState.isNavigationActive) {
+                ref.read(homeNotifier.notifier).stopNavigation();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Ride ended')),
+                );
+              } else {
+                ref.read(homeNotifier.notifier).startNavigation();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Navigation started')),
+                );
+              }
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              decoration: BoxDecoration(
+                color: homeState.isNavigationActive ? Colors.red : theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(12.h),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 10.h,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  homeState.isNavigationActive ? "Stop Ride" : "Start Ride",
+                  style: CustomTextStyles.titleMediumOnPrimary.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

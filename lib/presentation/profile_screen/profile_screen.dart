@@ -16,8 +16,6 @@ import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../home_one_screen/home_one_initial_page.dart';
 import '../my_route_page/my_route_page.dart';
 import 'notifier/profile_screen_notifier.dart';
-// Import the profile image path provider
-import '../../widgets/custom_bottom_bar.dart' show profileImagePathProvider;
 
 // Secure storage instance
 final storage = FlutterSecureStorage();
@@ -264,7 +262,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (context, ref, child) {
         final profileState = ref.watch(profileScreenNotifier);
         final isUploading = profileState.isUploadingProfileImage;
-        final profileImagePath = ref.watch(profileImagePathProvider);
+        final profileImagePath = ref.watch(globalProfileImagePathProvider);
         final userName = ref.watch(userNameProvider);
 
         return SizedBox(
@@ -274,61 +272,18 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Display uploaded profile image or default
-                  profileImagePath.when(
-                    loading: () => Container(
-                      width: 50.h,
-                      height: 50.h,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(24.h),
-                      ),
-                      child: Center(
-                        child: SizedBox(
-                          width: 20.h,
-                          height: 20.h,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    error: (_, __) => CustomImageView(
-                      imagePath: ImageConstant.imgDefaultProfile,
+                  GestureDetector(
+                    onTap: isUploading ? null : () {
+                      requestCameraGalleryPermission(context);
+                    },
+                    child: CustomImageView(
+                      imagePath: profileImagePath,
                       width: 50.h,
                       height: 50.h,
                       radius: BorderRadius.circular(24.h),
-                      onTap: isUploading ? null : () {
-                        requestCameraGalleryPermission(context);
-                      },
+                      fit: BoxFit.cover,
+                      placeHolder: ImageConstant.imgDefaultProfile,
                     ),
-                    data: (imagePath) {
-                      if (imagePath != null && imagePath.isNotEmpty) {
-                        return GestureDetector(
-                          onTap: isUploading ? null : () {
-                            requestCameraGalleryPermission(context);
-                          },
-                          child: CustomImageView(
-                            imagePath: imagePath,
-                            width: 50.h,
-                            height: 50.h,
-                            radius: BorderRadius.circular(24.h),
-                            fit: BoxFit.cover,
-                            placeHolder: ImageConstant.imgDefaultProfile,
-                          ),
-                        );
-                      } else {
-                        return CustomImageView(
-                          imagePath: ImageConstant.imgDefaultProfile,
-                          width: 50.h,
-                          height: 50.h,
-                          radius: BorderRadius.circular(24.h),
-                          onTap: isUploading ? null : () {
-                            requestCameraGalleryPermission(context);
-                          },
-                        );
-                      }
-                    },
                   ),
                   
                   // Loading indicator overlay
@@ -574,9 +529,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     
     if (mounted) {
       if (success) {
-        // Refresh the profile image provider so the bottom bar updates
-        ref.invalidate(profileImagePathProvider);
-        
         Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
@@ -592,9 +544,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     
     if (mounted) {
       if (success) {
-        // Refresh the profile image provider so the bottom bar updates
-        ref.invalidate(profileImagePathProvider);
-        
         Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;

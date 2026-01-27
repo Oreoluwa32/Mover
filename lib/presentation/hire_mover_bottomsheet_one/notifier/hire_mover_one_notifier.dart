@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-import 'package:new_project/presentation/hire_mover_screen_one/notifier/hire_mover_one_notifier.dart';
+import 'package:movr/presentation/hire_mover_screen_one/notifier/hire_mover_one_notifier.dart';
 import '../../../core/app_export.dart';
 import '../models/hire_mover_one_model.dart';
 part 'hire_mover_one_state.dart';

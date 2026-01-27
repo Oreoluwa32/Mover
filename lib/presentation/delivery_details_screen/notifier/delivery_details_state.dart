@@ -12,6 +12,11 @@ class DeliveryDetailsState extends Equatable {
       this.radioGroup = "",
       this.itemWeight = "",
       this.imagePath,
+      this.pickupLatitude,
+      this.pickupLongitude,
+      this.destinationLatitude,
+      this.destinationLongitude,
+      this.isFetchingLocation = false,
       this.deliveryDetailsModelObj});
 
   TextEditingController? pickupController;
@@ -23,6 +28,11 @@ class DeliveryDetailsState extends Equatable {
   String radioGroup;
   String itemWeight;
   String? imagePath;
+  double? pickupLatitude;
+  double? pickupLongitude;
+  double? destinationLatitude;
+  double? destinationLongitude;
+  bool isFetchingLocation;
 
   @override
   List<Object?> get props => [
@@ -34,6 +44,11 @@ class DeliveryDetailsState extends Equatable {
         radioGroup,
         itemWeight,
         imagePath,
+        pickupLatitude,
+        pickupLongitude,
+        destinationLatitude,
+        destinationLongitude,
+        isFetchingLocation,
         deliveryDetailsModelObj
       ];
   DeliveryDetailsState copyWith({
@@ -45,6 +60,11 @@ class DeliveryDetailsState extends Equatable {
     String? radioGroup,
     String? itemWeight,
     String? imagePath,
+    double? pickupLatitude,
+    double? pickupLongitude,
+    double? destinationLatitude,
+    double? destinationLongitude,
+    bool? isFetchingLocation,
     DeliveryDetailsModel? deliveryDetailsModelObj,
   }) {
     return DeliveryDetailsState(
@@ -57,6 +77,11 @@ class DeliveryDetailsState extends Equatable {
       radioGroup: radioGroup ?? this.radioGroup,
       itemWeight: itemWeight ?? this.itemWeight,
       imagePath: imagePath ?? this.imagePath,
+      pickupLatitude: pickupLatitude ?? this.pickupLatitude,
+      pickupLongitude: pickupLongitude ?? this.pickupLongitude,
+      destinationLatitude: destinationLatitude ?? this.destinationLatitude,
+      destinationLongitude: destinationLongitude ?? this.destinationLongitude,
+      isFetchingLocation: isFetchingLocation ?? this.isFetchingLocation,
       deliveryDetailsModelObj:
           deliveryDetailsModelObj ?? this.deliveryDetailsModelObj,
     );

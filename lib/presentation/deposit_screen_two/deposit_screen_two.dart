@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:new_project/services/paystack_services.dart';
+import 'package:movr/services/paystack_services.dart';
 import '../../models/paystack_auth_response.dart';
 import '../../models/transactions.dart';
 import '../../core/app_export.dart';

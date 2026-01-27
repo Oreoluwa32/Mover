@@ -398,4 +398,7 @@ class ImageConstant {
 
   // Default profile image
   static String imgDefaultProfile = '$imagePath/img_default_profile.svg';
+
+  // App Icon
+  static String imgAppIcon = '$imagePath/img_app_icon.png';
 }

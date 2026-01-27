@@ -147,4 +147,28 @@ class GooglePlacesService {
       rethrow;
     }
   }
+
+  Future<String?> getAddressFromLatLng(double lat, double lng) async {
+    try {
+      final response = await dio.get(
+        'https://maps.googleapis.com/maps/api/geocode/json',
+        queryParameters: {
+          'latlng': '$lat,$lng',
+          'key': apiKey,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        final results = data['results'] as List?;
+        if (results != null && results.isNotEmpty) {
+          return results[0]['formatted_address'] as String?;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error in getAddressFromLatLng: $e');
+      return null;
+    }
+  }
 }
