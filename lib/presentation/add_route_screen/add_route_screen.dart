@@ -57,8 +57,8 @@ class AddRouteScreen extends StatelessWidget{
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 20.h),
           CustomAppBar(
+            height: 60.h,
             leadingWidth: 40.h,
             leading: AppbarLeadingImage(
               imagePath: ImageConstant.imgCancel,

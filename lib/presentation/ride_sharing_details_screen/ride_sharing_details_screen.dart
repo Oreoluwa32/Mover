@@ -58,19 +58,18 @@ class RideSharingDetailsScreenState
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeft,
-        margin: EdgeInsets.only(left: 16.h, top: 24.h, bottom: 42.h),
+        margin: EdgeInsets.only(left: 16.h),
         onTap: () {
           onTapBack(context);
         },
       ),
       centerTitle: true,
       title: AppbarSubtitle(
-        text: "Share a ride",
-        margin: EdgeInsets.only(top: 25.h, bottom: 45.h),
+        text: "Share a ride"
       ),
       styleType: Style.bgOutline,
     );

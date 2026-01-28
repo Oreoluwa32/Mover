@@ -116,23 +116,23 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 60.h,
       leadingWidth: 40.h,
       centerTitle: true,
       title: AppbarSubtitle(
         margin: EdgeInsets.only(
-          // left: 16.h,
-          top: 24.h,
+          left: 16.h,
+          // top: 24.h,
           // bottom: 22.h,
         ),
         text: "My Route",
       ),
-      styleType: Style.bgOutline,
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
+      styleType: Style.bgOutline,
     );
   }
 

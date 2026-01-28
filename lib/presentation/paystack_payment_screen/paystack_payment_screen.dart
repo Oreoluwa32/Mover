@@ -233,7 +233,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return CustomAppBar(
-      height: 55.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
@@ -245,7 +245,6 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: 'Complete Payment',
-        margin: EdgeInsets.only(top: 20.h, bottom: 30.h),
       ),
       styleType: Style.bgOutline,
     );

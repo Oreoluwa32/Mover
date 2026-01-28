@@ -283,22 +283,18 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
   // Section Widget 
   PreferredSizeWidget _buildAppbar(BuildContext context){
     return CustomAppBar(
-      height: 45.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 20.h,
         ),
         onTap: () {onTapLeftArrow(context);},
       ),
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Personal Information",
-        margin: EdgeInsets.only(
-          top: 20.h,
-        ),
       ),
       styleType: Style.bgOutline,
     );

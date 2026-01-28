@@ -35,7 +35,7 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       body: Container(
         width: double.maxFinite,
         decoration: BoxDecoration(
@@ -78,18 +78,16 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
         mainAxisSize: MainAxisSize.min,
         children: [
           CustomAppBar(
-            height: 45.h,
+            height: 60.h,
             centerTitle: true,
             title: AppbarSubtitle(
               text: "Activity",
-              margin: EdgeInsets.only(top: 20.h),
             ),
             actions: [
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgFilter,
                 margin: EdgeInsets.only(
                   right: 15.h,
-                  top: 20.h,
                 ),
               )
             ],

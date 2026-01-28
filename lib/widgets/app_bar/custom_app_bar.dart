@@ -37,7 +37,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       shape: shape,
-      toolbarHeight: height ?? 24.h,
+      toolbarHeight: height ?? 56.h,
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
       flexibleSpace: _getStyle(),
@@ -54,13 +54,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   @override
   Size get preferredSize => Size(
     SizeUtils.width,
-    (height ?? 24.h) + SizeUtils.statusBarHeight,
+    (height ?? 56.h),
   );
   _getStyle(){
     switch (styleType){
       case Style.bgOutline_1:
         return Container(
-          width: 374.h,
+          width: double.maxFinite,
           decoration: BoxDecoration(
             color: theme.colorScheme.onPrimary,
             border: Border(
@@ -73,8 +73,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
         );
       case Style.bgOutline:
         return Container(
-          width: 374.h,
+          width: double.maxFinite,
           decoration: BoxDecoration(
+            color: theme.colorScheme.onPrimary,
             border: Border(
               bottom: BorderSide(
                 color: appTheme.gray20001,
@@ -85,7 +86,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
         );
       case Style.bgFill:
         return Container(
-          width: 374.h,
+          width: double.maxFinite,
           decoration: BoxDecoration(
             color: theme.colorScheme.onPrimary.withValues(alpha: 1)
           ),

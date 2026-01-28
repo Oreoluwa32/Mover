@@ -24,7 +24,7 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
       extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Padding(
-          padding: EdgeInsets.only(top: 1.h),
+          padding: EdgeInsets.only(top: 20.h),
           child: Consumer(
             builder: (context, ref, _) {
               return ListView.separated(
@@ -61,13 +61,12 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 45.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 20.h,
         ),
         onTap: () {
           onTapBack(context);
@@ -76,9 +75,6 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Deposit",
-        margin: EdgeInsets.only(
-          top: 20.h,
-        ),
       ),
       styleType: Style.bgOutline,
     );

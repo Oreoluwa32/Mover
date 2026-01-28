@@ -401,4 +401,10 @@ class ImageConstant {
 
   // App Icon
   static String imgAppIcon = '$imagePath/img_app_icon.png';
+
+  // Custom marker
+  static String imgCustomMarker = '$imagePath/img_custom_marker.svg';
+
+  // Custom marker PNG
+  static String imgCustomMarkerPng = '$imagePath/img_custom_marker.png';
 }

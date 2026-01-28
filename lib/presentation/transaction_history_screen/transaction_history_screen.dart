@@ -77,14 +77,12 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
-          left: 16.h,
-          top: 24.h,
-          bottom: 42.h
+          left: 16.h
         ),
         onTap: () {
           onTapBack(context);
@@ -92,11 +90,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
       ),
       centerTitle: true,
       title: AppbarSubtitle(
-        text: "Wallet",
-        margin: EdgeInsets.only(
-          top: 22.h,
-          bottom: 44.h,
-        ),
+        text: "Wallet"
       ),
       styleType: Style.bgOutline,
     );

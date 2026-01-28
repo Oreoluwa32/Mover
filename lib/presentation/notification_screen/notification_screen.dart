@@ -24,7 +24,7 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
       appBar: _buildAppbar(context),
       body: Container(
           width: double.maxFinite,
-          padding: EdgeInsets.only(left: 16.h, right: 16.h),
+          padding: EdgeInsets.only(left: 16.h, top: 20.h, right: 16.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [_buildNotification(context)],
@@ -36,7 +36,7 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 92.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeft,

@@ -167,13 +167,12 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 45.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgChevronLeftBlack,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 20.h,
         ),
         onTap: () {
           onTapLeftArrow(context);
@@ -182,9 +181,6 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Identification",
-        margin: EdgeInsets.only(
-          top: 20.h,
-        ),
       ),
       styleType: Style.bgOutline,
     );

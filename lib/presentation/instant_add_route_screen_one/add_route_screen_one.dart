@@ -220,8 +220,8 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 20.h),
           CustomAppBar(
+            height: 60.h,
             leadingWidth: 40.h,
             leading: AppbarLeadingImage(
               imagePath: ImageConstant.imgCancel,

@@ -14,4 +14,18 @@ class PermissionManager {
       await permission.request();
     }
   }
+
+  // Requests storage permission, handling differences between Android versions
+  static Future<void> requestStoragePermission() async {
+    if (await Permission.storage.isGranted) {
+      return;
+    }
+
+    // For Android 13 (API 33) and above, we should request photos and videos permissions
+    if (await Permission.photos.request().isGranted ||
+        await Permission.videos.request().isGranted ||
+        await Permission.storage.request().isGranted) {
+      return;
+    }
+  }
 }

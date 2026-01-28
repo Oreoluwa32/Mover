@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
+import 'package:permission_handler/permission_handler.dart';
+import 'permission_manager.dart';
 import '../app_export.dart';
 
 class FileManager {
@@ -66,6 +68,7 @@ class FileManager {
     int maxFileSize,
     List<String>? allowedExtensions,
   ) async {
+    await PermissionManager.requestStoragePermission();
     List<String?> files = [];
     final picker = ImagePicker();
     XFile? res1 = await picker.pickImage(source: ImageSource.gallery);
@@ -106,6 +109,7 @@ class FileManager {
     int maxFileSize,
     List<String>? allowedExtensions,
   ) async {
+    await PermissionManager.requestPermission(Permission.camera);
     List<String?> files = [];
     final picker = ImagePicker();
     XFile? res1 = await picker.pickImage(source: ImageSource.camera);

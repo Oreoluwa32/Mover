@@ -149,7 +149,6 @@ class DeliveryDetailsNotifier extends StateNotifier<DeliveryDetailsState> {
         state.itemDescrController?.text.isNotEmpty == true &&
         state.nameController?.text.isNotEmpty == true &&
         state.phoneController?.text.isNotEmpty == true &&
-        state.itemWeight.isNotEmpty &&
-        state.imagePath != null;
+        state.itemWeight.isNotEmpty;
   }
 }

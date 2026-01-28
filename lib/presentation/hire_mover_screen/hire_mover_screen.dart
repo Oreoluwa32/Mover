@@ -46,14 +46,12 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 90.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgLeftArrow,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 24.h,
-          bottom: 42.h
         ),
         onTap: () {
           onTapBack(context);
@@ -62,22 +60,14 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Movers",
-        margin: EdgeInsets.only(
-          top: 25.h,
-          bottom: 40.h,
-        ),
       ),
       actions: [
         AppbarTrailingImage(
           imagePath: ImageConstant.imgSort,
-          margin: EdgeInsets.only(
-            top: 24.h,
-            bottom: 42.h,
-          ),
         ),
         AppbarTrailingImage(
           imagePath: ImageConstant.imgFilter,
-          margin: EdgeInsets.fromLTRB(8.h, 24.h, 15.h, 42.h),
+          margin: EdgeInsets.only(left: 8.h, right: 15.h),
         )
       ],
       styleType: Style.bgOutline,

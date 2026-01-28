@@ -39,12 +39,11 @@ class AccountFundedScreenState extends ConsumerState<AccountFundedScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 45.h,
+      height: 60.h,
       actions: [
         AppbarTrailingImage(
           imagePath: ImageConstant.imgCancel,
           margin: EdgeInsets.only(
-            top: 20.h,
             right: 16.h,
           ),
           onTap: () {

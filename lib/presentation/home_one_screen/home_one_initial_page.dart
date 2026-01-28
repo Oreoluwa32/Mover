@@ -7,6 +7,7 @@ import 'package:movr/presentation/delivery_task_one_bottomsheet/delivery_task_on
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/location_manager.dart';
+import '../../core/utils/map_utils.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_bottom_bar.dart';
@@ -24,6 +25,8 @@ class HomeOneInitialPage extends ConsumerStatefulWidget{
 class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with TickerProviderStateMixin {
   final Location locationController = Location();
   LatLng? currentPosition;
+  double userHeading = 0.0;
+  BitmapDescriptor? customMarkerIcon;
 
   static const LatLng defaultLocation = LatLng(6.6085, 3.2881);
   static const LatLng sourceLocation = LatLng(6.6085, 3.2881);
@@ -89,6 +92,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   }
 
   Future<void> _initializeLocationAndPolyline() async {
+    try {
+      customMarkerIcon = await MapUtils.bitmapDescriptorWithBeam(
+        width: 150,
+      );
+      if (mounted) setState(() {});
+    } catch (e) {
+      print('HomeOne: Error loading custom marker with beam: $e');
+    }
+
     try {
       await getLocationUpdates();
     } catch (e) {
@@ -180,7 +192,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
               markerId: const MarkerId('currentLocation'),
               position: currentPosition!,
               infoWindow: const InfoWindow(title: 'My Location'),
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              rotation: userHeading,
+              anchor: const Offset(0.5, 0.5),
+              icon: customMarkerIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
             ),
           );
         }
@@ -317,13 +331,17 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
             currentLocation.longitude!,
           );
           
+          final double newHeading = currentLocation.heading ?? userHeading;
+          
           final bool isFirstLocation = currentPosition == null;
           
           if (isFirstLocation || 
               (currentPosition!.latitude - newPosition.latitude).abs() > 0.0001 ||
-              (currentPosition!.longitude - newPosition.longitude).abs() > 0.0001) {
+              (currentPosition!.longitude - newPosition.longitude).abs() > 0.0001 ||
+              (userHeading - newHeading).abs() > 1.0) {
             setState(() {
               currentPosition = newPosition;
+              userHeading = newHeading;
             });
             
             if (isFirstLocation || ref.read(homeNotifier).isNavigationActive) {

@@ -53,6 +53,12 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
     }
 
     final state = ref.read(deliveryDetailsNotifier);
+    
+    // Ensure locations are selected from autocomplete
+    if (state.pickupLatitude == null || state.destinationLatitude == null) {
+      Fluttertoast.showToast(msg: "Please select locations from the suggestions list");
+      return;
+    }
 
     // Convert image to base64
     final itemImageBase64 = state.imagePath != null
@@ -63,23 +69,76 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
     final destination = state.destinationController?.text;
 
     final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/submit-package');
-    // Gather details
-    final requestBody = {
-      "location": location,
-      "destination": destination,
-      "item_description": state.itemDescrController?.text,
-      "item_weight": state.itemWeight,
-      "receiver_name": state.nameController?.text,
-      "reciever_phone_number": state.phoneController?.text,
-      "pickup_latitude": state.pickupLatitude,
-      "pickup_longitude": state.pickupLongitude,
-      "destination_latitude": state.destinationLatitude,
-      "destination_longitude": state.destinationLongitude,
-      if (itemImageBase64 != null) "item_image": itemImageBase64,
-    };
+        Uri.parse('https://demosystem.pythonanywhere.com/submit-package/');
 
-      try {
+    try {
+      if (state.imagePath != null) {
+        // Use MultipartRequest for image upload
+        var request = http.MultipartRequest('POST', url);
+        request.headers.addAll({
+          'Authorization': 'Token $token',
+        });
+
+        // Add text fields
+        request.fields['location'] = location ?? "";
+        request.fields['location_latitude'] =
+            state.pickupLatitude?.toStringAsFixed(6) ?? "";
+        request.fields['location_longitude'] =
+            state.pickupLongitude?.toStringAsFixed(6) ?? "";
+        request.fields['destination'] = destination ?? "";
+        request.fields['destination_latitude'] =
+            state.destinationLatitude?.toStringAsFixed(6) ?? "";
+        request.fields['destination_longitude'] =
+            state.destinationLongitude?.toStringAsFixed(6) ?? "";
+        request.fields['package_type'] = "Delivery";
+        request.fields['item_description'] =
+            state.itemDescrController?.text ?? "";
+        request.fields['item_weight'] = state.itemWeight.toLowerCase();
+        request.fields['receiver_name'] = state.nameController?.text ?? "";
+        request.fields['receiver_phone_number'] =
+            state.phoneController?.text ?? "";
+        // request.fields['range_radius'] = "10.00";
+
+        // Add image file
+        request.files.add(await http.MultipartFile.fromPath(
+          'item_image',
+          state.imagePath!,
+        ));
+
+        var streamedResponse = await request.send();
+        var response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          _handleSuccess(context);
+        } else {
+          _handleError(response);
+        }
+      } else {
+        // Use JSON for request without image
+        final requestBody = {
+          "location": location,
+          "location_latitude": state.pickupLatitude != null
+              ? double.parse(state.pickupLatitude!.toStringAsFixed(6))
+              : null,
+          "location_longitude": state.pickupLongitude != null
+              ? double.parse(state.pickupLongitude!.toStringAsFixed(6))
+              : null,
+          "destination": destination,
+          "destination_latitude": state.destinationLatitude != null
+              ? double.parse(state.destinationLatitude!.toStringAsFixed(6))
+              : null,
+          "destination_longitude": state.destinationLongitude != null
+              ? double.parse(state.destinationLongitude!.toStringAsFixed(6))
+              : null,
+          "package_type": "Delivery",
+          "item_description": state.itemDescrController?.text,
+          "item_weight": state.itemWeight.toLowerCase(),
+          "receiver_name": state.nameController?.text,
+          "receiver_phone_number": state.phoneController?.text,
+          "range_radius": 10.00,
+          "item_image": null,
+        };
+
         final response = await http.post(
           url,
           headers: {
@@ -89,32 +148,49 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           body: jsonEncode(requestBody),
         );
 
-        if (response.statusCode == 200) {
-          // final message = jsonDecode(response.body)['message'] ?? 'Update successful';
-          // Fluttertoast.showToast(msg: message);
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRoutes.homeOneScreen,
-            (route) => false,
-          );
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => const SearchMoverBottomsheet(),
-                isScrollControlled: true,
-              );
-            }
-          });
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          _handleSuccess(context);
+        } else {
+          _handleError(response);
         }
-        else {
-          // final error = jsonDecode(response.body)['error'] ?? 'Failed to update vehicle information';
-          // Fluttertoast.showToast(msg: error);
-        }
-      } catch (e) {
-        Fluttertoast.showToast(
-            msg: "An error occurred. Please check your connection.");
       }
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: "An error occurred. Please check your connection.");
+    }
+  }
+
+  void _handleSuccess(BuildContext context) {
+    Fluttertoast.showToast(msg: "Delivery details sent");
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.homeOneScreen,
+      (route) => false,
+    );
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        showModalBottomSheet(
+          context: context,
+          builder: (context) => const SearchMoverBottomsheet(),
+          isScrollControlled: true,
+        );
+      }
+    });
+  }
+
+  void _handleError(http.Response response) {
+    String errorMessage = 'Failed to send delivery details';
+    try {
+      final errorData = jsonDecode(response.body);
+      errorMessage = (errorData['error'] ??
+              errorData['detail'] ??
+              errorData['message'] ??
+              response.body)
+          .toString();
+    } catch (e) {
+      errorMessage = "Error: ${response.statusCode} - ${response.body}";
+    }
+    Fluttertoast.showToast(msg: errorMessage);
   }
 
   @override
@@ -162,13 +238,12 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 45.h,
+      height: 60.h,
       leadingWidth: 40.h,
       leading: AppbarLeadingImage(
         imagePath: ImageConstant.imgLeftArrow,
         margin: EdgeInsets.only(
           left: 16.h,
-          top: 20.h,
         ),
         onTap: () {
           onTapBack(context);
@@ -177,9 +252,6 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       centerTitle: true,
       title: AppbarSubtitle(
         text: "Send a package",
-        margin: EdgeInsets.only(
-          top: 20.h,
-        ),
       ),
       styleType: Style.bgOutline,
     );
@@ -211,6 +283,12 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   ref
                       .read(deliveryDetailsNotifier.notifier)
                       .setPickupLocation(description, lat, lng);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter a pickup location";
+                  }
+                  return null;
                 },
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -247,6 +325,12 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                   ref
                       .read(deliveryDetailsNotifier.notifier)
                       .setDestinationLocation(description, lat, lng);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter a destination";
+                  }
+                  return null;
                 },
               );
             },
@@ -353,6 +437,12 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
           borderDecoration: TextFormFieldStyleHelper.outlineBlueGray,
           onChanged: (value) {
             ref.read(deliveryDetailsNotifier.notifier).updateState();
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Please enter a description";
+            }
+            return null;
           },
         );
       },
@@ -535,6 +625,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
             ref.read(deliveryDetailsNotifier.notifier).isFormComplete;
         return CustomElevatedButton(
           text: "Find Mover",
+          isDisabled: !isComplete,
           buttonStyle: isComplete
               ? CustomButtonStyles.fillPrimaryTL41
               : CustomButtonStyles.fillBlueGray,

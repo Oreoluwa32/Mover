@@ -15,6 +15,7 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
   final String? prefix;
   final Widget? suffixIcon;
   final Function(String)? onChanged;
+  final String? Function(String?)? validator;
 
   const PlacesAutocompleteField({
     this.controller,
@@ -27,6 +28,7 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
     this.prefix,
     this.suffixIcon,
     this.onChanged,
+    this.validator,
     super.key,
   });
 
@@ -232,6 +234,7 @@ class _PlacesAutocompleteFieldState
             style: CustomTextStyles.bodySmallGray80001,
             textInputAction: TextInputAction.next,
             keyboardType: TextInputType.text,
+            validator: widget.validator,
           ),
         );
       },

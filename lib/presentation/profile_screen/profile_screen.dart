@@ -107,7 +107,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Section Widget
   PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
-      height: 50.h,
+      height: 60.h,
       leadingWidth: 40.h,
       centerTitle: true,
       title: AppbarSubtitle(
