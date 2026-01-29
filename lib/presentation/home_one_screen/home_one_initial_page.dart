@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import 'package:google_navigation_flutter/google_navigation_flutter.dart';
+import 'package:location/location.dart' as loc;
 import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
 import 'package:movr/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import '../../core/app_export.dart';
@@ -23,17 +24,17 @@ class HomeOneInitialPage extends ConsumerStatefulWidget{
 
 // ignore for file: must be immutabel
 class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with TickerProviderStateMixin {
-  final Location locationController = Location();
+  final loc.Location locationController = loc.Location();
   LatLng? currentPosition;
   double userHeading = 0.0;
-  BitmapDescriptor? customMarkerIcon;
+  gmaps.BitmapDescriptor? customMarkerIcon;
 
-  static const LatLng defaultLocation = LatLng(6.6085, 3.2881);
-  static const LatLng sourceLocation = LatLng(6.6085, 3.2881);
-  static const LatLng destinationLocation = LatLng(6.5243, 3.3792);
+  static const LatLng defaultLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
+  static const LatLng sourceLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
+  static const LatLng destinationLocation = LatLng(latitude: 6.5243, longitude: 3.3792);
 
-  late Completer<GoogleMapController> googleMapController;
-  late Completer<GoogleMapController> googleMapController1;
+  late Completer<GoogleNavigationViewController> googleMapController;
+  late Completer<GoogleNavigationViewController> googleMapController1;
 
   static const googleMapsApiKey = Constants.googleMapsApiKey;
 
@@ -49,7 +50,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   // Polyline variables
   List<LatLng> polylineCoordinates = [];
-  Set<Polyline> polylines = {};
+  List<PolylineOptions> polylines = [];
   LatLng? routeSourceLocation;
   LatLng? routeDestinationLocation;
 
@@ -89,6 +90,35 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     ));
     
     _initializeLocationAndPolyline();
+    _initializeNavigation();
+  }
+
+  Future<void> _initializeNavigation() async {
+    try {
+      if (!await GoogleMapsNavigator.isInitialized()) {
+        await GoogleMapsNavigator.initializeNavigationSession();
+      }
+      
+      // Check if terms are accepted, if not show dialog
+      if (!await GoogleMapsNavigator.areTermsAccepted()) {
+        await GoogleMapsNavigator.showTermsAndConditionsDialog(
+          'Google Maps Navigation',
+          'Movr',
+        );
+      }
+
+      // Set arrival listener
+      GoogleMapsNavigator.setOnArrivalListener((event) {
+        if (mounted) {
+          ref.read(homeNotifier.notifier).stopNavigation();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('You have arrived at your destination')),
+          );
+        }
+      });
+    } catch (e) {
+      // Log error silently in production
+    }
   }
 
   Future<void> _initializeLocationAndPolyline() async {
@@ -98,19 +128,19 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       );
       if (mounted) setState(() {});
     } catch (e) {
-      print('HomeOne: Error loading custom marker with beam: $e');
+      // Error loading custom marker
     }
 
     try {
       await getLocationUpdates();
     } catch (e) {
-      print('Error getting location updates: $e');
+      // Error getting location updates
     }
     
     try {
       await getPolylinePoints();
     } catch (e) {
-      print('Error getting polyline points: $e');
+      // Error getting polyline points
     }
   }
 
@@ -139,6 +169,13 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   @override
   Widget build(BuildContext context){
+    ref.listen(homeNotifier.select((s) => s.isNavigationActive), (previous, next) {
+      if (next == true) {
+        _startNavigation();
+      } else if (next == false && previous == true) {
+        _stopNavigation();
+      }
+    });
     return Scaffold(
       body: Stack(
         children: [
@@ -185,16 +222,13 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       builder: (context, ref, _) {
         final homeState = ref.watch(homeNotifier);
         
-        Set<Marker> markers = {};
+        List<MarkerOptions> markerOptions = [];
         if (currentPosition != null) {
-          markers.add(
-            Marker(
-              markerId: const MarkerId('currentLocation'),
+          markerOptions.add(
+            MarkerOptions(
               position: currentPosition!,
-              infoWindow: const InfoWindow(title: 'My Location'),
               rotation: userHeading,
-              anchor: const Offset(0.5, 0.5),
-              icon: customMarkerIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              anchor: const MarkerAnchor(u: 0.5, v: 0.5),
             ),
           );
         }
@@ -204,37 +238,33 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
             homeState.routeLocationLng != null &&
             homeState.routeDestinationLat != null &&
             homeState.routeDestinationLng != null) {
-          final source = LatLng(homeState.routeLocationLat!, homeState.routeLocationLng!);
-          final destination = LatLng(homeState.routeDestinationLat!, homeState.routeDestinationLng!);
+          final source = LatLng(latitude: homeState.routeLocationLat!, longitude: homeState.routeLocationLng!);
+          final destination = LatLng(latitude: homeState.routeDestinationLat!, longitude: homeState.routeDestinationLng!);
           
-          markers.add(
-            Marker(
-              markerId: const MarkerId('routeSource'),
+          markerOptions.add(
+            MarkerOptions(
               position: source,
-              infoWindow: const InfoWindow(title: 'Pick-up'),
             ),
           );
-          markers.add(
-            Marker(
-              markerId: const MarkerId('routeDestination'),
+          markerOptions.add(
+            MarkerOptions(
               position: destination,
-              infoWindow: const InfoWindow(title: 'Destination'),
             ),
           );
         }
         
-        return GoogleMap(
-            mapType: MapType.normal,
+        return GoogleMapsNavigationView(
             initialCameraPosition: CameraPosition(
               target: currentPosition ?? defaultLocation,
               zoom: 18.0,
             ),
-            markers: markers,
-            polylines: polylines,
-            onMapCreated: (GoogleMapController controller){
+            onViewCreated: (GoogleNavigationViewController controller){
               if (!googleMapController.isCompleted) {
                 googleMapController.complete(controller);
               }
+              
+              // Set markers via controller
+              controller.addMarkers(markerOptions);
               
               if (homeState.highlightRoute &&
                   homeState.routeLocationLat != null &&
@@ -242,26 +272,18 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                   homeState.routeDestinationLat != null &&
                   homeState.routeDestinationLng != null) {
                 _loadAndDisplayRoute(
-                  LatLng(homeState.routeLocationLat!, homeState.routeLocationLng!),
-                  LatLng(homeState.routeDestinationLat!, homeState.routeDestinationLng!),
+                  LatLng(latitude: homeState.routeLocationLat!, longitude: homeState.routeLocationLng!),
+                  LatLng(latitude: homeState.routeDestinationLat!, longitude: homeState.routeDestinationLng!),
                   controller,
                 );
               }
             },
-            zoomControlsEnabled: false,
-            zoomGesturesEnabled: true,
-            myLocationButtonEnabled: false,
-            myLocationEnabled: false,
-            compassEnabled: false,
-            mapToolbarEnabled: false,
-            tiltGesturesEnabled: false,
-            rotateGesturesEnabled: false,
           );
       },
     );
   }
 
-  Future<void> _loadAndDisplayRoute(LatLng source, LatLng destination, GoogleMapController controller) async {
+  Future<void> _loadAndDisplayRoute(LatLng source, LatLng destination, GoogleNavigationViewController controller) async {
     try {
       final coordinates = await getPolylinePoints(
         origin: source,
@@ -270,48 +292,87 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       
       setState(() {
         polylineCoordinates = coordinates;
-        polylines = {
-          Polyline(
-            polylineId: const PolylineId('route'),
-            color: theme.colorScheme.primary,
-            width: 5,
+        polylines = [
+          PolylineOptions(
             points: coordinates,
+            strokeColor: theme.colorScheme.primary,
+            strokeWidth: 5,
           )
-        };
+        ];
       });
+      
+      controller.addPolylines(polylines);
       
       if (coordinates.isNotEmpty) {
         await _animateCameraToShowRoute(source, destination, controller);
       }
     } catch (e) {
-      print('Error loading route: $e');
+      // Error loading route
     }
   }
 
-  Future<void> _animateCameraToShowRoute(LatLng source, LatLng destination, GoogleMapController controller) async {
+  Future<void> _animateCameraToShowRoute(LatLng source, LatLng destination, GoogleNavigationViewController controller) async {
     final sw = LatLng(
-      source.latitude < destination.latitude ? source.latitude : destination.latitude,
-      source.longitude < destination.longitude ? source.longitude : destination.longitude,
+      latitude: source.latitude < destination.latitude ? source.latitude : destination.latitude,
+      longitude: source.longitude < destination.longitude ? source.longitude : destination.longitude,
     );
     final ne = LatLng(
-      source.latitude > destination.latitude ? source.latitude : destination.latitude,
-      source.longitude > destination.longitude ? source.longitude : destination.longitude,
+      latitude: source.latitude > destination.latitude ? source.latitude : destination.latitude,
+      longitude: source.longitude > destination.longitude ? source.longitude : destination.longitude,
     );
     
     final bounds = LatLngBounds(southwest: sw, northeast: ne);
-    await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+    await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, padding: 100));
   }
 
   Future<void> cameraToPosition(LatLng position) async {
-    final GoogleMapController controller = await googleMapController.future;
+    final GoogleNavigationViewController controller = await googleMapController.future;
+    final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
+    
     controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: position,
-          zoom: 18.0,
+          zoom: isNavigating ? 18.5 : 18.0,
+          bearing: isNavigating ? userHeading : 0,
+          tilt: isNavigating ? 45.0 : 0,
         ),
       ),
     );
+  }
+
+  Future<void> _startNavigation() async {
+    final homeState = ref.read(homeNotifier);
+    
+    if (homeState.routeDestinationLat != null && homeState.routeDestinationLng != null) {
+      final destination = LatLng(
+        latitude: homeState.routeDestinationLat!,
+        longitude: homeState.routeDestinationLng!,
+      );
+      
+      await GoogleMapsNavigator.setDestinations(
+        Destinations(
+          waypoints: [
+            NavigationWaypoint(
+              target: destination,
+              title: homeState.routeDestinationName ?? 'Destination',
+            ),
+          ],
+          displayOptions: NavigationDisplayOptions(
+            showDestinationMarkers: true,
+            showStopSigns: true,
+            showTrafficLights: true,
+          ),
+        ),
+      );
+      
+      await GoogleMapsNavigator.startGuidance();
+    }
+  }
+
+  Future<void> _stopNavigation() async {
+    await GoogleMapsNavigator.stopGuidance();
+    await GoogleMapsNavigator.clearDestinations();
   }
 
   Future<void> getLocationUpdates() async {
@@ -319,41 +380,107 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
       
       if (!hasPermission) {
-        print('Location permission or service not granted/enabled');
         return;
       }
 
+      // Configure location settings for better tracking during transit
+      await locationController.changeSettings(
+        accuracy: loc.LocationAccuracy.high,
+        interval: 1000, // Update every second
+        distanceFilter: 2, // Update if moved more than 2 meters
+      );
+
       _locationSubscription?.cancel();
-      _locationSubscription = locationController.onLocationChanged.listen((LocationData currentLocation) {
+      _locationSubscription = locationController.onLocationChanged.listen((loc.LocationData currentLocation) {
         if (currentLocation.latitude != null && currentLocation.longitude != null && mounted) {
           final newPosition = LatLng(
-            currentLocation.latitude!,
-            currentLocation.longitude!,
+            latitude: currentLocation.latitude!,
+            longitude: currentLocation.longitude!,
           );
           
           final double newHeading = currentLocation.heading ?? userHeading;
           
           final bool isFirstLocation = currentPosition == null;
+          final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
+          
+          // Use smaller threshold when navigating to keep focus on custom marker
+          final double threshold = isNavigating ? 0.00002 : 0.0001; 
           
           if (isFirstLocation || 
-              (currentPosition!.latitude - newPosition.latitude).abs() > 0.0001 ||
-              (currentPosition!.longitude - newPosition.longitude).abs() > 0.0001 ||
+              (currentPosition!.latitude - newPosition.latitude).abs() > threshold ||
+              (currentPosition!.longitude - newPosition.longitude).abs() > threshold ||
               (userHeading - newHeading).abs() > 1.0) {
             setState(() {
               currentPosition = newPosition;
               userHeading = newHeading;
             });
             
-            if (isFirstLocation || ref.read(homeNotifier).isNavigationActive) {
+            if (isFirstLocation || isNavigating) {
               cameraToPosition(newPosition);
+              
+              // Trim polyline to clear trailing highlight during navigation
+              if (isNavigating && polylineCoordinates.isNotEmpty) {
+                _trimPolyline(newPosition);
+              }
             }
           }
         }
       }, onError: (e) {
-        print('Location error: $e');
+        // Handle location error
       });
     } catch (e) {
-      print('Error in getLocationUpdates: $e');
+      // Handle error in getLocationUpdates
+    }
+  }
+
+  void _trimPolyline(LatLng currentPos) {
+    if (polylineCoordinates.isEmpty) return;
+
+    int closestIndex = -1;
+    double minDistance = double.infinity;
+
+    // Find the closest point on the polyline to the current position
+    // We only look ahead to avoid jumping back if GPS jitters
+    for (int i = 0; i < polylineCoordinates.length; i++) {
+      final double distance = MapUtils.calculateDistance(
+        currentPos.latitude,
+        currentPos.longitude,
+        polylineCoordinates[i].latitude,
+        polylineCoordinates[i].longitude,
+      );
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = i;
+      }
+      
+      // If we find a point very close (within 20m), we stop searching to save performance
+      if (distance < 0.02) {
+        closestIndex = i;
+        break;
+      }
+    }
+
+    // If we found a point and it's not the first one, trim the polyline
+    if (closestIndex != -1 && closestIndex > 0) {
+      setState(() {
+        // Keep points from closestIndex onwards
+        polylineCoordinates = polylineCoordinates.sublist(closestIndex);
+        
+        // Update the polyline on the map
+        polylines = [
+          PolylineOptions(
+            points: polylineCoordinates,
+            strokeColor: theme.colorScheme.primary,
+            strokeWidth: 5,
+          )
+        ];
+      });
+      
+      googleMapController.future.then((controller) {
+        controller.clearPolylines();
+        controller.addPolylines(polylines);
+      });
     }
   }
 
@@ -375,7 +502,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     if (response.routes.isNotEmpty) {
       polyline.Route route = response.routes.first;
       route.polylinePoints?.forEach((polyline.PointLatLng point) {
-        coordinates.add(LatLng(point.latitude, point.longitude));
+        coordinates.add(LatLng(latitude: point.latitude, longitude: point.longitude));
       });
     }
     return coordinates;
@@ -1005,6 +1132,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                 );
               } else {
                 ref.read(homeNotifier.notifier).startNavigation();
+                // Immediately focus on current position when navigation starts
+                if (currentPosition != null) {
+                  cameraToPosition(currentPosition!);
+                }
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Navigation started')),
                 );

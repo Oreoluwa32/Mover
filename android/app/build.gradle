@@ -35,7 +35,13 @@ android {
     namespace = "com.example.movr"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
+
+    configurations.all {
+        exclude group: 'com.google.android.gms', module: 'play-services-maps'
+    }
+
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -57,6 +63,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled true
         manifestPlaceholders = [
             MAPS_API_KEY: mapsApiKey,
             applicationName: "io.flutter.app.FlutterApplication"
@@ -100,3 +107,8 @@ secrets {
     // checked in version control.
     defaultPropertiesFileName = "local.defaults.properties"
 }
+  
+dependencies {  
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'  
+    implementation 'androidx.multidex:multidex:2.0.1'  
+} 

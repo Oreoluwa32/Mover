@@ -26,7 +26,7 @@ class DeliveryTaskBottomsheetState
           child: Container(
             width: double.maxFinite,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 1),
               borderRadius: BorderRadiusStyle.customBorderTL24,
             ),
             child: Column(
