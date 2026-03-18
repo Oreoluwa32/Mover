@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:google_navigation_flutter/google_navigation_flutter.dart';
 import 'package:location/location.dart' as loc;
@@ -27,7 +29,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   final loc.Location locationController = loc.Location();
   LatLng? currentPosition;
   double userHeading = 0.0;
-  gmaps.BitmapDescriptor? customMarkerIcon;
+  ImageDescriptor customMarkerIcon = ImageDescriptor.defaultImage;
 
   static const LatLng defaultLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
   static const LatLng sourceLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
@@ -123,10 +125,37 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   Future<void> _initializeLocationAndPolyline() async {
     try {
-      customMarkerIcon = await MapUtils.bitmapDescriptorWithBeam(
+      final ByteData data = await rootBundle.load(ImageConstant.imgCustomMarker);
+      final icon = await registerBitmapImage(
+        bitmap: data,
+        width: 40, // Set logical width for custom marker
+      );
+      setState(() {
+        customMarkerIcon = icon;
+      });
+    } catch (e) {
+      // Error loading custom marker from asset
+    }
+
+    try {
+      final bytes = await MapUtils.getBeamBytes(
         width: 150,
       );
-      if (mounted) setState(() {});
+      if (bytes != null) {
+        final icon = await registerBitmapImage(
+          bitmap: ByteData.view(bytes.buffer),
+          width: 60, // Set logical width for beam marker (larger to accommodate the cone)
+        );
+        setState(() {
+          customMarkerIcon = icon;
+        });
+        
+        // Update markers immediately if map is ready
+        if (googleMapController.isCompleted) {
+          final controller = await googleMapController.future;
+          _updateMarkers(controller);
+        }
+      }
     } catch (e) {
       // Error loading custom marker
     }
@@ -217,41 +246,49 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     );
   }
 
+  void _updateMarkers(GoogleNavigationViewController controller) {
+    final homeState = ref.read(homeNotifier);
+    List<MarkerOptions> markerOptions = [];
+    
+    if (currentPosition != null) {
+      markerOptions.add(
+        MarkerOptions(
+          position: currentPosition!,
+          rotation: userHeading,
+          anchor: const MarkerAnchor(u: 0.5, v: 0.5),
+          icon: customMarkerIcon,
+        ),
+      );
+    }
+    
+    if (homeState.highlightRoute &&
+        homeState.routeLocationLat != null &&
+        homeState.routeLocationLng != null &&
+        homeState.routeDestinationLat != null &&
+        homeState.routeDestinationLng != null) {
+      final source = LatLng(latitude: homeState.routeLocationLat!, longitude: homeState.routeLocationLng!);
+      final destination = LatLng(latitude: homeState.routeDestinationLat!, longitude: homeState.routeDestinationLng!);
+      
+      markerOptions.add(
+        MarkerOptions(
+          position: source,
+        ),
+      );
+      markerOptions.add(
+        MarkerOptions(
+          position: destination,
+        ),
+      );
+    }
+    
+    controller.clearMarkers();
+    controller.addMarkers(markerOptions);
+  }
+
   Widget _buildMaps(BuildContext context){
     return Consumer(
       builder: (context, ref, _) {
         final homeState = ref.watch(homeNotifier);
-        
-        List<MarkerOptions> markerOptions = [];
-        if (currentPosition != null) {
-          markerOptions.add(
-            MarkerOptions(
-              position: currentPosition!,
-              rotation: userHeading,
-              anchor: const MarkerAnchor(u: 0.5, v: 0.5),
-            ),
-          );
-        }
-        
-        if (homeState.highlightRoute &&
-            homeState.routeLocationLat != null &&
-            homeState.routeLocationLng != null &&
-            homeState.routeDestinationLat != null &&
-            homeState.routeDestinationLng != null) {
-          final source = LatLng(latitude: homeState.routeLocationLat!, longitude: homeState.routeLocationLng!);
-          final destination = LatLng(latitude: homeState.routeDestinationLat!, longitude: homeState.routeDestinationLng!);
-          
-          markerOptions.add(
-            MarkerOptions(
-              position: source,
-            ),
-          );
-          markerOptions.add(
-            MarkerOptions(
-              position: destination,
-            ),
-          );
-        }
         
         return GoogleMapsNavigationView(
             initialCameraPosition: CameraPosition(
@@ -262,9 +299,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
               if (!googleMapController.isCompleted) {
                 googleMapController.complete(controller);
               }
-              
-              // Set markers via controller
-              controller.addMarkers(markerOptions);
+              _updateMarkers(controller);
               
               if (homeState.highlightRoute &&
                   homeState.routeLocationLat != null &&
@@ -302,6 +337,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       });
       
       controller.addPolylines(polylines);
+      _updateMarkers(controller);
       
       if (coordinates.isNotEmpty) {
         await _animateCameraToShowRoute(source, destination, controller);
@@ -414,6 +450,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
               currentPosition = newPosition;
               userHeading = newHeading;
             });
+            
+            if (googleMapController.isCompleted) {
+              googleMapController.future.then((controller) {
+                _updateMarkers(controller);
+              });
+            }
             
             if (isFirstLocation || isNavigating) {
               cameraToPosition(newPosition);

@@ -15,7 +15,7 @@ final profileScreenNotifier = StateNotifierProvider.autoDispose<ProfileScreenNot
   (ref) => ProfileScreenNotifier(ref, ProfileScreenState()),
 );
 
-final userNameProvider = FutureProvider.autoDispose<String?>((ref) async {
+final userNameProvider = FutureProvider<String?>((ref) async {
   const storage = FlutterSecureStorage();
   return await storage.read(key: 'user_name');
 });

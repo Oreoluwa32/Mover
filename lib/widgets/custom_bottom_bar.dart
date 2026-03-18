@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import '../core/app_export.dart';
 import '../presentation/profile_screen/notifier/profile_screen_notifier.dart';
+import 'user_avatar.dart';
 
 enum BottomBarEnum {Home, Route, Move, Activity, Profile}
 
@@ -208,33 +209,18 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
     return Consumer(
       builder: (context, ref, child) {
         final profileImagePath = ref.watch(globalProfileImagePathProvider);
+        final userName = ref.watch(userNameProvider);
 
-        // If no image path stored, show default icon
-        if (profileImagePath == null || profileImagePath.isEmpty) {
-          return Container(
-            height: 24.h,
-            width: 24.h,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[200],
-            ),
-            child: CustomImageView(
-              imagePath: bottomMenuList[4].icon,
-              height: 12.h,
-              width: 12.h,
-              color: isSelected ? Color(0xFF6A19D3) : Color(0xFF9E9E9E),
-            ),
-          );
-        }
-
-        // Display the actual profile image in a circle
-        return CustomImageView(
+        return UserAvatar(
           imagePath: profileImagePath,
+          name: userName.asData?.value,
           height: 24.h,
           width: 24.h,
-          radius: BorderRadius.circular(12.h),
-          fit: BoxFit.cover,
-          placeHolder: bottomMenuList[4].icon,
+          textStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 10.h,
+            fontWeight: FontWeight.w600,
+          ),
         );
       },
     );

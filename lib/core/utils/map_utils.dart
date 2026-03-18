@@ -44,7 +44,7 @@ class MapUtils {
     }
   }
 
-  static Future<BitmapDescriptor> bitmapDescriptorWithBeam({
+  static Future<Uint8List?> getBeamBytes({
     int width = 150,
   }) async {
     try {
@@ -98,11 +98,18 @@ class MapUtils {
       final ui.Image finalImage = await recorder.endRecording().toImage(width, width);
       final ByteData? byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
       
-      if (byteData == null) return BitmapDescriptor.defaultMarker;
-      return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+      return byteData?.buffer.asUint8List();
     } catch (e) {
-      return BitmapDescriptor.defaultMarker;
+      return null;
     }
+  }
+
+  static Future<BitmapDescriptor> bitmapDescriptorWithBeam({
+    int width = 150,
+  }) async {
+    final bytes = await getBeamBytes(width: width);
+    if (bytes == null) return BitmapDescriptor.defaultMarker;
+    return BitmapDescriptor.fromBytes(bytes);
   }
 
   static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

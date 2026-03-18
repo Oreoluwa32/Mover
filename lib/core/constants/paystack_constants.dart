@@ -6,7 +6,7 @@ class PaystackConstants {
   static const String publicKey = 'pk_test_your_public_key_here';
 
   // Backend API base URL
-  static const String apiBaseUrl = 'http://localhost:8000/api/v1';
+  static const String apiBaseUrl = 'https://demosystem.pythonanywhere.com';
   // For production, change to your production server:
   // static const String apiBaseUrl = 'https://your-production-api.com/api/v1';
 

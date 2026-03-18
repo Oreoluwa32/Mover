@@ -9,7 +9,7 @@ class UserApiService {
 
   UserApiService({
     String? customBaseUrl,
-  })  : baseUrl = customBaseUrl ?? 'http://localhost:8000',
+  })  : baseUrl = customBaseUrl ?? 'https://demosystem.pythonanywhere.com',
         _storage = const FlutterSecureStorage() {
     _initializeDio();
   }
@@ -34,7 +34,7 @@ class UserApiService {
         onRequest: (options, handler) async {
           final token = await _getAuthToken();
           if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+            options.headers['Authorization'] = 'Token $token';
           }
           return handler.next(options);
         },

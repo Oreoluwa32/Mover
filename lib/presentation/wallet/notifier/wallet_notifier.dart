@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/services/paystack_api_service.dart';
+import '../../../data/services/wallet_api_service.dart';
 import '../../../core/constants/paystack_constants.dart';
 
 /// State class for wallet information
@@ -34,7 +35,7 @@ class WalletState {
 
 /// Riverpod StateNotifier for managing wallet operations
 class WalletNotifier extends StateNotifier<WalletState> {
-  final PaystackApiService apiService;
+  final WalletApiService apiService;
 
   WalletNotifier({required this.apiService}) : super(const WalletState());
 
@@ -43,22 +44,13 @@ class WalletNotifier extends StateNotifier<WalletState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await apiService.getWalletBalance();
+      final walletData = await apiService.fetchWalletData();
 
-      if (response['status'] == true) {
-        final data = response['data'] as Map<String, dynamic>;
-        final balance = (data['balance'] as num).toDouble();
-
-        state = state.copyWith(
-          balance: balance,
-          isLoading: false,
-          successMessage: 'Balance fetched successfully',
-        );
-      } else {
-        throw Exception(
-          response['message'] ?? 'Failed to fetch wallet balance',
-        );
-      }
+      state = state.copyWith(
+        balance: walletData.balance ?? 0.0,
+        isLoading: false,
+        successMessage: 'Balance fetched successfully',
+      );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -93,19 +85,13 @@ final paystackApiServiceProvider = Provider<PaystackApiService>((ref) {
 /// Riverpod provider for the wallet notifier
 final walletNotifierProvider =
     StateNotifierProvider<WalletNotifier, WalletState>((ref) {
-  final apiService = ref.watch(paystackApiServiceProvider);
+  final apiService = ref.watch(walletApiServiceProvider);
   return WalletNotifier(apiService: apiService);
 });
 
 /// Riverpod provider to fetch wallet balance on demand
-final walletBalanceProvider = FutureProvider<double>((ref) async {
-  final apiService = ref.watch(paystackApiServiceProvider);
-  final response = await apiService.getWalletBalance();
-
-  if (response['status'] == true) {
-    final data = response['data'] as Map<String, dynamic>;
-    return (data['balance'] as num).toDouble();
-  } else {
-    throw Exception(response['message'] ?? 'Failed to fetch balance');
-  }
+final walletBalanceProvider = FutureProvider.autoDispose<double>((ref) async {
+  final walletApiService = ref.watch(walletApiServiceProvider);
+  final walletData = await walletApiService.fetchWalletData();
+  return walletData.balance ?? 0.0;
 });

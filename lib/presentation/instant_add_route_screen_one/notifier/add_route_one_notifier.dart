@@ -119,11 +119,17 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
 
   Future<void> fetchCurrentLocation() async {
     try {
+      print('fetchCurrentLocation triggered');
       bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
-      if (!hasPermission) return;
+      if (!hasPermission) {
+        print('Location permission denied');
+        return;
+      }
 
       Location location = Location();
+      print('Getting current location...');
       LocationData locationData = await location.getLocation();
+      print('Location received: ${locationData.latitude}, ${locationData.longitude}');
 
       if (locationData.latitude != null && locationData.longitude != null) {
         final placesService = _ref.read(googlePlacesServiceProvider);
@@ -138,6 +144,9 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
             locationLat: locationData.latitude,
             locationLng: locationData.longitude,
           );
+          print('Address set to controller: $address');
+        } else {
+          print('Failed to get address from LatLng');
         }
       }
     } catch (e) {

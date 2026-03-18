@@ -387,6 +387,9 @@ class ImageConstant {
   // Red dot 
   static String imgRedDot = '$imagePath/img_red_dot.svg';
 
+  // Custom marker
+  static String imgCustomMarker = '$imagePath/img_custom_marker.png';
+
   // Basic plan
   static String imgBasicPlan = '$imagePath/img_basic_plan.svg';
 
@@ -401,9 +404,6 @@ class ImageConstant {
 
   // App Icon
   static String imgAppIcon = '$imagePath/img_app_icon.png';
-
-  // Custom marker
-  static String imgCustomMarker = '$imagePath/img_custom_marker.svg';
 
   // Custom marker PNG
   static String imgCustomMarkerPng = '$imagePath/img_custom_marker.png';

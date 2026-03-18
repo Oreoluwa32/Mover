@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../core/app_export.dart';
 import '../../core/utils/file_upload_helper.dart';
@@ -11,10 +12,12 @@ import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_title.dart';
+import '../../widgets/user_avatar.dart';
 import '../transaction_history_screen/transaction_history_screen.dart';
 import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../home_one_screen/home_one_initial_page.dart';
 import '../my_route_page/my_route_page.dart';
+import '../wallet/notifier/wallet_notifier.dart';
 import 'notifier/profile_screen_notifier.dart';
 
 // Secure storage instance
@@ -119,6 +122,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // Section Widget
   Widget _buildAccount(BuildContext context) {
+    final walletBalance = ref.watch(walletBalanceProvider);
+    final walletTitle = walletBalance.when(
+      data: (balance) => "Wallet: ₦${balance.toInt()}",
+      loading: () => "Wallet: ...",
+      error: (_, __) => "Wallet",
+    );
+
     return Container(
       width: double.maxFinite,
       child: Column(
@@ -140,7 +150,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: _buildCard(
                     context,
                     icon: ImageConstant.imgBlackWallet,
-                    title: "Wallet",
+                    title: walletTitle,
                     onTapCard: () {
                       onTapWallet(context);
                     }
@@ -276,13 +286,11 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onTap: isUploading ? null : () {
                       requestCameraGalleryPermission(context);
                     },
-                    child: CustomImageView(
+                    child: UserAvatar(
                       imagePath: profileImagePath,
+                      name: userName.asData?.value,
                       width: 50.h,
                       height: 50.h,
-                      radius: BorderRadius.circular(24.h),
-                      fit: BoxFit.cover,
-                      placeHolder: ImageConstant.imgDefaultProfile,
                     ),
                   ),
                   

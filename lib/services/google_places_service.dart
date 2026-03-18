@@ -150,6 +150,7 @@ class GooglePlacesService {
 
   Future<String?> getAddressFromLatLng(double lat, double lng) async {
     try {
+      print('Geocoding request for: $lat, $lng');
       final response = await dio.get(
         'https://maps.googleapis.com/maps/api/geocode/json',
         queryParameters: {
@@ -158,11 +159,20 @@ class GooglePlacesService {
         },
       );
 
+      print('Geocoding response status: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        final results = data['results'] as List?;
-        if (results != null && results.isNotEmpty) {
-          return results[0]['formatted_address'] as String?;
+        print('Geocoding data status: ${data['status']}');
+        
+        if (data['status'] == 'OK') {
+          final results = data['results'] as List?;
+          if (results != null && results.isNotEmpty) {
+            final address = results[0]['formatted_address'] as String?;
+            print('Found address: $address');
+            return address;
+          }
+        } else {
+          print('Geocoding error: ${data['error_message']}');
         }
       }
       return null;
