@@ -1,0 +1,143 @@
+from __future__ import annotations
+
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import KycRecord, UserProfile, Vehicle
+
+User = get_user_model()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    home_away_label = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "full_name",
+            "phone_number",
+            "account_type",
+            "auth_provider",
+            "is_phone_verified",
+            "is_email_verified",
+            "home_city",
+            "current_city",
+            "home_away_label",
+            "created_at",
+        ]
+
+    def get_full_name(self, obj):
+        return obj.get_full_name() or obj.email
+
+    def get_home_away_label(self, obj):
+        if obj.home_city and obj.current_city and obj.home_city.lower() != obj.current_city.lower():
+            return "away"
+        return "home"
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = [
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "account_type",
+        ]
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs["email"]
+        password = attrs["password"]
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist as exc:
+            raise serializers.ValidationError("Invalid credentials.") from exc
+
+        if not user.check_password(password):
+            raise serializers.ValidationError("Invalid credentials.")
+        if not user.is_active:
+            raise serializers.ValidationError("This account is inactive.")
+
+        refresh = RefreshToken.for_user(user)
+        attrs["user"] = user
+        attrs["tokens"] = {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "token_type": "Bearer",
+        }
+        return attrs
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "avatar_url",
+            "date_of_birth",
+            "gender",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "address",
+            "bio",
+            "linked_socials",
+            "notification_preferences",
+            "payment_preferences",
+        ]
+
+
+class VehicleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = [
+            "id",
+            "vehicle_type",
+            "make",
+            "model",
+            "color",
+            "plate_number",
+            "seats",
+            "is_verified",
+            "metadata",
+            "created_at",
+        ]
+
+
+class KycRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KycRecord
+        fields = [
+            "bvn",
+            "nin",
+            "id_document_url",
+            "selfie_url",
+            "status",
+            "reviewer_notes",
+            "submitted_at",
+            "updated_at",
+        ]
+        read_only_fields = ["status", "reviewer_notes", "submitted_at", "updated_at"]
+
+
+class AccountOverviewSerializer(serializers.Serializer):
+    user = UserSerializer()
+    profile = UserProfileSerializer(allow_null=True)
+    vehicles = VehicleSerializer(many=True)
+    kyc = KycRecordSerializer(allow_null=True)

@@ -32,7 +32,16 @@ migrate_working_dir/
 .zencoder/
 .zenflow/
 /build/
-/backend/
+
+# Python/Django related
+.venv/
+venv/
+__pycache__/
+*.pyo
+*.pyd
+*.sqlite3
+/backend/staticfiles/
+/backend/media/
 
 # Symbolication related
 app.*.symbols

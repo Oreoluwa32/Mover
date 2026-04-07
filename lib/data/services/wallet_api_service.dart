@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movr/core/config/app_environment.dart';
 import '../models/wallet_model.dart';
 
 final walletApiServiceProvider = Provider<WalletApiService>((ref) {
@@ -10,7 +11,7 @@ final walletApiServiceProvider = Provider<WalletApiService>((ref) {
 class WalletApiService {
   late final Dio _dio;
   final FlutterSecureStorage _storage;
-  final String baseUrl = 'https://demosystem.pythonanywhere.com';
+  final String baseUrl = AppEnvironment.apiBaseUrl;
 
   WalletApiService() : _storage = const FlutterSecureStorage() {
     _initializeDio();
@@ -34,7 +35,7 @@ class WalletApiService {
         onRequest: (options, handler) async {
           final token = await _getAuthToken();
           if (token != null) {
-            options.headers['Authorization'] = 'Token $token';
+            options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
         },

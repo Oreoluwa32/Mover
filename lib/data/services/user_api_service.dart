@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:movr/core/config/app_environment.dart';
 
 /// Service for handling user-related API calls to the backend
 class UserApiService {
@@ -9,7 +10,7 @@ class UserApiService {
 
   UserApiService({
     String? customBaseUrl,
-  })  : baseUrl = customBaseUrl ?? 'https://demosystem.pythonanywhere.com',
+  })  : baseUrl = customBaseUrl ?? AppEnvironment.apiBaseUrl,
         _storage = const FlutterSecureStorage() {
     _initializeDio();
   }
@@ -34,7 +35,7 @@ class UserApiService {
         onRequest: (options, handler) async {
           final token = await _getAuthToken();
           if (token != null) {
-            options.headers['Authorization'] = 'Token $token';
+            options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
         },

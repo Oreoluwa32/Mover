@@ -1,14 +1,9 @@
+import 'package:movr/core/config/app_environment.dart';
+
 /// Paystack configuration constants
 class PaystackConstants {
-  // Public key for Paystack (available in your Paystack dashboard)
-  // For production: use pk_live_xxx
-  // For testing: use pk_test_xxx
-  static const String publicKey = 'pk_test_your_public_key_here';
-
-  // Backend API base URL
-  static const String apiBaseUrl = 'https://demosystem.pythonanywhere.com';
-  // For production, change to your production server:
-  // static const String apiBaseUrl = 'https://your-production-api.com/api/v1';
+  static const String publicKey = AppEnvironment.paystackPublicKey;
+  static const String apiBaseUrl = AppEnvironment.apiBaseUrl;
 
   // Paystack API endpoints
   static const String paystackApiUrl = 'https://api.paystack.co';

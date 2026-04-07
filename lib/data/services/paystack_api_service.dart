@@ -39,7 +39,7 @@ class PaystackApiService {
         onRequest: (options, handler) async {
           final token = await _getAuthToken();
           if (token != null) {
-            options.headers['Authorization'] = 'Token $token';
+            options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
         },
