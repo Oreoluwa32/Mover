@@ -18,9 +18,15 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "movr-dev-secret-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
 MOVR_ENV = os.getenv("MOVR_ENV", "development")
 
-ALLOWED_HOSTS = _split_env("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = _split_env(
+    "DJANGO_ALLOWED_HOSTS",
+    "127.0.0.1,localhost,0.0.0.0,10.0.2.2",
+)
 CORS_ALLOWED_ORIGINS = _split_env("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080")
 CSRF_TRUSTED_ORIGINS = _split_env("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:8080")
+
+if DEBUG and "*" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("*")
 
 INSTALLED_APPS = [
     "daphne",

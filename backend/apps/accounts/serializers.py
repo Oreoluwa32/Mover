@@ -141,3 +141,20 @@ class AccountOverviewSerializer(serializers.Serializer):
     profile = UserProfileSerializer(allow_null=True)
     vehicles = VehicleSerializer(many=True)
     kyc = KycRecordSerializer(allow_null=True)
+
+
+class AccountProfileSerializer(serializers.Serializer):
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(read_only=True)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
+    avatar_url = serializers.CharField(required=False, allow_blank=True)
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    gender = serializers.CharField(required=False, allow_blank=True)
+    emergency_contact_name = serializers.CharField(required=False, allow_blank=True)
+    emergency_contact_phone = serializers.CharField(required=False, allow_blank=True)
+    address = serializers.CharField(required=False, allow_blank=True)
+    bio = serializers.CharField(required=False, allow_blank=True)
+    linked_socials = serializers.JSONField(required=False)
+    notification_preferences = serializers.JSONField(required=False)
+    payment_preferences = serializers.JSONField(required=False)

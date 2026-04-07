@@ -1,21 +1,19 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/domain/googleauth/google_auth_helper.dart';
-import 'package:movr/presentation/check_mail_screen/check_mail_screen.dart';
 import '../../services/device_memory_service.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
+import '../../data/services/account_api_service.dart';
+import '../../data/services/auth_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/loading_dialog.dart';
 import 'notifier/create_account_notifier.dart';
-import '../../core/utils/progress_dialog_utils.dart';
 import '../profile_screen/notifier/profile_screen_notifier.dart';
 
 class CreateAccountScreen extends ConsumerStatefulWidget{
@@ -43,10 +41,14 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   }
 
   // Function to register user
-Future<void> registerUser(BuildContext context, CreateAccountNotifier createAccountNotifier) async {
+Future<void> registerUser(
+  BuildContext context,
+  CreateAccountNotifier createAccountNotifier,
+) async {
   final email = createAccountNotifier.state.emailController?.text ?? '';
   final password = createAccountNotifier.state.passwordController?.text ?? '';
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/register/'); // API endpoint
+  final authApiService = AuthApiService();
+  final accountApiService = AccountApiService();
 
   // Check if the fields are not empty
   if (email.isEmpty || password.isEmpty) {
@@ -59,59 +61,42 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
 
   // Prepare the request data
   try{
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: json.encode({
-        'email': email,
-        'password': password,
-      }),
+    final response = await authApiService.register(
+      email: email,
+      password: password,
     );
+
+    await authApiService.persistSession(response);
+    await accountApiService.hydrateSessionFromMe();
 
     // Hide loading dialog
     if (context.mounted) {
       LoadingDialog.hide(context);
     }
 
-    // Handle the response
-    if(response.statusCode == 200 || response.statusCode == 201){
-      // Registration successful, navigate to the next screen for OTP verification
-      Fluttertoast.showToast(msg: "Registration successful. Check your email for OTP");
-      if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => CheckMailScreen(email: email),
-          ),
-        );
-      }
-    }
-    else if (response.statusCode == 400 || response.statusCode == 409) {
-      // Show error message if email already exists
-      final errorData = json.decode(response.body);
-      final errorMessage = errorData['message'] ?? '$errorData Registration failed';
-      if (errorMessage.contains('already') || errorMessage.contains('exists')) {
-        Fluttertoast.showToast(msg: errorMessage);
-        if (context.mounted) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRoutes.signInScreen,
-            (route) => route.isFirst,
-          );
-        }
-      } else {
-        Fluttertoast.showToast(msg: errorMessage);
-      }
-    } else {
-      // Handle other error codes
-      Fluttertoast.showToast(msg: "Error ${response.statusCode}: Registration failed. Please try again.");
+    final deviceMemory = DeviceMemoryService();
+    await deviceMemory.rememberDevice(userEmail: email);
+
+    Fluttertoast.showToast(msg: "Registration successful");
+    if (context.mounted) {
+      Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
     }
   }
   catch (e) {
-    // Hide loading dialog
     if (context.mounted) {
       LoadingDialog.hide(context);
     }
-    // Handle network or JSON parsing errors
-    Fluttertoast.showToast(msg: "An error occured. Please check your internet connection and try again.");
+    final errorMessage = authApiService.extractErrorMessage(e);
+    Fluttertoast.showToast(msg: errorMessage);
+    if (errorMessage.toLowerCase().contains('already')) {
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.signInScreen,
+          (route) => route.isFirst,
+        );
+      }
+    }
   }
 }
 
@@ -329,8 +314,10 @@ Future<void> registerUser(BuildContext context, CreateAccountNotifier createAcco
           onPressed: _isFormValid
               ? () {
                   if (_formKey.currentState?.validate() ?? false) {
-                    ProgressDialogUtils.showProgressDialog(isCancellable: false);
-                    registerUser(context, ref.read(createAccountNotifier.notifier));
+                    registerUser(
+                      context,
+                      ref.read(createAccountNotifier.notifier),
+                    );
                   }
                 }
               : null, // Disable button if not valid

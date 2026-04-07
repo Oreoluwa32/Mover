@@ -1,12 +1,11 @@
 import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/app_export.dart';
+import '../../data/services/mobility_api_service.dart';
 import '../set_date_bottomsheet/set_date_bottomsheet.dart';
 import '../../core/utils/date_time_utils.dart';
 import '../../core/utils/file_upload_helper.dart';
@@ -34,11 +33,24 @@ class AddRouteScreenThree extends ConsumerStatefulWidget {
 }
 
 class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
-  final storage = const FlutterSecureStorage();
+  final MobilityApiService _mobilityApiService = MobilityApiService();
 
-  Future<String?> getToken() async {
-    const storage = FlutterSecureStorage();
-    return await storage.read(key: 'auth_token');
+  @override
+  void initState() {
+    super.initState();
+    final notifierState = ref.read(addRouteTwoNotifier);
+    notifierState.locationController?.addListener(_refreshFormState);
+    notifierState.destinationController?.addListener(_refreshFormState);
+    notifierState.setDateController?.addListener(_refreshFormState);
+    notifierState.setTimeController?.addListener(_refreshFormState);
+    notifierState.setTimeBeginController?.addListener(_refreshFormState);
+    notifierState.setTimeEndController?.addListener(_refreshFormState);
+  }
+
+  void _refreshFormState() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Map<String, DateTime?> _parseDateRange(String dateRangeText) {
@@ -73,13 +85,66 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     }
   }
 
-  Future<void> createRoute(BuildContext context, String routeName) async {
-    final token = await getToken();
-    if (token == null) {
-      Fluttertoast.showToast(msg: "No token found. Please log in first.");
-      return;
+  String? _extractStartDateText(String? dateRangeText) {
+    if (dateRangeText == null || dateRangeText.trim().isEmpty) {
+      return null;
     }
+    return dateRangeText.split(' - ').first.trim();
+  }
 
+  DateTime? _combineDateAndTime(String? dateText, String? timeText) {
+    if (dateText == null || timeText == null) {
+      return null;
+    }
+    final date = _parseDate(dateText);
+    if (date == null) {
+      return null;
+    }
+    try {
+      final timeParts = timeText.split(':');
+      if (timeParts.length != 2) {
+        return null;
+      }
+      return DateTime(
+        date.year,
+        date.month,
+        date.day,
+        int.parse(timeParts[0]),
+        int.parse(timeParts[1]),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _mapPlanType(String title) {
+    switch (title.toLowerCase()) {
+      case 'ride-sharing':
+      case 'ride':
+        return 'ride';
+      case 'delivery':
+        return 'delivery';
+      default:
+        return 'hybrid';
+    }
+  }
+
+  String _mapVehicleType(String title) {
+    switch (title.toLowerCase()) {
+      case 'bike':
+        return 'bike';
+      case 'car':
+        return 'car';
+      case 'truck':
+        return 'truck';
+      case 'public':
+        return 'public_transit';
+      default:
+        return title.toLowerCase().replaceAll(' ', '_');
+    }
+  }
+
+  Future<void> createRoute(BuildContext context, String routeName) async {
     final notifierState = ref.read(addRouteTwoNotifier);
 
     // Convert image to base64
@@ -100,87 +165,83 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final timeBegin = notifierState.setTimeBeginController?.text;
     final timeEnd = notifierState.setTimeEndController?.text;
 
-    // Construct departure_time in ISO8601 format
-    String? formattedDepartureTime;
-    if (departureDate != null && departureTime != null) {
-      try {
-        final dateParts = departureDate.split('/');
-        final timeParts = departureTime.split(':');
-        final departureDateTime = DateTime(
-          int.parse(dateParts[2]),
-          int.parse(dateParts[0]),
-          int.parse(dateParts[1]),
-          int.parse(timeParts[0]),
-          int.parse(timeParts[1]),
-        ).toUtc();
-        formattedDepartureTime = "${departureDateTime.toIso8601String().split('.').first}Z";
-      } catch (e) {
-        print('Error formatting date: $e');
-      }
+    if (location == null ||
+        location.trim().isEmpty ||
+        destination == null ||
+        destination.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Please provide both your route locations.",
+      );
+      return;
     }
 
-    final url = Uri.parse(
-        'https://demosystem.pythonanywhere.com/create-scheduled-route/');
-    final requestBody = {
-      "route_name": routeName,
-      "location": location,
-      "location_latitude": notifierState.locationLat?.toStringAsFixed(6),
-      "location_longitude": notifierState.locationLng?.toStringAsFixed(6),
-      "destination": destination,
-      "destination_latitude": notifierState.destinationLat?.toStringAsFixed(6),
-      "destination_longitude": notifierState.destinationLng?.toStringAsFixed(6),
-      "stop_location": stop ?? "",
-      "stop_location_latitude": (stop?.isNotEmpty == true) ? notifierState.stopLat?.toStringAsFixed(6) : null,
-      "stop_location_longitude": (stop?.isNotEmpty == true) ? notifierState.stopLng?.toStringAsFixed(6) : null,
-      "transportation_mode":
-          notifierState.addRouteTwoModelObj?.transportMeansList
-              .firstWhere(
-                (item) => item.isSelected,
-                orElse: () => AddRouteItemModel(),
-              )
-              .tabTitle?.toLowerCase(),
-      "service_type": notifierState.serviceDropdownValue?.title?.toLowerCase(),
-      "departure_date": departureDate,
-      "departure_time": formattedDepartureTime ?? departureTime,
-      "return_route": returnRoute,
-      "time_begin": timeBegin,
-      "time_end": timeEnd,
-    };
+    final parsedDeparture = _combineDateAndTime(
+      _extractStartDateText(departureDate),
+      departureTime,
+    );
+    if (parsedDeparture == null) {
+      Fluttertoast.showToast(msg: "Please provide a valid departure date and time.");
+      return;
+    }
+
+    DateTime? parsedArrival = _combineDateAndTime(
+      _extractStartDateText(departureDate),
+      timeEnd,
+    );
+    if (parsedArrival != null && parsedArrival.isBefore(parsedDeparture)) {
+      parsedArrival = parsedArrival.add(const Duration(days: 1));
+    }
+
+    final selectedTransportMode = notifierState.addRouteTwoModelObj?.transportMeansList
+        .firstWhere(
+          (item) => item.isSelected,
+          orElse: () => AddRouteItemModel(),
+        )
+        .tabTitle;
 
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Token $token',
-          'Content-Type': 'application/json',
+      await _mobilityApiService.createTravelPlan(
+        title: routeName,
+        planType: _mapPlanType(notifierState.serviceDropdownValue?.title ?? ''),
+        originName: location,
+        originLatitude: notifierState.locationLat,
+        originLongitude: notifierState.locationLng,
+        destinationName: destination,
+        destinationLatitude: notifierState.destinationLat,
+        destinationLongitude: notifierState.destinationLng,
+        departureTime: parsedDeparture,
+        arrivalTime: parsedArrival,
+        vehicleType: _mapVehicleType(selectedTransportMode ?? ''),
+        seatsAvailable: 1,
+        metadata: {
+          'route_kind': 'scheduled',
+          if (departureDate?.isNotEmpty == true) 'display_date_range': departureDate,
+          if (stop?.isNotEmpty == true) 'stop_location': stop,
+          if (stop?.isNotEmpty == true) 'stop_location_latitude': notifierState.stopLat,
+          if (stop?.isNotEmpty == true) 'stop_location_longitude': notifierState.stopLng,
+          'return_trip': notifierState.isReturnTrip,
+          if (returnRoute != "No") 'return_route': returnRoute,
+          if (timeBegin?.isNotEmpty == true) 'time_begin': timeBegin,
+          if (timeEnd?.isNotEmpty == true) 'time_end': timeEnd,
+          if (itemImageBase64 != null) 'ticket_image': itemImageBase64,
         },
-        body: jsonEncode(requestBody),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final message = jsonDecode(response.body)['message'] ??
-            'Route created successfully.';
-        Fluttertoast.showToast(msg: message);
+      Fluttertoast.showToast(msg: 'Route created successfully.');
+      if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoutes.homeOneScreen,
           (route) => false,
           arguments: {
             'showDialog': false,
-            // 'locationLat': notifierState.locationLat,
-            // 'locationLng': notifierState.locationLng,
-            // 'destinationLat': notifierState.destinationLat,
-            // 'destinationLng': notifierState.destinationLng,
             'highlightRoute': false,
           },
         );
-      } else {
-        final error =
-            jsonDecode(response.body)['error'] ?? 'Failed to create route.';
-        Fluttertoast.showToast(msg: error);
       }
     } catch (e) {
       Fluttertoast.showToast(
-          msg: "An error occurred. Please check your connection.");
+        msg: _mobilityApiService.extractErrorMessage(e),
+      );
     }
   }
 
@@ -1018,11 +1079,6 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final hasServiceType = (state.serviceDropdownValue?.title ?? '').isNotEmpty;
     final hasDepartureDate = state.setDateController?.text.isNotEmpty ?? false;
     final hasDepartureTime = state.setTimeController?.text.isNotEmpty ?? false;
-    
-    final hasValidCoords = state.locationLat != null && 
-                          state.locationLng != null && 
-                          state.destinationLat != null && 
-                          state.destinationLng != null;
 
     final hasAnsweredReturn = state.returnRadio.isNotEmpty;
     final hasValidReturn = !state.isReturnTrip || state.returnDestination.isNotEmpty;
@@ -1031,7 +1087,6 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
     return hasLocation &&
         hasDestination &&
-        hasValidCoords &&
         hasTransportMode &&
         hasServiceType &&
         hasDepartureDate &&

@@ -17,11 +17,13 @@ final addRouteTwoNotifier =
     setTimeBeginController: TextEditingController(),
     setTimeEndController: TextEditingController(),
     routeNameController: TextEditingController(),
-    serviceDropdownValue: SelectionPopupModel(title: ''),
-    repeatDropdownValue: SelectionPopupModel(title: ''),
-    maxCapDropdownValue: SelectionPopupModel(title: ''),
+    serviceDropdownValue: SelectionPopupModel(id: 1, title: "Ride-sharing", isSelected: true),
+    repeatDropdownValue: SelectionPopupModel(id: 1, title: "Do not repeat", isSelected: true),
+    maxCapDropdownValue: SelectionPopupModel(id: 1, title: "2 seaters", isSelected: true),
     radioGroup: "",
-    returnRadio: "",
+    returnRadio: "No",
+    returnDestination: "",
+    isReturnTrip: false,
     addRouteTwoModelObj: AddRouteTwoModel(transportMeansList: [
       AddRouteItemModel(
           tabImage: ImageConstant.imgWalkingMan, tabTitle: "Public"),

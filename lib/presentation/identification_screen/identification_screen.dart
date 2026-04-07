@@ -1,9 +1,7 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
+import '../../data/services/account_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -28,6 +26,7 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addListeners();
+      _loadKyc();
     });
   }
 
@@ -47,17 +46,21 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
     });
   }
 
-  Future<String?> getToken() async {
-    final storage = const FlutterSecureStorage();
-    return await storage.read(key: 'auth_token');
+  Future<void> _loadKyc() async {
+    final accountApiService = AccountApiService();
+    try {
+      final kyc = await accountApiService.getKyc();
+      final notifier = ref.read(identificationNotifier);
+      notifier.ninController?.text = kyc['nin']?.toString() ?? '';
+      notifier.bvnController?.text = kyc['bvn']?.toString() ?? '';
+      _updateFormValidation();
+    } catch (_) {
+      // Keep form usable if fetch fails.
+    }
   }
 
   Future<void> submitIdentification(BuildContext context) async {
-    final token = await getToken();
-    if (token == null) {
-      Fluttertoast.showToast(msg: "No token found. Please log in first.");
-      return;
-    }
+    final accountApiService = AccountApiService();
 
     final notifier = ref.read(identificationNotifier);
     final nin = notifier.ninController?.text.trim() ?? '';
@@ -68,34 +71,24 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
       return;
     }
 
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/update-kyc/');
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          "Authorization": "Token $token",
-          "Content-Type": "application/json"
-        },
-        body: json.encode({
-          "nin": nin,
-          "bvn": bvn,
-        }),
+      await accountApiService.updateKyc(
+        nin: nin,
+        bvn: bvn,
       );
 
-      if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-          msg: "Identification updated successfully.",
-          backgroundColor: appTheme.green50,
-          textColor: Colors.white,
-        );
+      Fluttertoast.showToast(
+        msg: "Identification updated successfully.",
+        backgroundColor: appTheme.green50,
+        textColor: Colors.white,
+      );
+      if (context.mounted) {
         Navigator.pushNamed(context, AppRoutes.verificationScreen);
-      } else {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['error'] ?? "Failed to update identification.";
-        Fluttertoast.showToast(msg: errorMessage);
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: "An error occurred. Please try again.");
+      Fluttertoast.showToast(
+        msg: accountApiService.extractErrorMessage(e),
+      );
     }
   }
 

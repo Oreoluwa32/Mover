@@ -7,6 +7,7 @@ class SavedRouteModel {
       {this.routetitle,
       this.liveDot,
       this.islive,
+      this.status,
       this.address,
       this.time,
       this.days,
@@ -14,6 +15,7 @@ class SavedRouteModel {
     routetitle = routetitle ?? "";
     liveDot = liveDot ?? false;
     islive = islive ?? false;
+    status = status ?? "";
     address = address ?? "";
     time = time ?? "";
     days = days ?? "";
@@ -23,6 +25,7 @@ class SavedRouteModel {
   String? routetitle;
   bool? islive;
   bool? liveDot;
+  String? status;
   String? address;
   String? time;
   String? days;

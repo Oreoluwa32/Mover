@@ -11,6 +11,9 @@ import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/location_manager.dart';
 import '../../core/utils/map_utils.dart';
+import '../../data/services/mobility_api_service.dart';
+import '../../data/services/mobility_realtime_service.dart';
+import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_bottom_bar.dart';
@@ -27,9 +30,13 @@ class HomeOneInitialPage extends ConsumerStatefulWidget{
 // ignore for file: must be immutabel
 class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with TickerProviderStateMixin {
   final loc.Location locationController = loc.Location();
+  final MobilityApiService _mobilityApiService = MobilityApiService();
+  final MobilityRealtimeService _realtimeService = MobilityRealtimeService();
   LatLng? currentPosition;
   double userHeading = 0.0;
   ImageDescriptor customMarkerIcon = ImageDescriptor.defaultImage;
+  DateTime? _lastRealtimeBroadcast;
+  String? _liveTravelPlanId;
 
   static const LatLng defaultLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
   static const LatLng sourceLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
@@ -43,6 +50,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   // Animation controllers and variables
   late AnimationController _sidebarAnimationController;
   late AnimationController _filterButtonAnimationController;
+  late AnimationController _nearbySearchAnimationController;
   late Animation<Offset> _sidebarSlideAnimation;
   late Animation<double> _filterButtonRotationAnimation;
   bool _isSidebarVisible = false;
@@ -71,6 +79,11 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     
     _filterButtonAnimationController = AnimationController(
       duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _nearbySearchAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
     
@@ -177,7 +190,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   void dispose() {
     _sidebarAnimationController.dispose();
     _filterButtonAnimationController.dispose();
+    _nearbySearchAnimationController.dispose();
     _locationSubscription?.cancel();
+    unawaited(_realtimeService.dispose());
     super.dispose();
   }
 
@@ -205,6 +220,21 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         _stopNavigation();
       }
     });
+    ref.listen(homeNotifier.select((s) => s.isLive), (previous, next) {
+      if (next == true) {
+        _startLiveTracking();
+      } else if (previous == true && next == false) {
+        _stopLiveTracking();
+      }
+    });
+    ref.listen(homeNotifier.select((s) => s.isSearchingNearbyMovers), (previous, next) {
+      if (next == true) {
+        _nearbySearchAnimationController.repeat();
+      } else {
+        _nearbySearchAnimationController.stop();
+        _nearbySearchAnimationController.reset();
+      }
+    });
     return Scaffold(
       body: Stack(
         children: [
@@ -218,9 +248,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           _buildFilterButton(context),
           _buildTopNotificationBar(context),
           _buildNavigationPanel(context),
-          // _buildTaskNotification(context),
+          _buildTaskNotification(context),
+          _buildNearbyMoverRipple(context),
+          _buildNearbyMoverSearchAction(context),
           // _buildBottomNavigation(context),
           _buildStartRideButton(context),
+          _buildEmergencyButton(context),
           _buildFloatingactionb(context),
           // Temporary notification for isLive status with fade animation
           Consumer(
@@ -465,6 +498,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                 _trimPolyline(newPosition);
               }
             }
+
+            if (ref.read(homeNotifier).isLive) {
+              unawaited(_broadcastLiveLocation(newPosition));
+            }
           }
         }
       }, onError: (e) {
@@ -472,6 +509,115 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       });
     } catch (e) {
       // Handle error in getLocationUpdates
+    }
+  }
+
+  Future<void> _startLiveTracking() async {
+    try {
+      final latestTravelPlan = await _mobilityApiService.getLatestTravelPlan();
+      final travelPlanId = latestTravelPlan?['id']?.toString();
+      if (travelPlanId == null || travelPlanId.isEmpty) {
+        return;
+      }
+
+      _liveTravelPlanId = travelPlanId;
+      await _realtimeService.connect(travelPlanId);
+      await _realtimeService.sendEvent(
+        eventType: 'status',
+        note: 'Live tracking started',
+        payload: {'is_live': true},
+      );
+
+      if (currentPosition != null) {
+        await _broadcastLiveLocation(currentPosition!, force: true);
+      }
+    } catch (_) {
+      // Keep the live toggle UX responsive even if realtime setup fails.
+    }
+  }
+
+  Future<void> _stopLiveTracking() async {
+    try {
+      if (_realtimeService.isConnected) {
+        await _realtimeService.sendEvent(
+          eventType: 'status',
+          note: 'Live tracking stopped',
+          payload: {'is_live': false},
+        );
+      }
+    } catch (_) {
+      // Ignore stop event failures.
+    } finally {
+      _lastRealtimeBroadcast = null;
+      _liveTravelPlanId = null;
+      await _realtimeService.disconnect();
+    }
+  }
+
+  Future<void> _broadcastLiveLocation(LatLng position, {bool force = false}) async {
+    final now = DateTime.now();
+    if (!force &&
+        _lastRealtimeBroadcast != null &&
+        now.difference(_lastRealtimeBroadcast!) < const Duration(seconds: 3)) {
+      return;
+    }
+
+    if (!_realtimeService.isConnected) {
+      await _startLiveTracking();
+      if (!_realtimeService.isConnected) {
+        return;
+      }
+    }
+
+    await _realtimeService.sendEvent(
+      eventType: 'location',
+      latitude: position.latitude,
+      longitude: position.longitude,
+      payload: {'heading': userHeading},
+    );
+    _lastRealtimeBroadcast = now;
+  }
+
+  Future<void> _sendEmergencyAlert() async {
+    try {
+      if (currentPosition == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Current location is not available yet.')),
+        );
+        return;
+      }
+
+      await _mobilityApiService.createEmergencyAlert(
+        travelPlanId: _liveTravelPlanId,
+        latitude: currentPosition!.latitude,
+        longitude: currentPosition!.longitude,
+        message: 'SOS triggered from live route screen.',
+      );
+
+      if (_realtimeService.isConnected) {
+        await _realtimeService.sendEvent(
+          eventType: 'sos',
+          latitude: currentPosition!.latitude,
+          longitude: currentPosition!.longitude,
+          note: 'SOS triggered from app.',
+          payload: {'travel_plan_id': _liveTravelPlanId},
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Emergency alert sent.')),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final message = _mobilityApiService.extractErrorMessage(error);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     }
   }
 
@@ -720,7 +866,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
             value: homeState.isLive,
             isDisabled: homeState.isToggling,
             onChange: (value) {
-              ref.read(homeNotifier.notifier).toggleIsLive(value);
+              ref.read(homeNotifier.notifier).toggleIsLive(value).catchError((error) {
+                if (!context.mounted) {
+                  return;
+                }
+                final message = error.toString().replaceFirst('Exception: ', '');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              });
             },
           );
         },
@@ -836,16 +990,200 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   // Task notification positioned in center-top area
   Widget _buildTaskNotification(BuildContext context) {
-    return Positioned(
-      top: 140.h,
-      left: 100.h,
-      right: 20.h,
-      child: Column(
-        children: [
-          liveRoute(context),
-          SizedBox(height: 16.h),
-          tasks(context),
-        ],
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        final pendingTask = homeState.pendingTaskData;
+        if (homeState.isLoadingPendingTask || pendingTask == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Positioned(
+          top: 140.h,
+          left: 100.h,
+          right: 20.h,
+          child: tasks(
+            context,
+            pendingTask: pendingTask,
+            pendingTaskType: homeState.pendingTaskType ?? 'delivery',
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNearbyMoverRipple(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        if (!homeState.isSearchingNearbyMovers || !homeState.highlightRoute) {
+          return const SizedBox.shrink();
+        }
+
+        return Positioned.fill(
+          child: IgnorePointer(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _nearbySearchAnimationController,
+                builder: (context, child) {
+                  final value = _nearbySearchAnimationController.value;
+                  return Transform.translate(
+                    offset: Offset(0, 40.h),
+                    child: SizedBox(
+                      width: 220.h,
+                      height: 220.h,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          _buildRippleCircle(scale: 0.6 + value, opacity: 0.25 * (1 - value)),
+                          _buildRippleCircle(
+                            scale: 0.35 + ((value + 0.35) % 1),
+                            opacity: 0.18 * (1 - ((value + 0.35) % 1)),
+                          ),
+                          _buildRippleCircle(
+                            scale: 0.2 + ((value + 0.65) % 1),
+                            opacity: 0.12 * (1 - ((value + 0.65) % 1)),
+                          ),
+                          Container(
+                            width: 54.h,
+                            height: 54.h,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: theme.colorScheme.primary,
+                                width: 2.h,
+                              ),
+                            ),
+                            child: Center(
+                              child: CustomImageView(
+                                imagePath: ImageConstant.imgLocationPrimary,
+                                height: 22.h,
+                                width: 22.h,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNearbyMoverSearchAction(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        final searchData = homeState.nearbyMoverSearchData;
+        if (searchData == null || searchData.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final isSearching = homeState.isSearchingNearbyMovers;
+        final buttonText = isSearching ? 'Searching movers' : 'View prices';
+
+        return Positioned(
+          bottom: homeState.highlightRoute ? 260.h : 190.h,
+          left: 20.h,
+          right: 20.h,
+          child: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => SearchMoverBottomsheet(
+                  requestType: homeState.nearbyMoverSearchType,
+                  requestData: searchData,
+                ),
+                isScrollControlled: true,
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 14.h),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onPrimary.withValues(alpha: 0.96),
+                borderRadius: BorderRadiusStyle.roundedBorder12,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10.h,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                  width: 1.h,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40.h,
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isSearching
+                          ? Icons.search_rounded
+                          : Icons.local_offer_outlined,
+                      color: theme.colorScheme.primary,
+                      size: 20.h,
+                    ),
+                  ),
+                  SizedBox(width: 12.h),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          buttonText,
+                          style: CustomTextStyles.titleSmallInter,
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          isSearching
+                              ? 'Tap to reopen the live mover search'
+                              : 'Tap to reopen the latest mover prices',
+                          style: CustomTextStyles.bodySmallInterGray600,
+                        ),
+                      ],
+                    ),
+                  ),
+                  CustomImageView(
+                    imagePath: ImageConstant.imgPurpleRightArrow,
+                    height: 16.h,
+                    width: 16.h,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRippleCircle({
+    required double scale,
+    required double opacity,
+  }) {
+    final safeOpacity = opacity.clamp(0.0, 1.0).toDouble();
+    return Container(
+      width: 140.h * scale,
+      height: 140.h * scale,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: safeOpacity),
+          width: 2.h,
+        ),
       ),
     );
   }
@@ -953,7 +1291,24 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   }
 
   // Section Widget
-  Widget tasks(BuildContext context) {
+  Widget tasks(
+    BuildContext context, {
+    required Map<String, dynamic> pendingTask,
+    required String pendingTaskType,
+  }) {
+    final isRide = pendingTaskType == 'ride';
+    final title = isRide ? "Ride sharing task" : "Delivery task";
+    final subtitle = isRide
+        ? "You have a ride request that matches your route"
+        : "You have a delivery request that matches your route";
+    final origin = (isRide ? pendingTask['origin_name'] : pendingTask['pickup_name'])
+            ?.toString() ??
+        "Pickup";
+    final destination =
+        (isRide ? pendingTask['destination_name'] : pendingTask['dropoff_name'])
+                ?.toString() ??
+            "Destination";
+
     return Container(
             padding: EdgeInsets.symmetric(
               horizontal: 10.h,
@@ -977,12 +1332,16 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomIconButton(
-                  height: 40.h,
-                  width: 40.h,
-                  padding: EdgeInsets.all(10.h),
-                  decoration: IconButtonStyleHelper.outlineDeepPurple,
-                  child: CustomImageView(imagePath: ImageConstant.imgPackage,),
-                ),
+                    height: 40.h,
+                    width: 40.h,
+                    padding: EdgeInsets.all(10.h),
+                    decoration: IconButtonStyleHelper.outlineDeepPurple,
+                    child: CustomImageView(
+                      imagePath: isRide
+                          ? ImageConstant.imgBlackCar
+                          : ImageConstant.imgPackage,
+                    ),
+                  ),
                 SizedBox(width: 16.h),
                 SizedBox(width: 16.h,),
                 Expanded(
@@ -992,27 +1351,37 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                       padding: EdgeInsets.only(top: 6.h),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Delivery task",
-                            style: CustomTextStyles.titleSmallInter,
-                          ),
-                          Text(
-                            "You have a delivery request",
-                            style: CustomTextStyles.bodySmallErrorContainer,
-                          ),
-                          SizedBox(
-                            width: double.maxFinite,
-                            child: GestureDetector(
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context, 
-                                  builder: (_) => DeliveryTaskOneBottomsheet(),
-                                  isScrollControlled: true,
-                                );
-                              },
-                              child: Row(
-                                children: [
+                                                    children: [
+                                                      Text(
+                                                        title,
+                                                        style: CustomTextStyles.titleSmallInter,
+                                                      ),
+                                                      Text(
+                                                        subtitle,
+                                                        style: CustomTextStyles.bodySmallErrorContainer,
+                                                      ),
+                                                      Text(
+                                                        '$origin to $destination',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: CustomTextStyles.bodySmallInterGray600,
+                                                      ),
+                                                      SizedBox(
+                                                        width: double.maxFinite,
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            NavigatorService.pushNamed(
+                                                              isRide
+                                                                  ? AppRoutes.rideSharingTaskBottomsheetOne
+                                                                  : AppRoutes.deliveryTaskOneBottomsheet,
+                                                              arguments: {
+                                                                'requestType': pendingTaskType,
+                                                                'requestData': pendingTask,
+                                                              },
+                                                            );
+                                                          },
+                                                          child: Row(
+                                                            children: [
                                   Text(
                                     "View details",
                                     style: CustomTextStyles.labelLargePrimary,
@@ -1233,6 +1602,49 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           width: 24.0.h,
         ),
       ),
+    );
+  }
+
+  Widget _buildEmergencyButton(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final homeState = ref.watch(homeNotifier);
+        if (!homeState.isLive && !homeState.isNavigationActive) {
+          return const SizedBox.shrink();
+        }
+
+        return Positioned(
+          bottom: homeState.highlightRoute ? 190.h : 120.h,
+          right: 20.h,
+          child: GestureDetector(
+            onTap: _sendEmergencyAlert,
+            child: Container(
+              width: 56.h,
+              height: 56.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53935),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 10.h,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'SOS',
+                  style: CustomTextStyles.titleSmallOnPrimary.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

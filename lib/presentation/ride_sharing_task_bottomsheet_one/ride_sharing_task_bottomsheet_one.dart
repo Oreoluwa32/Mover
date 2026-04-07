@@ -1,21 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 import '../../core/app_export.dart';
+import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_radio_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../home_one_screen/notifier/home_notifier.dart';
 
-// ignore for filw, class must be immutabel
-class RideSharingTaskBottomsheetOne extends StatelessWidget{
-  RideSharingTaskBottomsheetOne({Key? key})
-    : super(key: key,);
+class RideSharingTaskBottomsheetOne extends ConsumerStatefulWidget {
+  const RideSharingTaskBottomsheetOne({Key? key}) : super(key: key);
 
-  TextEditingController routeController = TextEditingController();
-  String radioGroup = "";
-  TextEditingController priceController = TextEditingController();
+  @override
+  ConsumerState<RideSharingTaskBottomsheetOne> createState() =>
+      _RideSharingTaskBottomsheetOneState();
+}
+
+class _RideSharingTaskBottomsheetOneState
+    extends ConsumerState<RideSharingTaskBottomsheetOne> {
+  final MobilityApiService _mobilityApiService = MobilityApiService();
+  final TextEditingController _priceController = TextEditingController();
+  String _radioGroup = "";
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            const <String, dynamic>{};
+    final requestData =
+        Map<String, dynamic>.from(args['requestData'] as Map? ?? const <String, dynamic>{});
+    final origin = requestData['origin_name']?.toString() ?? 'Pickup';
+    final destination =
+        requestData['destination_name']?.toString() ?? 'Destination';
+    final requesterName =
+        requestData['requester']?['full_name']?.toString() ?? 'Movr user';
+    final requestId = requestData['id']?.toString() ?? '';
+    final seatsRequested = requestData['seats_requested']?.toString() ?? '1';
+    final suggestedPrice = _deriveRideSuggestedPrice(requestData);
+
+    if (_priceController.text.isEmpty) {
+      _priceController.text = suggestedPrice;
+    }
+
     return Material(
       child: SizedBox(
         width: double.maxFinite,
@@ -30,19 +63,48 @@ class RideSharingTaskBottomsheetOne extends StatelessWidget{
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: 16.h),
-                _buildColumnline(context),
-                SizedBox(height: 10.h),
-                SizedBox(
-                  height: 745.h, //height is 470 originally
+                _buildHeader(context),
+                SizedBox(height: 20.h),
+                Container(
                   width: double.maxFinite,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
+                  padding: EdgeInsets.symmetric(horizontal: 16.h),
+                  child: Column(
                     children: [
-                      _buildColumnexpires(context),
-                      _buildButtonnav(context)
+                      _buildExpiresIn(context),
+                      SizedBox(height: 14.h),
+                      _buildRequester(
+                        context,
+                        requesterName: requesterName,
+                        seatsRequested: seatsRequested,
+                      ),
+                      SizedBox(height: 12.h),
+                      _buildHintCard(context),
+                      SizedBox(height: 16.h),
+                      _buildLocation(context, origin: origin, destination: destination),
+                      SizedBox(height: 14.h),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Price",
+                          style: CustomTextStyles.labelLargeGray600,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      CustomTextFormField(
+                        controller: _priceController,
+                        hintText: "NGN",
+                        hintStyle: theme.textTheme.bodySmall,
+                        contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                        textInputAction: TextInputAction.done,
+                        textInputType: TextInputType.number,
+                      ),
+                      SizedBox(height: 8.h),
+                      _buildPriceChips(context, currentValue: suggestedPrice),
+                      SizedBox(height: 32.h),
                     ],
                   ),
-                )
+                ),
+                _buildButtonnav(context, requestId: requestId),
               ],
             ),
           ),
@@ -51,17 +113,13 @@ class RideSharingTaskBottomsheetOne extends StatelessWidget{
     );
   }
 
-  // Section Widhet
-  Widget _buildColumnline(BuildContext context){
+  Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       child: Column(
         children: [
-          SizedBox(
-            width: 50.h,
-            child: Divider(),
-          ),
+          SizedBox(width: 50.h, child: const Divider()),
           SizedBox(height: 14.h),
           Text(
             "Ride sharing task",
@@ -72,196 +130,148 @@ class RideSharingTaskBottomsheetOne extends StatelessWidget{
     );
   }
 
-  // Section Widget
-  Widget _buildExpiresin(BuildContext context){
+  Widget _buildExpiresIn(BuildContext context) {
     return CustomElevatedButton(
       height: 30.h,
       width: 136.h,
-      text: "Expires in 01:00",
+      text: "Open request",
       buttonStyle: CustomButtonStyles.fillRed,
       buttonTextStyle: CustomTextStyles.bodySmallRedA700,
     );
   }
 
-  // Section Widget
-  Widget _buildRoute(BuildContext context){
-    return CustomTextFormField(
-      controller: routeController,
-      hintText: "1234 movers are heading to the same destination",
-      hintStyle: CustomTextStyles.bodySmallDeeppurple600,
-      contentPadding: EdgeInsets.fromLTRB(22.h, 14.h, 22.h, 10.h),
-      borderDecoration: TextFormFieldStyleHelper.fillDeepPurple,
-      fillColor: appTheme.deepPurple50,
-    );
-  }
-
-  // Section Widget
-  Widget _buildPrice(BuildContext context){
-    return CustomTextFormField(
-      controller: priceController,
-      hintText: "NGN",
-      hintStyle: theme.textTheme.bodySmall,
-      contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-      textInputAction: TextInputAction.done,
-    );
-  }
-
-  // Section Widget
-  Widget _buildColumnexpires(BuildContext context){
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.symmetric(horizontal: 16.h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildExpiresin(context),
-            SizedBox(height: 14.h),
-            SizedBox(
-              width: double.maxFinite,
-              child: Row(
-                children: [
-                  CustomImageView(
-                    imagePath: ImageConstant.imgProfile,
-                    height: 50.h,
-                    width: 50.h,
-                    radius: BorderRadius.circular(24.h),
-                  ),
-                  SizedBox(width: 18.h),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "John Doe",
-                          style: CustomTextStyles.bodyMediumMulishGray800,
-                        ),
-                        SizedBox(height: 4.h),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Row(
-                            children: [
-                              Text(
-                                "10m away",
-                                style: CustomTextStyles.bodySmallInterGray600,
-                              ),
-                              Align(
-                                alignment: Alignment.topCenter,
-                                child: Container(
-                                  height: 2.h,
-                                  width: 2.h,
-                                  margin: EdgeInsets.only(
-                                    left: 4.h,
-                                    top: 6.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: appTheme.gray700,
-                                    borderRadius: BorderRadius.circular(1.h,),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 4.h),
-                                child: Text(
-                                  "2mins",
-                                  style: CustomTextStyles.bodySmallInterGray600,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        SizedBox(
-                          width: double.maxFinite,
-                          child: Row(
-                            children: [
-                              CustomImageView(
-                                imagePath: ImageConstant.imgUsers,
-                                height: 12.h,
-                                width: 12.h,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 4.h),
-                                child: Text(
-                                  "3 passenger capacity",
-                                  style: CustomTextStyles.bodySmallInterGray600,
-                                ),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
+  Widget _buildRequester(
+    BuildContext context, {
+    required String requesterName,
+    required String seatsRequested,
+  }) {
+    return SizedBox(
+      width: double.maxFinite,
+      child: Row(
+        children: [
+          CustomImageView(
+            imagePath: ImageConstant.imgProfile,
+            height: 50.h,
+            width: 50.h,
+            radius: BorderRadius.circular(24.h),
+          ),
+          SizedBox(width: 18.h),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  requesterName,
+                  style: CustomTextStyles.bodyMediumMulishGray800,
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  "$seatsRequested passenger request",
+                  style: CustomTextStyles.bodySmallInterGray600,
+                ),
+              ],
             ),
-            SizedBox(height: 12.h),
-            _buildRoute(context),
-            SizedBox(height: 16.h),
-            SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                children: [
-                  CustomRadioButton(
-                    text: "Muritala Mohammed Airport",
-                    value: "Muritala Mohammed Airport",
-                    groupValue: radioGroup,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 30.h,
-                      vertical: 14.h,
-                    ),
-                    decoration: RadioStyleHelper.fillOnPrimary,
-                    onChange: (value) {
-                      radioGroup = value;
-                    },
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 16.h),
-                    child: CustomRadioButton(
-                      text: "Gatetway Zone, Magodo Phase II, GRA Lagos State",
-                      value: "Gatetway Zone, Magodo Phase II, GRA Lagos State",
-                      groupValue: radioGroup,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.h,
-                        vertical: 14.h,
-                      ),
-                      decoration: RadioStyleHelper.fillOnPrimary,
-                      onChange: (value) {
-                        radioGroup = value;
-                      },
-                    ),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(height: 14.h),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Price",
-                style: CustomTextStyles.labelLargeGray600,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            _buildPrice(context)
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
 
-  // Section Widget
-  Widget _buildBidprice(BuildContext context){
-    return CustomElevatedButton(
-      text: "Bid Price",
-      buttonStyle: CustomButtonStyles.fillBlueGray,
+  Widget _buildHintCard(BuildContext context) {
+    return Container(
+      width: double.maxFinite,
+      padding: EdgeInsets.symmetric(horizontal: 22.h, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: appTheme.deepPurple50,
+        borderRadius: BorderRadiusStyle.roundedBorder8,
+      ),
+      child: Text(
+        "Use your current route to offer a ride price for this passenger request.",
+        style: CustomTextStyles.bodySmallDeeppurple600,
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
-  // Section Widget
-  Widget _buildButtonnav(BuildContext context){
+  Widget _buildLocation(
+    BuildContext context, {
+    required String origin,
+    required String destination,
+  }) {
+    return SizedBox(
+      width: double.maxFinite,
+      child: Column(
+        children: [
+          CustomRadioButton(
+            text: origin,
+            value: origin,
+            groupValue: _radioGroup,
+            padding: EdgeInsets.symmetric(horizontal: 30.h, vertical: 14.h),
+            decoration: RadioStyleHelper.fillOnPrimary,
+            onChange: (value) {
+              setState(() {
+                _radioGroup = value;
+              });
+            },
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 16.h),
+            child: CustomRadioButton(
+              text: destination,
+              value: destination,
+              groupValue: _radioGroup,
+              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 14.h),
+              decoration: RadioStyleHelper.fillOnPrimary,
+              onChange: (value) {
+                setState(() {
+                  _radioGroup = value;
+                });
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceChips(BuildContext context, {required String currentValue}) {
+    final base = double.tryParse(currentValue) ?? 1000;
+    final suggestions = <String>[
+      base.toStringAsFixed(0),
+      (base + 200).toStringAsFixed(0),
+      (base + 400).toStringAsFixed(0),
+      (base + 600).toStringAsFixed(0),
+    ];
+
+    return Wrap(
+      spacing: 12.h,
+      children: suggestions.map((value) {
+        final isSelected = _priceController.text.trim() == value;
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _priceController.text = value;
+            });
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: isSelected ? theme.colorScheme.primary : appTheme.gray10001,
+              borderRadius: BorderRadiusStyle.roundedBorder8,
+            ),
+            child: Text(
+              'NGN $value',
+              style: isSelected
+                  ? CustomTextStyles.labelLargeOnPrimary
+                  : CustomTextStyles.labelLargeGray600,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildButtonnav(BuildContext context, {required String requestId}) {
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.fromLTRB(16.h, 20.h, 16.h, 22.h),
@@ -278,14 +288,55 @@ class RideSharingTaskBottomsheetOne extends StatelessWidget{
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildBidprice(context),
+          CustomElevatedButton(
+            text: "Bid Price",
+            buttonStyle: CustomButtonStyles.fillPrimaryTL41,
+            onPressed: () => _submitBid(requestId),
+          ),
           SizedBox(height: 22.h),
-          Text(
-            "Decline",
-            style: CustomTextStyles.titleSmallRedA700,
+          GestureDetector(
+            onTap: () {
+              NavigatorService.goBack();
+            },
+            child: Text(
+              "Decline",
+              style: CustomTextStyles.titleSmallRedA700,
+            ),
           )
         ],
       ),
     );
+  }
+
+  Future<void> _submitBid(String requestId) async {
+    final price = double.tryParse(_priceController.text.trim());
+    if (requestId.isEmpty || price == null) {
+      Fluttertoast.showToast(msg: 'Enter a valid bid price.');
+      return;
+    }
+
+    try {
+      await _mobilityApiService.bidRideRequest(
+        requestId: requestId,
+        agreedPrice: price,
+      );
+      await ref.read(homeNotifier.notifier).loadPendingTask();
+      Fluttertoast.showToast(msg: 'Bid submitted successfully.');
+      if (!mounted) {
+        return;
+      }
+      NavigatorService.goBack();
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: _mobilityApiService.extractErrorMessage(error),
+      );
+    }
+  }
+
+  String _deriveRideSuggestedPrice(Map<String, dynamic> requestData) {
+    final seats =
+        int.tryParse(requestData['seats_requested']?.toString() ?? '') ?? 1;
+    final base = seats * 1200;
+    return base.toString();
   }
 }

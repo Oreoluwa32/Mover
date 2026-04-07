@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import 'models/user_delivery_qrtab_model.dart';
-import 'notifier/user_delivery_notifier.dart';
 
 class UserDeliveryQrTab extends ConsumerStatefulWidget {
-  const UserDeliveryQrTab({Key? key}) : super(key: key);
+  const UserDeliveryQrTab({Key? key, this.child}) : super(key: key);
+
+  final Widget? child;
 
   @override
   UserDeliveryQrTabState createState() => UserDeliveryQrTabState();
@@ -39,12 +39,13 @@ class UserDeliveryQrTabState extends ConsumerState<UserDeliveryQrTab> {
                 SizedBox(
                   height: 37.h,
                 ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgQRCode,
-                  height: 200.h,
-                  width: double.maxFinite,
-                  margin: EdgeInsets.symmetric(horizontal: 58.h),
-                )
+                widget.child ??
+                    CustomImageView(
+                      imagePath: ImageConstant.imgQRCode,
+                      height: 200.h,
+                      width: double.maxFinite,
+                      margin: EdgeInsets.symmetric(horizontal: 58.h),
+                    )
               ],
             ),
           )

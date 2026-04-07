@@ -1,15 +1,15 @@
 import 'dart:io';
 // import 'package:images_picker/images_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/file_upload_helper.dart';
 import '../../core/utils/permission_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/utils/validation_functions.dart';
+import '../../data/models/selectionPopupModel/selection_popup_model.dart';
+import '../../data/services/account_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -32,21 +32,90 @@ class VehicleInformationScreen extends ConsumerStatefulWidget{
 // ignore for file, class must be immutable
 class VehicleInformationScreenState extends ConsumerState<VehicleInformationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String? _existingVehicleId;
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadVehicle();
+    });
+  }
 
-  final storage = const FlutterSecureStorage();
+  Future<void> _loadVehicle() async {
+    final accountApiService = AccountApiService();
+    try {
+      final vehicles = await accountApiService.getVehicles();
+      if (vehicles.isEmpty) {
+        return;
+      }
 
-  Future<String?> getToken() async {
-    return await storage.read(key: 'auth_token');
+      final vehicle = vehicles.first;
+      _existingVehicleId = vehicle['id']?.toString();
+      final metadata = (vehicle['metadata'] as Map?)?.cast<String, dynamic>() ?? {};
+      final notifier = ref.read(vehicleInfoNotifier.notifier);
+      final state = ref.read(vehicleInfoNotifier);
+
+      state.plateNumber?.text = vehicle['plate_number']?.toString() ?? '';
+
+      final vehicleTypeTitle = _vehicleTypeLabel(vehicle['vehicle_type']?.toString() ?? '');
+      final selectedType = state.vehicleInfoModelObj?.dropdownItemList.firstWhere(
+        (item) => item.title == vehicleTypeTitle,
+        orElse: () => SelectionPopupModel(title: vehicleTypeTitle),
+      );
+      if (selectedType != null && vehicleTypeTitle.isNotEmpty) {
+        notifier.onSelected(selectedType);
+      }
+
+      final make = vehicle['make']?.toString() ?? '';
+      final selectedBrand = state.vehicleInfoModelObj?.dropdownItemList1.firstWhere(
+        (item) => item.title == make,
+        orElse: () => SelectionPopupModel(title: make),
+      );
+      if (selectedBrand != null && make.isNotEmpty) {
+        notifier.onSelected1(selectedBrand);
+      }
+
+      final color = vehicle['color']?.toString() ?? '';
+      final selectedColor = state.vehicleInfoModelObj?.dropdownItemList2.firstWhere(
+        (item) => item.title == color,
+        orElse: () => SelectionPopupModel(title: color),
+      );
+      if (selectedColor != null && color.isNotEmpty) {
+        notifier.onSelected2(selectedColor);
+      }
+
+      if (_isExistingLocalFile(metadata['vehicle_photo'])) {
+        notifier.uploadVehiclePhoto(metadata['vehicle_photo'] as String);
+      }
+      if (_isExistingLocalFile(metadata['driver_license'])) {
+        notifier.uploadDriverLicense(metadata['driver_license'] as String);
+      }
+      if (_isExistingLocalFile(metadata['vehicle_report'])) {
+        notifier.uploadVehicleReport(metadata['vehicle_report'] as String);
+      }
+      if (_isExistingLocalFile(metadata['vehicle_insurance'])) {
+        notifier.uploadVehicleInsurance(metadata['vehicle_insurance'] as String);
+      }
+    } catch (_) {
+      // Keep form usable even if no existing vehicle is available.
+    }
+  }
+
+  bool _isExistingLocalFile(dynamic value) {
+    if (value is! String || value.isEmpty) {
+      return false;
+    }
+    try {
+      return File(value).existsSync();
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> updateVehicleInfo(BuildContext context) async {
-  final token = await getToken();
-  if (token == null) {
-    Fluttertoast.showToast(msg: "No token found. Please log in first.");
-    return;
-  }
-
-  final notifierState = ref.watch(vehicleInfoNotifier);
+  final accountApiService = AccountApiService();
+  final notifierState = ref.read(vehicleInfoNotifier);
 
   // Convert images to Base64
   final vehiclePhotoBase64 = notifierState.vehiclePhotoPath != null
@@ -66,45 +135,80 @@ class VehicleInformationScreenState extends ConsumerState<VehicleInformationScre
             File(notifierState.vehicleInsurancePath!).readAsBytesSync())
         : null;
 
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-vehicle/');
-  final requestBody = {
-    "vehicle_plate_number": notifierState.plateNumber?.text,
-    "vehicle_type": notifierState.selectedDropDownValue?.title,
-    "vehicle_brand": notifierState.selectedDropDownValue1?.title,
-    "vehicle_color": notifierState.selectedDropDownValue2?.title,
-    if (vehiclePhotoBase64 != null)
-        "vehicle_photo": vehiclePhotoBase64,
-      if (driverLicenseBase64 != null)
-        "driver_license": driverLicenseBase64,
-      // if (vehicleInspectorReportBase64 != null)
-      //   "vehicle_inspector_report": vehicleInspectorReportBase64,
-      if (vehicleInsuranceBase64 != null)
-        "vehicle_insurance": vehicleInsuranceBase64,
-  };
-
   try {
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Token $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
+    final vehicleType = _vehicleTypeValue(
+      notifierState.selectedDropDownValue?.title ?? '',
     );
+    final make = notifierState.selectedDropDownValue1?.title ?? '';
+    final model = notifierState.selectedDropDownValue1?.title ?? '';
+    final color = notifierState.selectedDropDownValue2?.title ?? '';
+    final plateNumber = notifierState.plateNumber?.text ?? '';
+    final metadata = <String, dynamic>{
+      if (vehiclePhotoBase64 != null) 'vehicle_photo': vehiclePhotoBase64,
+      if (driverLicenseBase64 != null) 'driver_license': driverLicenseBase64,
+      if (notifierState.vehicleReportPath != null)
+        'vehicle_report': base64Encode(
+          File(notifierState.vehicleReportPath!).readAsBytesSync(),
+        ),
+      if (vehicleInsuranceBase64 != null) 'vehicle_insurance': vehicleInsuranceBase64,
+    };
 
-    if (response.statusCode == 200) {
-      final message = jsonDecode(response.body)['message'] ?? 'Update successful';
-      Fluttertoast.showToast(msg: message);
+    if (_existingVehicleId != null && _existingVehicleId!.isNotEmpty) {
+      await accountApiService.updateVehicle(
+        vehicleId: _existingVehicleId!,
+        vehicleType: vehicleType,
+        make: make,
+        model: model,
+        color: color,
+        plateNumber: plateNumber,
+        metadata: metadata,
+      );
+    } else {
+      final vehicle = await accountApiService.createVehicle(
+        vehicleType: vehicleType,
+        make: make,
+        model: model,
+        color: color,
+        plateNumber: plateNumber,
+        metadata: metadata,
+      );
+      _existingVehicleId = vehicle['id']?.toString();
+    }
+
+    Fluttertoast.showToast(msg: 'Vehicle information updated successfully');
+    if (context.mounted) {
       Navigator.pushNamed(context, AppRoutes.verificationScreen);
-    } 
-    else {
-      final error = jsonDecode(response.body)['error'] ?? 'Failed to update vehicle information';
-      Fluttertoast.showToast(msg: error);
     }
   } catch (e) {
-    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+    Fluttertoast.showToast(msg: accountApiService.extractErrorMessage(e));
   }
 }
+
+  String _vehicleTypeValue(String title) {
+    switch (title.toLowerCase()) {
+      case 'car':
+        return 'car';
+      case 'bike':
+        return 'bike';
+      case 'truck':
+        return 'truck';
+      default:
+        return 'car';
+    }
+  }
+
+  String _vehicleTypeLabel(String value) {
+    switch (value.toLowerCase()) {
+      case 'car':
+        return 'Car';
+      case 'bike':
+        return 'Bike';
+      case 'truck':
+        return 'Truck';
+      default:
+        return value;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

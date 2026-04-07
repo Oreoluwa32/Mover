@@ -328,8 +328,7 @@ class SetDateBottomsheetState extends ConsumerState<SetDateBottomsheet> {
 
         final dateRangeText =
             '${startDate.format(pattern: dateTimeFormatPattern)} - ${endDate.format(pattern: dateTimeFormatPattern)}';
-        
-        ref.read(addRouteTwoNotifier).setDateController?.text = dateRangeText;
+        ref.read(addRouteTwoNotifier.notifier).updateDateField(dateRangeText);
         
         Navigator.pop(context);
       },

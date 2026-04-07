@@ -19,7 +19,7 @@ class SavedrouteItemWidget extends StatelessWidget {
         vertical: 12.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         borderRadius: BorderRadiusStyle.roundedBorder8,
         border: Border.all(color: appTheme.gray20001, width: 1.h),
       ),
@@ -30,12 +30,43 @@ class SavedrouteItemWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  savedrouteItemModelObj.routetitle!,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: appTheme.gray800,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        savedrouteItemModelObj.routetitle!,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: appTheme.gray800,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if ((savedrouteItemModelObj.islive ?? false) ||
+                        (savedrouteItemModelObj.status?.isNotEmpty ?? false))
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.h,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (savedrouteItemModelObj.islive ?? false)
+                              ? appTheme.lightGreen100
+                              : appTheme.gray100,
+                          borderRadius: BorderRadius.circular(12.h),
+                        ),
+                        child: Text(
+                          (savedrouteItemModelObj.islive ?? false)
+                              ? 'Live'
+                              : savedrouteItemModelObj.status!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: (savedrouteItemModelObj.islive ?? false)
+                                ? appTheme.lightGreen900
+                                : appTheme.gray600,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(height: 8.h),
                 Text(

@@ -1,56 +1,29 @@
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'dart:io';
 import '../../core/app_export.dart';
-import '../../core/utils/file_upload_helper.dart';
 import '../../core/utils/permission_manager.dart';
+import '../../data/services/account_api_service.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_title.dart';
 import '../../widgets/user_avatar.dart';
 import '../transaction_history_screen/transaction_history_screen.dart';
-import '../activity_in_progress_page/activity_in_progress_page.dart';
-import '../home_one_screen/home_one_initial_page.dart';
-import '../my_route_page/my_route_page.dart';
 import '../wallet/notifier/wallet_notifier.dart';
 import 'notifier/profile_screen_notifier.dart';
-
-// Secure storage instance
-final storage = FlutterSecureStorage();
 
 // Function to handle to log out the user 
 Future<void> logoutUser(BuildContext context) async {
   try {
-    final token = await storage.read(key: 'auth_token');
-    
-    if (token != null) {
-      final url = Uri.parse('https://demosystem.pythonanywhere.com/logout/');
-      // We don't necessarily need to wait for the response to clear local data, 
-      // but it's good practice to attempt the server-side logout.
-      await http.post(
-        url,
-        headers: {
-          "Authorization": "Token $token",
-          "Content-Type": "application/json"
-        },
-      );
-    }
-
-    await storage.deleteAll();
+    await AccountApiService().clearSession();
     if (context.mounted) {
       NavigatorService.pushNamedAndRemoveUntil(
         AppRoutes.signInScreen,
       );
     }
   } catch (e) {
-    print('Logout error: $e');
-    // Still clear storage and navigate even if API fails
-    await storage.deleteAll();
+    await AccountApiService().clearSession();
     if (context.mounted) {
       NavigatorService.pushNamedAndRemoveUntil(
         AppRoutes.signInScreen,
@@ -73,7 +46,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize notifier if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AccountApiService().hydrateSessionFromMe();
+      ref.invalidate(userNameProvider);
+      ref.invalidate(profileImagePathProvider);
+      final imagePath = await PrefUtils().getProfileImagePath();
+      ref.read(globalProfileImagePathProvider.notifier).updatePath(imagePath);
+    });
   }
 
   @override

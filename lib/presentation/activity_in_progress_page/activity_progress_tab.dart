@@ -15,6 +15,14 @@ class ActivityProgressTab extends ConsumerStatefulWidget {
 
 class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(activityProgressNotifier.notifier).fetchActivities();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.h),
@@ -34,6 +42,35 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
     return Expanded(
       child: Consumer(
         builder: (context, ref, _) {
+          final state = ref.watch(activityProgressNotifier);
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.h),
+                child: Text(
+                  state.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            );
+          }
+
+          final items = state.activityProgressTabModelObj?.progressList ?? [];
+          if (items.isEmpty) {
+            return Center(
+              child: Text(
+                "No active ride or delivery requests right now.",
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
           return ListView.separated(
             padding: EdgeInsets.zero,
             physics: BouncingScrollPhysics(),
@@ -41,12 +78,27 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
             separatorBuilder: (context, index) {
               return SizedBox(height: 16.h);
             },
-            itemCount: ref.watch(activityProgressNotifier).activityProgressTabModelObj?.progressList.length ?? 0,
+            itemCount: items.length,
             itemBuilder: (context, index) {
-              ProgressItemModel model = ref.watch(activityProgressNotifier).activityProgressTabModelObj?.progressList[index] ?? ProgressItemModel();
+              ProgressItemModel model = items[index];
               return GestureDetector(
                 onTap: () {
-                  NavigatorService.pushNamed(AppRoutes.userDeliveryBottomsheetOne);
+                  NavigatorService.pushNamed(
+                    AppRoutes.userDeliveryBottomsheetOne,
+                    arguments: {
+                      'requestId': model.requestId,
+                      'requestType': model.requestType,
+                      'pickupLocation': model.pickupLocation,
+                      'destinationLocation': model.destinationLocation,
+                      'date': model.date,
+                      'time': model.time,
+                      'status': model.status,
+                      'moverName': model.moverName,
+                      'rating': model.rating,
+                      'price': model.price,
+                      'travelPlanId': model.matchedTravelPlanId,
+                    },
+                  );
                 },
                 child: ProgressItemWidget(model),
               );

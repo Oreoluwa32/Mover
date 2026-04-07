@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 import '../../core/app_export.dart';
+import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
-import '../../widgets/custom_radio_button.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/custom_radio_button.dart';
 import '../../widgets/custom_text_form_field.dart';
-import 'models/delivery_task_item_model.dart';
-import 'notifier/delivery_task_notifier.dart';
-import 'widgets/delivery_task_one_bottomsheet_widget.dart'; // ignore for file, class must be immuatble
+import '../home_one_screen/notifier/home_notifier.dart';
 
 class DeliveryTaskOneBottomsheet extends ConsumerStatefulWidget {
   const DeliveryTaskOneBottomsheet({super.key});
@@ -17,8 +18,37 @@ class DeliveryTaskOneBottomsheet extends ConsumerStatefulWidget {
 
 class DeliveryTaskBottomsheetState
     extends ConsumerState<DeliveryTaskOneBottomsheet> {
+  final MobilityApiService _mobilityApiService = MobilityApiService();
+  final TextEditingController _priceController = TextEditingController();
+  String _radioGroup = "";
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            const <String, dynamic>{};
+    final requestData =
+        Map<String, dynamic>.from(args['requestData'] as Map? ?? const <String, dynamic>{});
+    final pickup = requestData['pickup_name']?.toString() ?? 'Pickup';
+    final dropoff = requestData['dropoff_name']?.toString() ?? 'Destination';
+    final requesterName =
+        requestData['requester']?['full_name']?.toString() ?? 'Movr user';
+    final requestId = requestData['id']?.toString() ?? '';
+    final description =
+        requestData['package_description']?.toString() ?? 'No description provided.';
+    final suggestedPrice = _deriveDeliverySuggestedPrice(requestData);
+    final weightLabel = _mapWeightLabel(requestData['weight_kg']?.toString());
+
+    if (_priceController.text.isEmpty) {
+      _priceController.text = suggestedPrice;
+    }
+
     return Material(
       child: SizedBox(
         width: double.maxFinite,
@@ -35,116 +65,70 @@ class DeliveryTaskBottomsheetState
                 SizedBox(height: 16.h),
                 _buildTitle(context),
                 SizedBox(height: 30.h),
-                SizedBox(
-                  height: 642.h,
+                Container(
                   width: double.maxFinite,
-                  child: Stack(
-                    alignment: Alignment.center,
+                  padding: EdgeInsets.symmetric(horizontal: 16.h),
+                  child: Column(
                     children: [
+                      Text(
+                        "Open request",
+                        style: CustomTextStyles.bodyMediumMulishGray800,
+                      ),
+                      SizedBox(height: 28.h),
+                      _buildName(context, requesterName: requesterName, weightLabel: weightLabel),
+                      SizedBox(height: 16.h),
                       Container(
-                        width: double.maxFinite,
-                        padding: EdgeInsets.symmetric(horizontal: 16.h),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Text(
-                              "Expires in 01:00",
-                              style: CustomTextStyles.bodyMediumMulishGray800,
-                            ),
-                            SizedBox(height: 28.h),
-                            _buildName(context),
-                            SizedBox(height: 16.h),
-                            Container(
-                                width: 320.h,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 14.h,
-                                  vertical: 10.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: appTheme.deepPurple50,
-                                  borderRadius:
-                                      BorderRadiusStyle.roundedBorder4,
-                                ),
-                                child: Text(
-                                  "1234 movers are heading to the same destination",
-                                  style:
-                                      CustomTextStyles.bodySmallDeeppurple600,
-                                  textAlign: TextAlign.center,
-                                )),
-                            SizedBox(height: 16.h),
-                            _buildLocation(context),
-                            SizedBox(height: 14.h),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "Price",
-                                style: CustomTextStyles.labelLargeGray600,
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Consumer(
-                              builder: (context, ref, _) {
-                                return CustomTextFormField(
-                                  controller: ref
-                                      .watch(deliveryTaskNotifier)
-                                      .priceController,
-                                  hintText: "NGN",
-                                  hintStyle: theme.textTheme.bodySmall!,
-                                  textInputAction: TextInputAction.done,
-                                  contentPadding: EdgeInsets.fromLTRB(
-                                      14.h, 16.h, 14.h, 14.h),
-                                );
-                              },
-                            ),
-                            SizedBox(height: 8.h),
-                            _buildPrices(context),
-                            SizedBox(height: 40.h),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "Item Image",
-                                style: theme.textTheme.labelLarge,
-                              ),
-                            ),
-                            SizedBox(height: 10.h),
-                            CustomImageView(
-                              imagePath: ImageConstant.imgShoes,
-                              height: 164.h,
-                              width: double.maxFinite,
-                              radius: BorderRadius.circular(8.h),
-                            ),
-                            // SizedBox(height: 4.h),
-                            // CustomImageView(
-                            //   imagePath: ImageConstant.imgSearch,
-                            //   height: 24.h,
-                            //   width: 24.h,
-                            //   alignment: Alignment.centerLeft,
-                            // ),
-                            Text(
-                              "Item Description",
-                              style: theme.textTheme.labelLarge,
-                            ),
-                            SizedBox(height: 16.h),
-                            // CustomTextFormField(
-                            //   controller: itemController,
-                            //   hintText: "Enter the item description",
-                            //   hintStyle: theme.textTheme.bodySmall,
-                            //   textInputAction: TextInputAction.done,
-                            //   contentPadding:
-                            //       EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                            //   textStyle: CustomTextStyles.bodySmallGray800,
-                            // )
-                            Text(
-                              "Box of assorted clothes for delivery. This package contains a mix of casual and formal wear, including shirts, pants, dresses, and accessories. All items are clean, neatly folded, and in excellent condition.",
-                              style: CustomTextStyles.bodySmallGray800,
-                            )
-                          ],
+                        width: 320.h,
+                        padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: appTheme.deepPurple50,
+                          borderRadius: BorderRadiusStyle.roundedBorder4,
+                        ),
+                        child: Text(
+                          "Set the amount you want to earn for handling this delivery.",
+                          style: CustomTextStyles.bodySmallDeeppurple600,
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      _buildButtonnav(context)
+                      SizedBox(height: 16.h),
+                      _buildLocation(context, pickup: pickup, dropoff: dropoff),
+                      SizedBox(height: 14.h),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Price",
+                          style: CustomTextStyles.labelLargeGray600,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      CustomTextFormField(
+                        controller: _priceController,
+                        hintText: "NGN",
+                        hintStyle: theme.textTheme.bodySmall!,
+                        textInputAction: TextInputAction.done,
+                        contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                        textInputType: TextInputType.number,
+                      ),
+                      SizedBox(height: 8.h),
+                      _buildPrices(context, currentValue: suggestedPrice),
+                      SizedBox(height: 32.h),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Item Description",
+                          style: theme.textTheme.labelLarge,
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        description,
+                        style: CustomTextStyles.bodySmallGray800,
+                      ),
+                      SizedBox(height: 32.h),
                     ],
                   ),
-                )
+                ),
+                _buildButtonnav(context, requestId: requestId),
               ],
             ),
           ),
@@ -153,46 +137,42 @@ class DeliveryTaskBottomsheetState
     );
   }
 
-  // Section Widget
   Widget _buildTitle(BuildContext context) {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
       child: Column(
         children: [
-          SizedBox(
-            width: 50.h,
-            child: Divider(),
-          ),
+          SizedBox(width: 50.h, child: const Divider()),
           SizedBox(height: 16.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  "Delivery task",
-                  style: CustomTextStyles.titleMediumGray80001,
-                ),
-                CustomImageView(
-                  imagePath: ImageConstant.imgCancel,
-                  height: 24.h,
-                  width: 24.h,
-                  margin: EdgeInsets.only(left: 98.h),
-                  onTap: () {
-                    NavigatorService.pushNamed(AppRoutes.homeOneScreen);
-                  },
-                )
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                "Delivery task",
+                style: CustomTextStyles.titleMediumGray80001,
+              ),
+              CustomImageView(
+                imagePath: ImageConstant.imgCancel,
+                height: 24.h,
+                width: 24.h,
+                margin: EdgeInsets.only(left: 98.h),
+                onTap: () {
+                  NavigatorService.goBack();
+                },
+              )
+            ],
           )
         ],
       ),
     );
   }
 
-  // Section Widget
-  Widget _buildName(BuildContext context) {
+  Widget _buildName(
+    BuildContext context, {
+    required String requesterName,
+    required String weightLabel,
+  }) {
     return SizedBox(
       width: double.maxFinite,
       child: Row(
@@ -202,9 +182,7 @@ class DeliveryTaskBottomsheetState
             imagePath: ImageConstant.imgProfile,
             height: 50.h,
             width: 50.h,
-            radius: BorderRadius.circular(
-              24.h,
-            ),
+            radius: BorderRadius.circular(24.h),
           ),
           Expanded(
             child: Container(
@@ -214,42 +192,13 @@ class DeliveryTaskBottomsheetState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "John Doe",
+                    requesterName,
                     style: CustomTextStyles.bodyMediumMulishGray800,
                   ),
                   SizedBox(height: 4.h),
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: Row(
-                      children: [
-                        Text(
-                          "10m away",
-                          style: CustomTextStyles.bodySmallInterGray600,
-                        ),
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Container(
-                            height: 2.h,
-                            width: 2.h,
-                            margin: EdgeInsets.only(
-                              left: 4.h,
-                              top: 6.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: appTheme.gray700,
-                              borderRadius: BorderRadius.circular(1.h),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 4.h),
-                          child: Text(
-                            "2mins",
-                            style: CustomTextStyles.bodySmallInterGray600,
-                          ),
-                        )
-                      ],
-                    ),
+                  Text(
+                    "Requester waiting for a mover",
+                    style: CustomTextStyles.bodySmallInterGray600,
                   )
                 ],
               ),
@@ -268,7 +217,7 @@ class DeliveryTaskBottomsheetState
               children: [
                 SizedBox(height: 1.5.h),
                 Text(
-                  "Light",
+                  weightLabel,
                   style: CustomTextStyles.labelMediumInterOnPrimary,
                 )
               ],
@@ -279,44 +228,43 @@ class DeliveryTaskBottomsheetState
     );
   }
 
-  // Section WIdget
-  Widget _buildLocation(BuildContext context) {
+  Widget _buildLocation(
+    BuildContext context, {
+    required String pickup,
+    required String dropoff,
+  }) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
         children: [
           CustomRadioButton(
-            text: "Muritala Mohammed Airport",
-            value: "Muritala Mohammed Airport",
-            groupValue: ref.watch(deliveryTaskNotifier).radioGroup,
-            padding: EdgeInsets.symmetric(
-              horizontal: 30.h,
-              vertical: 14.h,
-            ),
+            text: pickup,
+            value: pickup,
+            groupValue: _radioGroup,
+            padding: EdgeInsets.symmetric(horizontal: 30.h, vertical: 14.h),
             isExpandedText: true,
             overflow: TextOverflow.ellipsis,
             decoration: RadioStyleHelper.fillOnPrimary,
             onChange: (value) {
-              ref.read(deliveryTaskNotifier.notifier).changeRadioButton(value);
+              setState(() {
+                _radioGroup = value;
+              });
             },
           ),
           Padding(
             padding: EdgeInsets.only(top: 16.h),
             child: CustomRadioButton(
-              text: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-              value: "Gateway Zone, Magodo Phase II, GRA Lagos State",
-              groupValue: ref.watch(deliveryTaskNotifier).radioGroup,
-              padding: EdgeInsets.symmetric(
-                horizontal: 20.h,
-                vertical: 14.h,
-              ),
+              text: dropoff,
+              value: dropoff,
+              groupValue: _radioGroup,
+              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 14.h),
               isExpandedText: true,
               overflow: TextOverflow.ellipsis,
               decoration: RadioStyleHelper.fillOnPrimary,
               onChange: (value) {
-                ref
-                    .read(deliveryTaskNotifier.notifier)
-                    .changeRadioButton(value);
+                setState(() {
+                  _radioGroup = value;
+                });
               },
             ),
           )
@@ -325,78 +273,124 @@ class DeliveryTaskBottomsheetState
     );
   }
 
-  // Section Wigdet
-  Widget _buildPrices(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(right: 92.h),
+  Widget _buildPrices(BuildContext context, {required String currentValue}) {
+    final base = double.tryParse(currentValue) ?? 1000;
+    final suggestions = <String>[
+      base.toStringAsFixed(0),
+      (base + 300).toStringAsFixed(0),
+      (base + 600).toStringAsFixed(0),
+      (base + 900).toStringAsFixed(0),
+    ];
+
+    return SizedBox(
       width: double.maxFinite,
-      child: Consumer(builder: (context, ref, _) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Wrap(
-            direction: Axis.horizontal,
-            spacing: 12.h,
-            children: List.generate(
-              ref
-                      .watch(deliveryTaskNotifier)
-                      .deliveryTaskModelObj
-                      ?.deliveryTaskItemList
-                      .length ??
-                  0,
-              (index) {
-                DeliveryTaskItemModel model = ref
-                        .watch(deliveryTaskNotifier)
-                        .deliveryTaskModelObj
-                        ?.deliveryTaskItemList[index] ??
-                    DeliveryTaskItemModel();
-                return DeliveryTaskOneBottomsheetWidget(model);
-              },
+      child: Wrap(
+        spacing: 12.h,
+        children: suggestions.map((value) {
+          final isSelected = _priceController.text.trim() == value;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _priceController.text = value;
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: isSelected ? theme.colorScheme.primary : appTheme.gray10001,
+                borderRadius: BorderRadiusStyle.roundedBorder8,
+              ),
+              child: Text(
+                'NGN $value',
+                style: isSelected
+                    ? CustomTextStyles.labelLargeOnPrimary
+                    : CustomTextStyles.labelLargeGray600,
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  // Section Widget
-  Widget _buildButtonnav(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.fromLTRB(16.h, 22.h, 16.h, 24.h),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withOpacity(1),
-          border: Border(
-            top: BorderSide(
-              color: appTheme.gray20001,
-              width: 1.h,
-            ),
+  Widget _buildButtonnav(BuildContext context, {required String requestId}) {
+    return Container(
+      width: double.maxFinite,
+      padding: EdgeInsets.fromLTRB(16.h, 22.h, 16.h, 24.h),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+        border: Border(
+          top: BorderSide(
+            color: appTheme.gray20001,
+            width: 1.h,
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomElevatedButton(
-              text: "Bid Price",
-              buttonStyle: CustomButtonStyles.fillBlueGray,
-              onPressed: () {
-                NavigatorService.pushNamed(AppRoutes.deliveryPickupScreenOne);
-              },
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomElevatedButton(
+            text: "Bid Price",
+            buttonStyle: CustomButtonStyles.fillPrimaryTL41,
+            onPressed: () => _submitBid(requestId),
+          ),
+          SizedBox(height: 22.h),
+          GestureDetector(
+            onTap: () {
+              NavigatorService.goBack();
+            },
+            child: Text(
+              "Decline",
+              style: CustomTextStyles.titleSmallRedA700Medium,
             ),
-            SizedBox(height: 22.h,),
-            GestureDetector(
-              onTap: () {
-                NavigatorService.pushNamed(AppRoutes.rideCancelScreenOne);
-              },
-              child: Text(
-                "Decline",
-                style: CustomTextStyles.titleSmallRedA700Medium
-              )
-            )
-          ],
-        ),
+          )
+        ],
       ),
     );
+  }
+
+  Future<void> _submitBid(String requestId) async {
+    final price = double.tryParse(_priceController.text.trim());
+    if (requestId.isEmpty || price == null) {
+      Fluttertoast.showToast(msg: 'Enter a valid bid price.');
+      return;
+    }
+
+    try {
+      await _mobilityApiService.bidDeliveryRequest(
+        requestId: requestId,
+        agreedPrice: price,
+      );
+      await ref.read(homeNotifier.notifier).loadPendingTask();
+      Fluttertoast.showToast(msg: 'Bid submitted successfully.');
+      if (!mounted) {
+        return;
+      }
+      NavigatorService.goBack();
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: _mobilityApiService.extractErrorMessage(error),
+      );
+    }
+  }
+
+  String _deriveDeliverySuggestedPrice(Map<String, dynamic> requestData) {
+    final insuredValue =
+        double.tryParse(requestData['insured_value']?.toString() ?? '') ?? 0;
+    final weight = double.tryParse(requestData['weight_kg']?.toString() ?? '') ?? 0;
+    final base = insuredValue > 0 ? insuredValue * 0.01 : (weight * 250);
+    final safeBase = base <= 0 ? 1000 : base;
+    return safeBase.toStringAsFixed(0);
+  }
+
+  String _mapWeightLabel(String? weightKg) {
+    final value = double.tryParse(weightKg ?? '') ?? 0;
+    if (value >= 8) {
+      return 'Heavy';
+    }
+    if (value >= 3) {
+      return 'Medium';
+    }
+    return 'Light';
   }
 }

@@ -47,6 +47,19 @@ def _find_matching_plan_for_delivery(instance: DeliveryRequest):
     )
 
 
+def _resolve_owner_travel_plan(user, provided_id: str | None, allowed_types: list[str]):
+    queryset = TravelPlan.objects.filter(
+        created_by=user,
+        status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
+        plan_type__in=allowed_types,
+    ).order_by("-departure_time")
+
+    if provided_id:
+        return queryset.filter(id=provided_id).first()
+
+    return queryset.first()
+
+
 class TravelPlanViewSet(viewsets.ModelViewSet):
     serializer_class = TravelPlanSerializer
 
@@ -116,6 +129,46 @@ class RideRequestViewSet(viewsets.ModelViewSet):
                 status=TravelMatch.Status.PROPOSED,
             )
 
+    @action(detail=True, methods=["post"])
+    def bid(self, request, pk=None):
+        ride_request = self.get_queryset().model.objects.filter(id=pk).exclude(requester=request.user).first()
+        if not ride_request:
+            return response.Response({"detail": "Ride request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if ride_request.status == RideRequest.Status.CANCELLED:
+            return response.Response({"detail": "This ride request is no longer available."}, status=status.HTTP_400_BAD_REQUEST)
+
+        travel_plan = _resolve_owner_travel_plan(
+            request.user,
+            request.data.get("travel_plan_id"),
+            [TravelPlan.PlanType.RIDE, TravelPlan.PlanType.HYBRID],
+        )
+        if not travel_plan:
+            return response.Response(
+                {"detail": "Create or publish a ride route before bidding."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        agreed_price = request.data.get("agreed_price") or travel_plan.price_per_seat * ride_request.seats_requested
+        travel_match, _ = TravelMatch.objects.update_or_create(
+            travel_plan=travel_plan,
+            ride_request=ride_request,
+            defaults={
+                "match_type": TravelMatch.MatchType.RIDE,
+                "agreed_price": agreed_price,
+                "status": TravelMatch.Status.PROPOSED,
+            },
+        )
+
+        ride_request.matched_plan = travel_plan
+        ride_request.status = RideRequest.Status.MATCHED
+        ride_request.save(update_fields=["matched_plan", "status", "updated_at"])
+
+        return response.Response(
+            TravelMatchSerializer(travel_match).data,
+            status=status.HTTP_201_CREATED,
+        )
+
 
 class DeliveryRequestViewSet(viewsets.ModelViewSet):
     serializer_class = DeliveryRequestSerializer
@@ -140,6 +193,47 @@ class DeliveryRequestViewSet(viewsets.ModelViewSet):
                 agreed_price=max(matched_plan.price_per_seat, instance.insured_value * 0.01),
                 status=TravelMatch.Status.PROPOSED,
             )
+
+    @action(detail=True, methods=["post"])
+    def bid(self, request, pk=None):
+        delivery_request = self.get_queryset().model.objects.filter(id=pk).exclude(requester=request.user).first()
+        if not delivery_request:
+            return response.Response({"detail": "Delivery request not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if delivery_request.status == DeliveryRequest.Status.CANCELLED:
+            return response.Response({"detail": "This delivery request is no longer available."}, status=status.HTTP_400_BAD_REQUEST)
+
+        travel_plan = _resolve_owner_travel_plan(
+            request.user,
+            request.data.get("travel_plan_id"),
+            [TravelPlan.PlanType.DELIVERY, TravelPlan.PlanType.HYBRID],
+        )
+        if not travel_plan:
+            return response.Response(
+                {"detail": "Create or publish a delivery route before bidding."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        base_price = max(float(travel_plan.price_per_seat), float(delivery_request.insured_value) * 0.01)
+        agreed_price = request.data.get("agreed_price") or base_price
+        travel_match, _ = TravelMatch.objects.update_or_create(
+            travel_plan=travel_plan,
+            delivery_request=delivery_request,
+            defaults={
+                "match_type": TravelMatch.MatchType.DELIVERY,
+                "agreed_price": agreed_price,
+                "status": TravelMatch.Status.PROPOSED,
+            },
+        )
+
+        delivery_request.matched_plan = travel_plan
+        delivery_request.status = DeliveryRequest.Status.MATCHED
+        delivery_request.save(update_fields=["matched_plan", "status", "updated_at"])
+
+        return response.Response(
+            TravelMatchSerializer(travel_match).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):

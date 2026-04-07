@@ -1,17 +1,20 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/core/config/app_environment.dart';
+import 'package:movr/data/services/mobility_api_service.dart';
 
 /// Service for handling user-related API calls to the backend
 class UserApiService {
   late final Dio _dio;
   final FlutterSecureStorage _storage;
   final String baseUrl;
+  final MobilityApiService _mobilityApiService;
 
   UserApiService({
     String? customBaseUrl,
   })  : baseUrl = customBaseUrl ?? AppEnvironment.apiBaseUrl,
-        _storage = const FlutterSecureStorage() {
+        _storage = const FlutterSecureStorage(),
+        _mobilityApiService = MobilityApiService(customBaseUrl: customBaseUrl) {
     _initializeDio();
   }
 
@@ -69,8 +72,17 @@ class UserApiService {
     required bool isLive,
   }) async {
     try {
+      var resolvedRouteId = routeId;
+      if (resolvedRouteId.isEmpty) {
+        final latestTravelPlan = await _mobilityApiService.getLatestTravelPlan();
+        resolvedRouteId = latestTravelPlan?['id']?.toString() ?? '';
+      }
+      if (resolvedRouteId.isEmpty) {
+        throw Exception('Create a route first before going live.');
+      }
+
       final response = await _dio.post(
-        '/toggle-is-live/$routeId/',
+        '/toggle-is-live/$resolvedRouteId/',
         data: {
           'is_live': isLive,
         },

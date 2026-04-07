@@ -1,12 +1,11 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:country_pickers/country.dart';
 import 'package:country_pickers/country_pickers.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
+import '../../data/services/account_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -14,6 +13,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_phone_number.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../profile_screen/notifier/profile_screen_notifier.dart';
 import 'notifier/personal_information_notifier.dart';
 
 // ignore for file, class must be immutable
@@ -33,9 +33,9 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
   @override
   void initState() {
     super.initState();
-    _initializeEmail();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addListeners();
+      _loadProfile();
     });
   }
 
@@ -87,28 +87,36 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
     super.dispose();
   }
 
-  Future<void> _initializeEmail() async {
-    final storage = FlutterSecureStorage();
-    final email = await storage.read(key: 'user_email');
-    if (email != null) {
-      ref.read(personalInformationNotifier).emailController?.text = email;
-      _updateFormValidation();
-    }
-  }
+  Future<void> _loadProfile() async {
+    final accountApiService = AccountApiService();
+    try {
+      final profile = await accountApiService.getProfile();
+      final notifier = ref.read(personalInformationNotifier);
 
-  Future<String?> getToken() async {
-    final storage = FlutterSecureStorage();
-    return await storage.read(key: 'auth_token');
+      notifier.firstNameController?.text = profile['first_name']?.toString() ?? '';
+      notifier.lastNameController?.text = profile['last_name']?.toString() ?? '';
+      notifier.emailController?.text = profile['email']?.toString() ?? '';
+      notifier.phoneNumberController?.text = profile['phone_number']?.toString().isNotEmpty == true
+          ? profile['phone_number'].toString()
+          : '+234';
+
+      final linkedSocials =
+          (profile['linked_socials'] as Map?)?.cast<String, dynamic>() ?? {};
+      notifier.facebookLinkController?.text =
+          linkedSocials['facebook']?.toString() ?? '';
+      notifier.instagramLinkController?.text =
+          linkedSocials['instagram']?.toString() ?? '';
+      notifier.linkedinLinkController?.text =
+          linkedSocials['linkedin']?.toString() ?? '';
+      _updateFormValidation();
+    } catch (_) {
+      // Keep screen usable even if hydration fails.
+    }
   }
 
   // Function to submit personal information to backend
   Future<void> submitPersonalInformation(BuildContext context, PersonalInformationNotifier personalInfoNotifier) async {
-    
-    final token = await getToken();
-    if (token == null) {
-      Fluttertoast.showToast(msg: "No token found. Please log in first.");
-      return;
-    }
+    final accountApiService = AccountApiService();
 
     final firstName = personalInfoNotifier.state.firstNameController?.text.trim() ?? '';
     final lastName = personalInfoNotifier.state.lastNameController?.text.trim() ?? '';
@@ -116,7 +124,6 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
     final facebookLink = personalInfoNotifier.state.facebookLinkController?.text.trim() ?? '';
     final instagramLink = personalInfoNotifier.state.instagramLinkController?.text.trim() ?? '';
     final linkedinLink = personalInfoNotifier.state.linkedinLinkController?.text.trim() ?? '';
-    final profilePicture = '';
 
     if (!_formKey.currentState!.validate()) {
       Fluttertoast.showToast(msg: "Please correct the errors in the form.");
@@ -136,43 +143,44 @@ class PersonalInformationScreenState extends ConsumerState<PersonalInformationSc
       return;
     }
 
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/update-personal-info/');
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          "Authorization": "Token $token",
-          "Content-Type": "application/json"
+      final response = await accountApiService.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber,
+        linkedSocials: {
+          'facebook': facebookLink,
+          'instagram': instagramLink,
+          'linkedin': linkedinLink,
         },
-        body: json.encode({
-          "first_name": firstName,
-          "last_name": lastName,
-          "phone_number": phoneNumber,
-          "facebook": facebookLink,
-          "instagram": instagramLink,
-          "linkedin": linkedinLink,
-          "profile_picture": profilePicture,
-        }),
       );
 
-      if (response.statusCode == 200) {
-        // Save the updated name to secure storage
-        final storage = FlutterSecureStorage();
-        await storage.write(key: 'user_name', value: '$firstName $lastName'.trim());
-        
-        Fluttertoast.showToast(
-          msg: "Personal information updated successfully.",
-          backgroundColor: appTheme.green50,
-          textColor: Colors.white,
-        );
+      final displayName = '$firstName $lastName'.trim().isNotEmpty
+          ? '$firstName $lastName'.trim()
+          : response['email']?.toString() ?? '';
+      await const FlutterSecureStorage()
+          .write(key: 'user_name', value: displayName);
+      ref.invalidate(userNameProvider);
+
+      final avatarUrl = response['avatar_url']?.toString();
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        await PrefUtils().setProfileImagePath(avatarUrl);
+        ref.invalidate(profileImagePathProvider);
+        ref.read(globalProfileImagePathProvider.notifier).updatePath(avatarUrl);
+      }
+
+      Fluttertoast.showToast(
+        msg: "Personal information updated successfully.",
+        backgroundColor: appTheme.green50,
+        textColor: Colors.white,
+      );
+      if (context.mounted) {
         Navigator.pushNamed(context, AppRoutes.verificationScreen);
-      } else {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['error'] ?? "Failed to update personal information.";
-        Fluttertoast.showToast(msg: errorMessage);
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: "An error occurred. Please try again.");
+      Fluttertoast.showToast(
+        msg: accountApiService.extractErrorMessage(e),
+      );
     }
   }
 

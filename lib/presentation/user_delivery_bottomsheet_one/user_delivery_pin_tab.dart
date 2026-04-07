@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import 'models/user_delivery_pintab_model.dart';
-import 'notifier/user_delivery_notifier.dart';
 
 class UserDeliveryPinTab extends ConsumerStatefulWidget {
-  const UserDeliveryPinTab({Key? key}) : super(key: key);
+  const UserDeliveryPinTab({Key? key, this.pinCode = "265874"}) : super(key: key);
+
+  final String pinCode;
 
   @override
   UserDeliveryPinTabState createState() => UserDeliveryPinTabState();
@@ -50,7 +50,7 @@ class UserDeliveryPinTabState extends ConsumerState<UserDeliveryPinTab> {
                     children: [
                       Text(
                         _isPinVisible
-                            ? "265874" // Show the actual PIN when visible
+                            ? widget.pinCode
                             : "******", // Show asterisks when hidden
                         style: theme.textTheme.titleMedium?.copyWith(
                           letterSpacing: 20.0,

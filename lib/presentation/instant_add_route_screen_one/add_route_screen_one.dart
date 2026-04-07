@@ -1,10 +1,8 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../data/services/mobility_api_service.dart';
 import '../route_settings_bottomsheet/add_route_three_bottomsheet.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
@@ -27,6 +25,8 @@ class AddRouteScreenOne extends ConsumerStatefulWidget {
 }
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
+  final MobilityApiService _mobilityApiService = MobilityApiService();
+
   @override
   void initState() {
     super.initState();
@@ -45,18 +45,52 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     });
   }
 
-  Future<String?> getToken() async {
-    const storage = FlutterSecureStorage();
-    return await storage.read(key: 'auth_token');
+  String _mapPlanType(String title) {
+    final normalized = title.toLowerCase();
+    switch (normalized) {
+      case 'ride':
+      case 'ride-sharing':
+        return 'ride';
+      case 'delivery':
+        return 'delivery';
+      default:
+        return 'hybrid';
+    }
+  }
+
+  String _deriveSearchRequestType(String title) {
+    final normalized = title.toLowerCase();
+    if (normalized.contains('ride')) {
+      return 'ride';
+    }
+    if (normalized.contains('delivery')) {
+      return 'delivery';
+    }
+    return 'delivery';
+  }
+
+  String _mapVehicleType(String title) {
+    switch (title.toLowerCase()) {
+      case 'bike':
+        return 'bike';
+      case 'car':
+        return 'car';
+      case 'truck':
+        return 'truck';
+      case 'bus':
+        return 'bus';
+      case 'train':
+        return 'train';
+      case 'airplane':
+        return 'airplane';
+      case 'public':
+        return 'public_transit';
+      default:
+        return title.toLowerCase().replaceAll(' ', '_');
+    }
   }
 
   Future<void> createRoute(BuildContext context) async {
-    final token = await getToken();
-    if (token == null) {
-      Fluttertoast.showToast(msg: "No token found. Please log in first.");
-      return;
-    }
-
     final notifierState = ref.read(addRouteOneNotifier);
     
     // Validate that coordinates are selected
@@ -65,9 +99,6 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       Fluttertoast.showToast(msg: "Please select locations from the suggestions to get coordinates.");
       return;
     }
-
-    final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/create-route/');
     
     final now = DateTime.now();
     final pickedTime = notifierState.setTimeController?.text.split(':');
@@ -80,50 +111,42 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     ).toUtc();
     
     // Format to YYYY-MM-DDTHH:MM:SSZ to match the working example exactly
-    final formattedDepartureTime = "${departureDateTime.toIso8601String().split('.').first}Z";
-    
-    final requestBody = {
-      "location": notifierState.locationController?.text,
-      "location_latitude": notifierState.locationLat?.toStringAsFixed(6),
-      "location_longitude": notifierState.locationLng?.toStringAsFixed(6),
-      "destination": notifierState.destinationController?.text,
-      "destination_latitude": notifierState.destinationLat?.toStringAsFixed(6),
-      "destination_longitude": notifierState.destinationLng?.toStringAsFixed(6),
-      "transportation_mode":
-          (notifierState.addRouteOneModelObj?.transportMeansList
-              .firstWhere(
-                (item) => item.isSelected,
-                orElse: () => AddRouteOneItemModel(),
-              )
-              .meansTitle ?? "")
-              .toLowerCase(),
-      "service_type": (notifierState.serviceTypeDropDownValue?.title ?? "")
-              .toLowerCase(),
-      "departure_time": formattedDepartureTime
-    };
-    
-    requestBody['stop_location'] = notifierState.stopController?.text ?? "";
-    requestBody['stop_location_latitude'] = (notifierState.stopController?.text.isNotEmpty == true) ? notifierState.stopLat?.toStringAsFixed(6) : null;
-    requestBody['stop_location_longitude'] = (notifierState.stopController?.text.isNotEmpty == true) ? notifierState.stopLng?.toStringAsFixed(6) : null;
 
     try {
-      print('Creating route with body: $requestBody');
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Token $token',
-          'Content-Type': 'application/json',
+      final selectedTransportMode = notifierState.addRouteOneModelObj?.transportMeansList
+          .firstWhere(
+            (item) => item.isSelected,
+            orElse: () => AddRouteOneItemModel(),
+          )
+          .meansTitle;
+
+      final selectedServiceTitle =
+          notifierState.serviceTypeDropDownValue?.title ?? '';
+      final routeData = await _mobilityApiService.createTravelPlan(
+        title:
+            '${notifierState.locationController?.text ?? 'Current location'} to ${notifierState.destinationController?.text ?? 'Destination'}',
+        planType: _mapPlanType(selectedServiceTitle),
+        originName: notifierState.locationController?.text ?? '',
+        originLatitude: notifierState.locationLat,
+        originLongitude: notifierState.locationLng,
+        destinationName: notifierState.destinationController?.text ?? '',
+        destinationLatitude: notifierState.destinationLat,
+        destinationLongitude: notifierState.destinationLng,
+        departureTime: departureDateTime,
+        vehicleType: _mapVehicleType(selectedTransportMode ?? ''),
+        metadata: {
+          'route_kind': 'instant',
+          if (notifierState.stopController?.text.isNotEmpty == true)
+            'stop_location': notifierState.stopController?.text,
+          if (notifierState.stopController?.text.isNotEmpty == true)
+            'stop_location_latitude': notifierState.stopLat,
+          if (notifierState.stopController?.text.isNotEmpty == true)
+            'stop_location_longitude': notifierState.stopLng,
         },
-        body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 30));
+      );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final message = jsonDecode(response.body)['message'] ??
-            'Route created successfully.';
-        Fluttertoast.showToast(msg: message);
+      Fluttertoast.showToast(msg: 'Route created successfully.');
+      if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoutes.homeOneScreen,
           (route) => false,
@@ -135,21 +158,16 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
             'destinationLng': notifierState.destinationLng,
             'destinationName': notifierState.destinationController?.text,
             'highlightRoute': true,
+            'searchNearbyMovers': true,
+            'searchRequestType': _deriveSearchRequestType(selectedServiceTitle),
+            'searchRequestData': routeData,
           },
         );
-      } else {
-        String error = 'Failed to create route.';
-        try {
-          error = jsonDecode(response.body)['error'] ?? error;
-        } catch (e) {
-          error = 'Server error: ${response.statusCode}';
-        }
-        Fluttertoast.showToast(msg: error);
       }
     } catch (e) {
-      print('Route creation error: $e');
       Fluttertoast.showToast(
-          msg: "An error occurred. Please check your connection.");
+        msg: _mobilityApiService.extractErrorMessage(e),
+      );
     }
   }
 

@@ -13,6 +13,14 @@ class ActivityCompletedScreen extends ConsumerStatefulWidget{
 
 class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen> with AutomaticKeepAliveClientMixin<ActivityCompletedScreen>{
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(activityCompletedNotifier.notifier).fetchActivities();
+    });
+  }
+
+  @override
   bool get wantKeepAlive => true;
   @override
   Widget build(BuildContext context) {
@@ -42,12 +50,41 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
     return Expanded(
       child: Consumer(
         builder: (context, ref, _) {
+          final state = ref.watch(activityCompletedNotifier);
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.h),
+                child: Text(
+                  state.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            );
+          }
+
+          final items = state.activityCompletedModelObj?.completedItemList ?? [];
+          if (items.isEmpty) {
+            return Center(
+              child: Text(
+                "No completed ride or delivery requests yet.",
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
           return ListView.separated(
             padding: EdgeInsets.zero,
             physics: BouncingScrollPhysics(),
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              CompletedItemModel model = ref.watch(activityCompletedNotifier).activityCompletedModelObj?.completedItemList[index] ?? CompletedItemModel();
+              CompletedItemModel model = items[index];
               return CompletedItemWidget(model);
             }, 
             separatorBuilder: (context, index) {
@@ -55,7 +92,7 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
                 height: 16.h,
               );
             }, 
-            itemCount: ref.watch(activityCompletedNotifier).activityCompletedModelObj?.completedItemList.length ?? 0,
+            itemCount: items.length,
           );
         },
       ),

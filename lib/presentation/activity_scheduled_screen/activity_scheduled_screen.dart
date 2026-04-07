@@ -13,6 +13,14 @@ class ActivityScheduledScreen extends ConsumerStatefulWidget{
 
 class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen> with AutomaticKeepAliveClientMixin<ActivityScheduledScreen>{
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(activityScheduledNotifier.notifier).fetchActivities();
+    });
+  }
+
+  @override
   bool get wantKeepAlive => true;
   @override
   Widget build(BuildContext context) {
@@ -42,15 +50,58 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
     return Expanded(
       child: Consumer(
         builder: (context, ref, _) {
+          final state = ref.watch(activityScheduledNotifier);
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.h),
+                child: Text(
+                  state.errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            );
+          }
+
+          final items = state.activityScheduledModelObj?.scheduledItemList ?? [];
+          if (items.isEmpty) {
+            return Center(
+              child: Text(
+                "No scheduled ride or delivery requests yet.",
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+
           return ListView.separated(
             padding: EdgeInsets.zero,
             physics: BouncingScrollPhysics(),
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              ScheduledItemModel model = ref.watch(activityScheduledNotifier).activityScheduledModelObj?.scheduledItemList[index] ?? ScheduledItemModel();
+              ScheduledItemModel model = items[index];
               return GestureDetector(
                 onTap: () {
-                  NavigatorService.pushNamed(AppRoutes.scheduleTripBottomsheet);
+                  NavigatorService.pushNamed(
+                    AppRoutes.scheduleTripBottomsheet,
+                    arguments: {
+                      'requestId': model.requestId,
+                      'requestType': model.requestType,
+                      'pickupLocation': model.pickupLocation,
+                      'destinationLocation': model.destinationLocation,
+                      'date': model.date,
+                      'time': model.time,
+                      'status': model.status,
+                      'moverName': model.moverName,
+                      'rating': model.rating,
+                      'price': model.price,
+                    },
+                  );
                 },
                 child: ScheduledItemWidget(model),
               );
@@ -60,7 +111,7 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
                 height: 16.h,
               );
             }, 
-            itemCount: ref.watch(activityScheduledNotifier).activityScheduledModelObj?.scheduledItemList.length ?? 0,
+            itemCount: items.length,
           );
         },
       ),

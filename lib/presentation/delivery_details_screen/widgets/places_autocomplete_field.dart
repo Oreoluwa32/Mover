@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../widgets/custom_radio_button.dart';
-import '../notifier/delivery_details_notifier.dart';
 import '../notifier/places_autocomplete_notifier.dart';
 
 class PlacesAutocompleteField extends ConsumerStatefulWidget {
@@ -16,6 +15,7 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
   final Widget? suffixIcon;
   final Function(String)? onChanged;
   final String? Function(String?)? validator;
+  final String groupValue;
 
   const PlacesAutocompleteField({
     this.controller,
@@ -29,6 +29,7 @@ class PlacesAutocompleteField extends ConsumerStatefulWidget {
     this.suffixIcon,
     this.onChanged,
     this.validator,
+    required this.groupValue,
     super.key,
   });
 
@@ -155,65 +156,60 @@ class _PlacesAutocompleteFieldState
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final state = ref.watch(deliveryDetailsNotifier);
-        return CompositedTransformTarget(
-          link: _layerLink,
-          child: TextFormField(
-            controller: widget.controller,
-            focusNode: _focusNode,
-            onChanged: (value) {
-              if (widget.onChanged != null) {
-                widget.onChanged!(value);
-              }
-              try {
-                ref
-                    .read(placesAutocompleteProvider.notifier)
-                    .searchPlaces(value);
-              } catch (e) {
-                print('Error in searchPlaces: $e');
-              }
-            },
-            onTap: () {
-              widget.onRadioChange();
-            },
-            decoration: InputDecoration(
-              hintText: widget.hintText,
-              hintStyle: CustomTextStyles.bodyMediumBluegray400,
-              border: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: appTheme.gray20001,
-                  width: 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: appTheme.gray20001,
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: theme.colorScheme.primary,
-                  width: 1,
-                ),
-              ),
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
-              prefixIcon: Padding(
-                padding: EdgeInsets.only(left: 8.h, right: 8.h),
-                child: CustomRadioButton(
-                  value: widget.radioValue,
-                  groupValue: state.radioGroup,
-                  onChange: (value) {
-                    widget.onRadioChange();
-                  },
-                  iconSize: 18.h,
-                ),
-              ),
-              prefixIconConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
-              suffixIcon: widget.suffixIcon ?? (widget.showCloseButton
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: TextFormField(
+        controller: widget.controller,
+        focusNode: _focusNode,
+        onChanged: (value) {
+          if (widget.onChanged != null) {
+            widget.onChanged!(value);
+          }
+          try {
+            ref.read(placesAutocompleteProvider.notifier).searchPlaces(value);
+          } catch (e) {
+            print('Error in searchPlaces: $e');
+          }
+        },
+        onTap: () {
+          widget.onRadioChange();
+        },
+        decoration: InputDecoration(
+          hintText: widget.hintText,
+          hintStyle: CustomTextStyles.bodyMediumBluegray400,
+          border: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: appTheme.gray20001,
+              width: 1,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: appTheme.gray20001,
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: theme.colorScheme.primary,
+              width: 1,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
+          prefixIcon: Padding(
+            padding: EdgeInsets.only(left: 8.h, right: 8.h),
+            child: CustomRadioButton(
+              value: widget.radioValue,
+              groupValue: widget.groupValue,
+              onChange: (value) {
+                widget.onRadioChange();
+              },
+              iconSize: 18.h,
+            ),
+          ),
+          prefixIconConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
+          suffixIcon: widget.suffixIcon ??
+              (widget.showCloseButton
                   ? Padding(
                       padding: EdgeInsets.only(right: 8.h),
                       child: CustomImageView(
@@ -224,20 +220,18 @@ class _PlacesAutocompleteFieldState
                       ),
                     )
                   : null),
-              suffixIconConstraints: (widget.suffixIcon != null || widget.showCloseButton)
-                  ? BoxConstraints(maxHeight: 44.h)
-                  : null,
-              filled: true,
-              fillColor: theme.colorScheme.onPrimary,
-              isDense: true,
-            ),
-            style: CustomTextStyles.bodySmallGray80001,
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.text,
-            validator: widget.validator,
-          ),
-        );
-      },
+          suffixIconConstraints: (widget.suffixIcon != null || widget.showCloseButton)
+              ? BoxConstraints(maxHeight: 44.h)
+              : null,
+          filled: true,
+          fillColor: theme.colorScheme.onPrimary,
+          isDense: true,
+        ),
+        style: CustomTextStyles.bodySmallGray80001,
+        textInputAction: TextInputAction.next,
+        keyboardType: TextInputType.text,
+        validator: widget.validator,
+      ),
     );
   }
 }

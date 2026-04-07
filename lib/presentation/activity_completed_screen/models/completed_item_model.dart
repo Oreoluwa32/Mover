@@ -1,32 +1,42 @@
 import '../../../core/app_export.dart';
 
-// This class is used in the activity in progress page to define the properties of the progress item model and is used to hold data that is passed between the different layers of the application
-// ignore for file, class must be immutable
 class CompletedItemModel {
   CompletedItemModel({
     this.icon,
     this.address,
+    this.pickupLocation,
+    this.destinationLocation,
     this.date,
     this.time,
     this.status,
     this.moverName,
     this.rating,
     this.price,
-    this.id
+    this.id,
+    this.requestId,
+    this.requestType,
+    this.scheduledAt,
   }) {
     icon = icon ?? ImageConstant.imgPackageBlack;
     address = address ?? "Lagos, Nigeria";
+    pickupLocation = pickupLocation ?? "Pickup";
+    destinationLocation = destinationLocation ?? "Destination";
     date = date ?? "13 Jan";
     time = time ?? "12:00";
-    status = status ?? "Scheduled";
+    status = status ?? "Completed";
     moverName = moverName ?? "John Doe";
     rating = rating ?? "No ratings or reviews";
-    price = price ?? "₦2000.00";
+    price = price ?? "NGN 2000.00";
     id = id ?? "";
+    requestId = requestId ?? "";
+    requestType = requestType ?? "delivery";
+    scheduledAt = scheduledAt ?? "";
   }
 
   String? icon;
   String? address;
+  String? pickupLocation;
+  String? destinationLocation;
   String? date;
   String? time;
   String? status;
@@ -34,4 +44,7 @@ class CompletedItemModel {
   String? rating;
   String? price;
   String? id;
+  String? requestId;
+  String? requestType;
+  String? scheduledAt;
 }

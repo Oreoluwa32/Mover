@@ -2,12 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:equatable/equatable.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../../../core/app_export.dart';
 import '../../../core/utils/file_upload_helper.dart';
+import '../../../data/services/account_api_service.dart';
 import '../models/profile_screen_model.dart';
 part 'profile_screen_state.dart';
 
@@ -15,7 +14,7 @@ final profileScreenNotifier = StateNotifierProvider.autoDispose<ProfileScreenNot
   (ref) => ProfileScreenNotifier(ref, ProfileScreenState()),
 );
 
-final userNameProvider = FutureProvider<String?>((ref) async {
+final userNameProvider = FutureProvider.autoDispose<String?>((ref) async {
   const storage = FlutterSecureStorage();
   return await storage.read(key: 'user_name');
 });
@@ -174,87 +173,17 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
   /// Returns the URL of the uploaded image if successful, null otherwise
   Future<String?> _uploadProfileImageToBackend(String imagePath) async {
     try {
-      const storage = FlutterSecureStorage();
-      final token = await storage.read(key: 'auth_token');
-      
-      if (token == null) {
-        debugPrint('No auth token found');
-        state = state.copyWith(profileImageError: 'Session expired. Please log in again.');
-        return null;
+      final response = await AccountApiService().updateProfile(
+        avatarUrl: imagePath,
+      );
+      final avatarUrl = response['avatar_url']?.toString();
+      if (avatarUrl == null || avatarUrl.isEmpty) {
+        state = state.copyWith(
+          profileImageError: 'Image saved locally, but no profile URL was returned.',
+        );
+        return imagePath;
       }
-
-      final url = Uri.parse('https://demosystem.pythonanywhere.com/upload-profile-image/');
-      var request = http.MultipartRequest('POST', url);
-      
-      // Add authorization header
-      request.headers['Authorization'] = 'Token $token';
-      
-      // Add the file with explicit MIME type
-      final extension = path.extension(imagePath).replaceFirst('.', '').toLowerCase();
-      final mimeType = extension == 'png' ? 'image/png' : 'image/jpeg';
-      
-      request.files.add(await http.MultipartFile.fromPath(
-        'profile_picture',
-        imagePath,
-        contentType: MediaType.parse(mimeType),
-      ));
-
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        debugPrint('Upload success. Response body: ${response.body}');
-        
-        // Extract URL from root or nested 'user' object
-        var imageUrl = responseData['profile_picture'] ?? 
-                       responseData['profile_image'] ?? 
-                       responseData['image_url'] ?? 
-                       responseData['image'];
-                       
-        if (imageUrl == null && responseData['user'] != null) {
-          imageUrl = responseData['user']['profile_picture'] ?? 
-                     responseData['user']['profile_image'] ?? 
-                     responseData['user']['image_url'] ?? 
-                     responseData['user']['image'];
-        }
-        
-        if (imageUrl == null) {
-          state = state.copyWith(profileImageError: 'Image uploaded but URL not found in response');
-          return null;
-        }
-        
-        String finalUrl = imageUrl.toString();
-        
-        // Handle "null" string or empty response
-        if (finalUrl == "null" || finalUrl.isEmpty) {
-          state = state.copyWith(profileImageError: 'Invalid image URL received from server');
-          return null;
-        }
-        
-        // Prepend base URL if it's a relative path
-        if (!finalUrl.startsWith('http') && !finalUrl.startsWith('file')) {
-          if (finalUrl.startsWith('/')) {
-            finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
-          } else {
-            finalUrl = 'https://demosystem.pythonanywhere.com/$finalUrl';
-          }
-        }
-        
-        return finalUrl;
-      } else {
-        debugPrint('Upload failed with status: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
-        
-        String errorMessage = 'Failed to upload image (${response.statusCode})';
-        try {
-          final errorData = json.decode(response.body);
-          errorMessage = errorData['detail'] ?? errorData['message'] ?? errorData['error'] ?? errorMessage;
-        } catch (_) {}
-        
-        state = state.copyWith(profileImageError: errorMessage);
-        return null;
-      }
+      return avatarUrl;
     } catch (e) {
       debugPrint('Error uploading profile image: $e');
       state = state.copyWith(profileImageError: 'An error occurred: $e');

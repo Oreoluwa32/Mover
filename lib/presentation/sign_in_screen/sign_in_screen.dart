@@ -1,10 +1,10 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
+import '../../data/services/auth_api_service.dart';
+import '../../data/services/account_api_service.dart';
 import '../../domain/googleauth/google_auth_helper.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
@@ -25,7 +25,8 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
   final notifier = ref.read(signInNotifier.notifier);
   final email = notifier.state.emailController?.text ?? '';
   final password = notifier.state.passwordController?.text ?? '';
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/login/'); // Login endpoint
+  final authApiService = AuthApiService();
+  final accountApiService = AccountApiService();
 
   if (email.isEmpty || password.isEmpty) {
     Fluttertoast.showToast(msg: "Email and password cannot be empty.");
@@ -36,144 +37,45 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
   LoadingDialog.show(context, message: 'Signing in...');
 
   try {
-    final requestBody = json.encode({'email': email, 'password': password});
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: requestBody,
+    final responseData = await authApiService.login(
+      email: email,
+      password: password,
     );
 
-    // Hide loading dialog
-    if (context.mounted) {
-      LoadingDialog.hide(context);
-    }
+    await authApiService.persistSession(responseData);
+    await accountApiService.hydrateSessionFromMe();
 
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
-      String accessToken = responseData['token']['key'];
-      
-      // Store tokens securely
-      await storage.write(key: 'auth_token', value: accessToken);
-      await storage.write(key: 'user_email', value: email);
-      
-      // Store user name and profile image if available
-      final user = responseData['user'];
-      if (user != null) {
-        final firstName = user['first_name'] ?? '';
-        final lastName = user['last_name'] ?? '';
-        final fullName = '$firstName $lastName'.trim();
-        if (fullName.isNotEmpty) {
-          await storage.write(key: 'user_name', value: fullName);
-        }
-        
-        // Sync profile image from backend
-        var profileImage = user['profile_picture'] ?? user['profile_image'] ?? user['image_url'] ?? user['image'];
-        if (profileImage != null && profileImage.toString().isNotEmpty && profileImage.toString() != "null") {
-          String finalUrl = profileImage.toString();
-          // Normalize URL
-          if (!finalUrl.startsWith('http') && !finalUrl.startsWith('file')) {
-            if (finalUrl.startsWith('/')) {
-              finalUrl = 'https://demosystem.pythonanywhere.com$finalUrl';
-            } else {
-              finalUrl = 'https://demosystem.pythonanywhere.com/$finalUrl';
-            }
-          }
-          await PrefUtils().setProfileImagePath(finalUrl);
-          
-          // Also update the global provider for immediate UI update
-          // Import it first if needed, but since it's global we can try to read it
-          try {
-            ref.read(globalProfileImagePathProvider.notifier).updatePath(finalUrl);
-          } catch (e) {
-            debugPrint('Error updating globalProfileImagePathProvider: $e');
-          }
-        }
-      }
-      
+    final user = (responseData['user'] as Map?)?.cast<String, dynamic>() ?? {};
+
       // Remember device
       final deviceMemory = DeviceMemoryService();
       await deviceMemory.rememberDevice(userEmail: email);
-      
-      // Mark onboarding as completed
-      await PrefUtils().setOnboardingCompleted(true);
-      
-      Fluttertoast.showToast(msg: "Sign-in successful");
-      
-      // Check if user has a subscription plan
-      final userSubscriptionPlan = responseData['user']?['subscription_plan'] ?? responseData['user']?['plan_name'];
-      final hasSubscriptionPlan = userSubscriptionPlan != null && userSubscriptionPlan.toString().isNotEmpty;
-      
-      // Navigate based on subscription plan status
-      if (context.mounted) {
-        if (hasSubscriptionPlan) {
-          Navigator.pushNamed(context, AppRoutes.homeOneScreen);
-        } else {
-          Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
-        }
-      }
-    } 
-    else if (response.statusCode == 403) {
-      // Check if the error is email not verified
-      try {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['detail'] ?? '${response.statusCode} Sign-in failed. Please try again.';
-        
-        if (errorMessage.toLowerCase().contains('email_not_verified') || 
-            errorMessage.toLowerCase().contains('not verified')) {
-          // Navigate to check mail screen with email
-          Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
-          if (context.mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRoutes.checkMailScreen,
-              (route) => route.isFirst,
-              arguments: {'email': email},
-            );
-          }
-        } else {
-          Fluttertoast.showToast(msg: errorMessage);
-        }
-      } catch (e) {
-        Fluttertoast.showToast(msg: '${response.statusCode} Sign-in failed. Please try again.');
-      }
-    }
-    else if (response.statusCode == 400) {
-      try {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['error'] ?? errorData['detail'] ?? errorData['message'] ?? 'Invalid email or password. Please try again.';
-        
-        if (errorMessage.toLowerCase().contains('email') && errorMessage.toLowerCase().contains('not verified')) {
-          Fluttertoast.showToast(msg: "Email not verified. Please check your email for the OTP.");
-          if (context.mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRoutes.checkMailScreen,
-              (route) => route.isFirst,
-              arguments: {'email': email},
-            );
-          }
-        } else {
-          Fluttertoast.showToast(msg: errorMessage);
-        }
-      } catch (e) {
-        Fluttertoast.showToast(msg: 'Invalid email or password. Please try again.');
-      }
-    }
-    else {
-      try {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['detail'] ?? errorData['message'] ?? '${response.statusCode} Sign-in failed. Please try again.';
-        Fluttertoast.showToast(msg: errorMessage);
-      } catch (e) {
-        Fluttertoast.showToast(msg: '${response.statusCode} Sign-in failed. Please try again.');
-      }
-    }
-  } catch (e) {
-    // Hide loading dialog
+
     if (context.mounted) {
       LoadingDialog.hide(context);
     }
-    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+
+    Fluttertoast.showToast(msg: "Sign-in successful");
+
+    final userSubscriptionPlan =
+        user['subscription_plan'] ?? user['plan_name'] ?? user['plan'];
+    final hasSubscriptionPlan =
+        userSubscriptionPlan != null && userSubscriptionPlan.toString().isNotEmpty;
+
+    if (context.mounted) {
+      if (hasSubscriptionPlan) {
+        Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+      } else {
+        Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+      }
+    }
+  } catch (e) {
+    if (context.mounted) {
+      LoadingDialog.hide(context);
+    }
+    Fluttertoast.showToast(
+      msg: authApiService.extractErrorMessage(e),
+    );
   }
 }
 

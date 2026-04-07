@@ -4,6 +4,7 @@ import '../../widgets/custom_bottom_bar.dart';
 import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../my_route_page/my_route_page.dart';
 import '../profile_screen/profile_screen.dart';
+import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import '../user_move_screen/user_move_screen.dart';
 import '../save_your_route_dialog/save_your_route_dialog.dart';
 import 'home_one_initial_page.dart';
@@ -25,6 +26,7 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
   GlobalKey<NavigatorState> navigatorKey = GlobalKey();
   bool _hideBottomBar = false;
   bool _dialogShown = false;
+  bool _searchSheetShown = false;
 
   @override
   void initState() {
@@ -52,6 +54,28 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
             barrierDismissible: true,
             builder: (context) => SaveYourRouteDialog(),
           );
+        }
+        if (args['searchNearbyMovers'] == true && !_searchSheetShown) {
+          final searchType =
+              args['searchRequestType']?.toString() ?? 'delivery';
+          final searchData = Map<String, dynamic>.from(
+            args['searchRequestData'] as Map? ?? const <String, dynamic>{},
+          );
+          _searchSheetShown = true;
+          ref.read(homeNotifier.notifier).startNearbyMoverSearch(
+                searchType: searchType,
+                searchData: searchData,
+              );
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => SearchMoverBottomsheet(
+              requestType: searchType,
+              requestData: searchData,
+            ),
+            isScrollControlled: true,
+          ).whenComplete(() {
+            _searchSheetShown = false;
+          });
         }
       }
     });

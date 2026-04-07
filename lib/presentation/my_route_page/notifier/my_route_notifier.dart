@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/app_export.dart';
+import '../../../data/services/mobility_api_service.dart';
 import '../models/my_route_model.dart';
 import '../models/saved_route_model.dart';
 part 'my_route_state.dart';
@@ -20,49 +18,64 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
     fetchScheduledRoutes();
   }
 
-  final storage = const FlutterSecureStorage();
-
-  Future<String?> getToken() async {
-    return await storage.read(key: 'auth_token');
-  }
+  final MobilityApiService _mobilityApiService = MobilityApiService();
 
   Future<void> fetchScheduledRoutes() async {
-    final token = await getToken();
-    if (token == null) return;
-
-    final url = Uri.parse(
-        'https://demosystem.pythonanywhere.com/get-scheduled-routes/');
-
     try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Token $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        final routes = data.map((item) {
-          return SavedRouteModel(
-            id: item['id']?.toString(),
-            routetitle: item['route_name'],
-            address: item['destination'],
-            time: item['departure_time'],
-            days: item['departure_date'], // Adjust if the backend provides days range
-            islive: item['is_live'] ?? false,
-          );
-        }).toList();
-
-        state = state.copyWith(
-          myRouteModelObj: state.myRouteModelObj?.copyWith(
-            savedrouteItemList: routes,
-          ),
+      final data = await _mobilityApiService.getMyTravelPlans();
+      final routes = data.where((item) {
+        final metadata = (item['metadata'] as Map?)?.cast<String, dynamic>() ?? {};
+        return metadata['route_kind']?.toString() != 'instant';
+      }).map((item) {
+        final metadata = (item['metadata'] as Map?)?.cast<String, dynamic>() ?? {};
+        final departureTime = _formatTime(item['departure_time']?.toString());
+        final departureDate =
+            metadata['display_date_range']?.toString() ??
+            _formatDate(item['departure_time']?.toString());
+        return SavedRouteModel(
+          id: item['id']?.toString(),
+          routetitle: item['title']?.toString() ?? 'My route',
+          address:
+              '${item['origin_name']?.toString() ?? ''} -> ${item['destination_name']?.toString() ?? ''}',
+          time: departureTime,
+          days: departureDate,
+          islive: item['is_live'] == true,
+          status: item['status']?.toString() ?? '',
         );
-      }
-    } catch (e) {
-      // Silently fail or handle error
+      }).toList();
+
+      state = state.copyWith(
+        myRouteModelObj: state.myRouteModelObj?.copyWith(
+          savedrouteItemList: routes,
+        ),
+      );
+    } catch (_) {
+      state = state.copyWith(
+        myRouteModelObj: state.myRouteModelObj?.copyWith(
+          savedrouteItemList: const [],
+        ),
+      );
     }
+  }
+
+  String _formatDate(String? rawDateTime) {
+    final parsed = rawDateTime != null ? DateTime.tryParse(rawDateTime)?.toLocal() : null;
+    if (parsed == null) {
+      return rawDateTime ?? '';
+    }
+    final month = parsed.month.toString().padLeft(2, '0');
+    final day = parsed.day.toString().padLeft(2, '0');
+    return '$month/$day/${parsed.year}';
+  }
+
+  String _formatTime(String? rawDateTime) {
+    final parsed = rawDateTime != null ? DateTime.tryParse(rawDateTime)?.toLocal() : null;
+    if (parsed == null) {
+      return rawDateTime ?? '';
+    }
+    final hour = parsed.hour % 12 == 0 ? 12 : parsed.hour % 12;
+    final minute = parsed.minute.toString().padLeft(2, '0');
+    final suffix = parsed.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $suffix';
   }
 }

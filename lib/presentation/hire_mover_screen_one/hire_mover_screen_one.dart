@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher_string.dart';
+
 import '../../core/app_export.dart';
 import '../payment_bottomsheet/payment_bottomsheet.dart';
 import '../../theme/custom_button_style.dart';
@@ -7,7 +7,6 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_title.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
-import 'notifier/hire_mover_one_notifier.dart';
 
 class HireMoverScreenOne extends ConsumerStatefulWidget {
   const HireMoverScreenOne({Key? key}) : super(key: key);
@@ -19,347 +18,168 @@ class HireMoverScreenOne extends ConsumerStatefulWidget {
 class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
   @override
   Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            const <String, dynamic>{};
+    final offerData =
+        Map<String, dynamic>.from(args['offerData'] as Map? ?? const <String, dynamic>{});
+    final travelPlan =
+        Map<String, dynamic>.from(offerData['travel_plan'] as Map? ?? const <String, dynamic>{});
+    final createdBy =
+        Map<String, dynamic>.from(travelPlan['created_by'] as Map? ?? const <String, dynamic>{});
+
+    final moverName = createdBy['full_name']?.toString() ?? 'Nearby mover';
+    final routeLabel = travelPlan['origin_name']?.toString() ?? 'Route available';
+    final ratingLabel = 'No ratings or reviews';
+    final vehicleType = travelPlan['vehicle_type']?.toString().replaceAll('_', ' ') ?? 'Car';
+    final homeAwayLabel = createdBy['home_away_label']?.toString() == 'away'
+        ? 'Away mover'
+        : 'Local mover';
+    final priceLabel =
+        'NGN ${(offerData['agreed_price'] ?? travelPlan['price_per_seat'] ?? 0).toString()}';
+
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: false,
-      body: SizedBox(
+      appBar: CustomAppBar(
+        leadingWidth: 40.h,
+        leading: AppbarLeadingImage(
+          imagePath: ImageConstant.imgLeftArrow,
+          margin: EdgeInsets.only(left: 16.h, top: 1.h),
+          onTap: () {
+            NavigatorService.goBack();
+          },
+        ),
+        centerTitle: true,
+        title: AppbarTitle(text: "Mover"),
+      ),
+      body: SingleChildScrollView(
+        child: Container(
           width: double.maxFinite,
+          padding: EdgeInsets.all(16.h),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildProfile(context),
               Container(
                 width: double.maxFinite,
-                padding: EdgeInsets.only(left: 16.h, top: 32.h, right: 16.h),
-                child: Column(
+                padding: EdgeInsets.all(16.h),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+                  borderRadius: BorderRadiusStyle.roundedBorder12,
+                  border: Border.all(color: appTheme.gray20001, width: 1.h),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildReviews(context),
-                    SizedBox(
-                      height: 52.h,
+                    CustomImageView(
+                      imagePath: ImageConstant.imgProfile,
+                      height: 72.h,
+                      width: 72.h,
+                      radius: BorderRadius.circular(36.h),
+                    ),
+                    SizedBox(width: 14.h),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            moverName,
+                            style: CustomTextStyles.titleSmallMedium
+                                .copyWith(color: Colors.black87),
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            homeAwayLabel,
+                            style: CustomTextStyles.bodySmallInterGray600,
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            _titleCase(vehicleType),
+                            style: CustomTextStyles.bodySmallInterGray600,
+                          ),
+                          SizedBox(height: 6.h),
+                          Text(
+                            ratingLabel,
+                            style: CustomTextStyles.labelLargeBluegray400,
+                          ),
+                        ],
+                      ),
                     ),
                     Text(
-                      "No ratings or reviews",
-                      style: CustomTextStyles.labelLargeBluegray400,
+                      priceLabel,
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(color: Colors.black87),
                     ),
-                    SizedBox(
-                      height: 4.h,
-                    )
                   ],
                 ),
-              )
+              ),
+              SizedBox(height: 24.h),
+              _buildInfoCard(
+                title: 'Route',
+                value: routeLabel,
+              ),
+              SizedBox(height: 16.h),
+              _buildInfoCard(
+                title: 'Destination',
+                value: travelPlan['destination_name']?.toString() ?? 'Pending destination',
+              ),
+              SizedBox(height: 16.h),
+              _buildInfoCard(
+                title: 'Departure',
+                value: _formatDeparture(travelPlan['departure_time']?.toString()),
+              ),
+              SizedBox(height: 16.h),
+              _buildInfoCard(
+                title: 'Offer',
+                value: offerData['agreed_price'] != null
+                    ? 'Bid submitted for your request'
+                    : 'Standard route price',
+              ),
+              SizedBox(height: 40.h),
             ],
           ),
         ),
-        bottomNavigationBar: _buildButtonnav(context),
-      );
+      ),
+      bottomNavigationBar: _buildButtonnav(context),
+    );
   }
 
-  // Section Widget
-  Widget _buildProfile(BuildContext context) {
+  Widget _buildInfoCard({
+    required String title,
+    required String value,
+  }) {
     return Container(
       width: double.maxFinite,
-      padding: EdgeInsets.only(top: 15.h),
+      padding: EdgeInsets.all(14.h),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-        border: Border(
-          bottom: BorderSide(color: appTheme.gray20001, width: 1.h),
+        borderRadius: BorderRadiusStyle.roundedBorder8,
+        border: Border.all(
+          color: appTheme.gray20001,
+          width: 1.h,
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: 20.h,
-          ),
-          CustomAppBar(
-            leadingWidth: 40.h,
-            leading: AppbarLeadingImage(
-              imagePath: ImageConstant.imgLeftArrow,
-              margin: EdgeInsets.only(
-                left: 16.h,
-                top: 1.h,
-              ),
-              onTap: () {
-                NavigatorService.goBack();
-              },
-            ),
-            centerTitle: true,
-            title: AppbarTitle(text: "Mover"),
-          ),
-          SizedBox(
-            height: 62.h,
-          ),
-          Container(
-            width: double.maxFinite,
-            margin: EdgeInsets.symmetric(horizontal: 16.h),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: double.maxFinite,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CustomImageView(
-                              imagePath: ImageConstant.imgProfile,
-                              height: 76.h,
-                              width: 76.h,
-                              radius: BorderRadius.circular(38.h),
-                            ),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.topLeft,
-                                child: Padding(
-                                  padding: EdgeInsets.only(left: 12.h),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SizedBox(
-                                        width: double.maxFinite,
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              "John Doe",
-                                              style: CustomTextStyles
-                                                  .titleSmallMedium
-                                                  .copyWith(
-                                                      color: Colors.black87),
-                                            ),
-                                            SizedBox(width: 8.h),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                CustomImageView(
-                                                  imagePath:
-                                                      ImageConstant.imgAway,
-                                                  height: 16.h,
-                                                  width: 16.h,
-                                                ),
-                                                SizedBox(
-                                                  width: 4.h,
-                                                ),
-                                                CustomImageView(
-                                                  imagePath:
-                                                      ImageConstant.imgAway,
-                                                  height: 16.h,
-                                                  width: 16.h,
-                                                ),
-                                                SizedBox(
-                                                  width: 4.h,
-                                                ),
-                                                CustomImageView(
-                                                  imagePath:
-                                                      ImageConstant.imgAway,
-                                                  height: 16.h,
-                                                  width: 16.h,
-                                                ),
-                                                SizedBox(
-                                                  width: 4.h,
-                                                ),
-                                                CustomImageView(
-                                                  imagePath:
-                                                      ImageConstant.imgAway,
-                                                  height: 16.h,
-                                                  width: 16.h,
-                                                ),
-                                                SizedBox(
-                                                  width: 4.h,
-                                                ),
-                                                CustomImageView(
-                                                  imagePath:
-                                                      ImageConstant.imgAway,
-                                                  height: 16.h,
-                                                  width: 16.h,
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 4.h,
-                                      ),
-                                      SizedBox(
-                                        width: double.maxFinite,
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              "2km away",
-                                              style: CustomTextStyles
-                                                  .bodySmallInterGray600,
-                                            ),
-                                            Container(
-                                              height: 2.h,
-                                              width: 2.h,
-                                              margin:
-                                                  EdgeInsets.only(left: 4.h),
-                                              decoration: BoxDecoration(
-                                                color: appTheme.gray700,
-                                                borderRadius:
-                                                    BorderRadius.circular(1.h),
-                                              ),
-                                            ),
-                                            CustomImageView(
-                                              imagePath:
-                                                  ImageConstant.imgBlackCar,
-                                              height: 16.h,
-                                              width: 16.h,
-                                              margin:
-                                                  EdgeInsets.only(left: 4.h),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 4.h,
-                                      ),
-                                      Text(
-                                        "No ratings or reviews",
-                                        style: CustomTextStyles
-                                            .labelLargeBluegray400,
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(left: 6.h),
-                              child: Text(
-                                "₦1700",
-                                style: theme.textTheme.titleSmall
-                                    ?.copyWith(color: Colors.black87),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 30.h,
-                      ),
-                      // SizedBox(
-                      //   width: double.maxFinite,
-                      //   child: Row(
-                      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //     children: [
-                      //       Column(
-                      //         children: [
-                      //           Text(
-                      //             "Badges",
-                      //             style: CustomTextStyles.labelLargeGray600,
-                      //           ),
-                      //           Text(
-                      //             "5",
-                      //             style: CustomTextStyles.titleMediumGray800,
-                      //           )
-                      //         ],
-                      //       ),
-                      //       Column(
-                      //         children: [
-                      //           Text(
-                      //             "Trips taken",
-                      //             style: CustomTextStyles.labelLargeGray600,
-                      //           ),
-                      //           Text(
-                      //             "0",
-                      //             style: CustomTextStyles.titleMediumGray800,
-                      //           )
-                      //         ],
-                      //       ),
-                      //       Column(
-                      //         children: [
-                      //           Text(
-                      //             "Ride Shared",
-                      //             style: CustomTextStyles.labelLargeGray600,
-                      //           ),
-                      //           Text(
-                      //             "0",
-                      //             style: CustomTextStyles.titleMediumGray800,
-                      //           )
-                      //         ],
-                      //       ),
-                      //       Column(
-                      //         children: [
-                      //           Text(
-                      //             "Deliveries",
-                      //             style: CustomTextStyles.labelLargeGray600,
-                      //           ),
-                      //           Text(
-                      //             "0",
-                      //             style: CustomTextStyles.titleMediumGray800,
-                      //           )
-                      //         ],
-                      //       )
-                      //     ],
-                      //   ),
-                      // )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  // Section Widget
-  Widget _buildReviews(BuildContext context) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Reviews (0)",
-            style: CustomTextStyles.titleSmallBlack900,
+            title,
+            style: CustomTextStyles.labelLargeBold,
           ),
-          Spacer(),
-          CustomImageView(
-            imagePath: ImageConstant.imgFacebook,
-            height: 18.h,
-            width: 18.h,
-            onTap: () {
-              onTapFacebook(context);
-            },
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgInstagram,
-            height: 18.h,
-            width: 18.h,
-            margin: EdgeInsets.only(left: 16.h),
-            onTap: () {
-              onTapInstagram(context);
-            },
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgLinkedin,
-            height: 18.h,
-            width: 18.h,
-            margin: EdgeInsets.only(left: 16.h),
-            onTap: () {
-              onTapLinkedin(context);
-            },
+          SizedBox(height: 6.h),
+          Text(
+            value,
+            style: theme.textTheme.bodySmall,
           ),
         ],
       ),
     );
   }
 
-  // Section Widget
   Widget _buildButtonnav(BuildContext context) {
     return Container(
       height: 98.h,
       width: double.maxFinite,
-      padding: EdgeInsets.only(
-        left: 16.h,
-        top: 24.h,
-        right: 16.h,
-      ),
+      padding: EdgeInsets.only(left: 16.h, top: 24.h, right: 16.h),
       decoration: BoxDecoration(
         color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
@@ -370,50 +190,48 @@ class HireMoverScreenOneState extends ConsumerState<HireMoverScreenOne> {
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
         children: [
           CustomElevatedButton(
             text: "Hire Mover",
+            buttonStyle: CustomButtonStyles.fillPrimaryTL41,
             onPressed: () {
               showModalBottomSheet(
-                  context: context,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(20.h)
-                    )
+                context: context,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20.h),
                   ),
-                  isScrollControlled: true,
-                  builder: (BuildContext context) {
-                    return PaymentBottomsheet();
-                  });
+                ),
+                isScrollControlled: true,
+                builder: (BuildContext context) {
+                  return PaymentBottomsheet();
+                },
+              );
             },
-          )
+          ),
         ],
       ),
     );
   }
 
-  // Opens a URL in the device's default web browser
-  // The [context] parameter is the `BuildContext` of the widget that invoked the function
-  // Throws an exception if the URL could not be launched
-  onTapFacebook(BuildContext context) async {
-    var url = 'www.facebook.com';
-    if (!await launchUrlString(url)) {
-      throw 'Could not launch $url';
+  String _formatDeparture(String? rawDate) {
+    final parsed = DateTime.tryParse(rawDate ?? '');
+    if (parsed == null) {
+      return 'Departure time pending';
     }
+
+    final local = parsed.toLocal();
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final suffix = local.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $suffix';
   }
 
-  onTapInstagram(BuildContext context) async {
-    var url = 'www.instagram.com';
-    if (!await launchUrlString(url)) {
-      throw 'Could not launch $url';
-    }
-  }
-
-  onTapLinkedin(BuildContext context) async {
-    var url = 'www.linkedin.com';
-    if (!await launchUrlString(url)) {
-      throw 'Could not launch $url';
-    }
+  String _titleCase(String value) {
+    return value
+        .split(' ')
+        .where((word) => word.isNotEmpty)
+        .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+        .join(' ');
   }
 }

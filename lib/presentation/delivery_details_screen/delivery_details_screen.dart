@@ -1,12 +1,9 @@
 import 'dart:io';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../data/services/mobility_api_service.dart';
 import '../../core/utils/file_upload_helper.dart';
 import '../../core/utils/permission_manager.dart';
 import '../../core/utils/validation_functions.dart';
@@ -17,9 +14,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_radio_button.dart';
-import '../../widgets/custom_search_view.dart';
 import '../../widgets/custom_text_form_field.dart';
-import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import 'notifier/delivery_details_notifier.dart';
 import 'widgets/places_autocomplete_field.dart';
 
@@ -33,164 +28,74 @@ class DeliveryDetailsScreen extends ConsumerStatefulWidget {
 // ignore for file, class must be iimmuatble
 class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  final storage = const FlutterSecureStorage();
-
-  Future<String?> getToken() async {
-    return await storage.read(key: 'auth_token');
-  }
+  final MobilityApiService _mobilityApiService = MobilityApiService();
 
   Future<void> deliveryDetails(WidgetRef ref) async {
-    final token = await getToken();
-    if (token == null) {
-      Fluttertoast.showToast(msg: "No token found. Please log in first.");
-      return;
-    }
-
-    // Validate the form
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final state = ref.read(deliveryDetailsNotifier);
-    
-    // Ensure locations are selected from autocomplete
-    if (state.pickupLatitude == null || state.destinationLatitude == null) {
-      Fluttertoast.showToast(msg: "Please select locations from the suggestions list");
-      return;
+    final pickupLocation = state.pickupController?.text.trim() ?? '';
+    final destination = state.destinationController?.text.trim() ?? '';
+
+    final packageDescription = StringBuffer(state.itemDescrController?.text.trim() ?? '');
+    final receiverName = state.nameController?.text.trim();
+    final receiverPhone = state.phoneController?.text.trim();
+
+    if (receiverName != null && receiverName.isNotEmpty) {
+      packageDescription.write('\nReceiver: $receiverName');
+    }
+    if (receiverPhone != null && receiverPhone.isNotEmpty) {
+      packageDescription.write('\nPhone: $receiverPhone');
     }
 
-    // Convert image to base64
-    final itemImageBase64 = state.imagePath != null
-        ? base64Encode(File(state.imagePath!).readAsBytesSync())
-        : null;
-
-    final location = state.pickupController?.text;
-    final destination = state.destinationController?.text;
-
-    final url =
-        Uri.parse('https://demosystem.pythonanywhere.com/submit-package/');
-
     try {
-      if (state.imagePath != null) {
-        // Use MultipartRequest for image upload
-        var request = http.MultipartRequest('POST', url);
-        request.headers.addAll({
-          'Authorization': 'Token $token',
-        });
+      final requestData = await _mobilityApiService.createDeliveryRequest(
+        pickupName: pickupLocation,
+        pickupLatitude: state.pickupLatitude,
+        pickupLongitude: state.pickupLongitude,
+        dropoffName: destination,
+        dropoffLatitude: state.destinationLatitude,
+        dropoffLongitude: state.destinationLongitude,
+        scheduledTime: DateTime.now(),
+        packageDescription: packageDescription.toString(),
+        weightKg: _mapWeightToKg(state.itemWeight),
+      );
 
-        // Add text fields
-        request.fields['location'] = location ?? "";
-        request.fields['location_latitude'] =
-            state.pickupLatitude?.toStringAsFixed(6) ?? "";
-        request.fields['location_longitude'] =
-            state.pickupLongitude?.toStringAsFixed(6) ?? "";
-        request.fields['destination'] = destination ?? "";
-        request.fields['destination_latitude'] =
-            state.destinationLatitude?.toStringAsFixed(6) ?? "";
-        request.fields['destination_longitude'] =
-            state.destinationLongitude?.toStringAsFixed(6) ?? "";
-        request.fields['package_type'] = "Delivery";
-        request.fields['item_description'] =
-            state.itemDescrController?.text ?? "";
-        request.fields['item_weight'] = state.itemWeight.toLowerCase();
-        request.fields['receiver_name'] = state.nameController?.text ?? "";
-        request.fields['receiver_phone_number'] =
-            state.phoneController?.text ?? "";
-        // request.fields['range_radius'] = "10.00";
-
-        // Add image file
-        request.files.add(await http.MultipartFile.fromPath(
-          'item_image',
-          state.imagePath!,
-        ));
-
-        var streamedResponse = await request.send();
-        var response = await http.Response.fromStream(streamedResponse);
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          _handleSuccess(context);
-        } else {
-          _handleError(response);
-        }
-      } else {
-        // Use JSON for request without image
-        final requestBody = {
-          "location": location,
-          "location_latitude": state.pickupLatitude != null
-              ? double.parse(state.pickupLatitude!.toStringAsFixed(6))
-              : null,
-          "location_longitude": state.pickupLongitude != null
-              ? double.parse(state.pickupLongitude!.toStringAsFixed(6))
-              : null,
-          "destination": destination,
-          "destination_latitude": state.destinationLatitude != null
-              ? double.parse(state.destinationLatitude!.toStringAsFixed(6))
-              : null,
-          "destination_longitude": state.destinationLongitude != null
-              ? double.parse(state.destinationLongitude!.toStringAsFixed(6))
-              : null,
-          "package_type": "Delivery",
-          "item_description": state.itemDescrController?.text,
-          "item_weight": state.itemWeight.toLowerCase(),
-          "receiver_name": state.nameController?.text,
-          "receiver_phone_number": state.phoneController?.text,
-          "range_radius": 10.00,
-          "item_image": null,
-        };
-
-        final response = await http.post(
-          url,
-          headers: {
-            'Authorization': 'Token $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode(requestBody),
-        );
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          _handleSuccess(context);
-        } else {
-          _handleError(response);
-        }
-      }
+      _handleSuccess(context, requestData);
     } catch (e) {
       Fluttertoast.showToast(
-          msg: "An error occurred. Please check your connection.");
+        msg: _mobilityApiService.extractErrorMessage(e),
+      );
     }
   }
 
-  void _handleSuccess(BuildContext context) {
+  double _mapWeightToKg(String value) {
+    switch (value.toLowerCase()) {
+      case 'light':
+        return 1;
+      case 'medium':
+        return 5;
+      case 'heavy':
+        return 10;
+      default:
+        return 0;
+    }
+  }
+
+  void _handleSuccess(BuildContext context, Map<String, dynamic> requestData) {
     Fluttertoast.showToast(msg: "Delivery details sent");
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRoutes.homeOneScreen,
       (route) => false,
+      arguments: {
+        'searchNearbyMovers': true,
+        'searchRequestType': 'delivery',
+        'searchRequestData': requestData,
+      },
     );
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          builder: (context) => const SearchMoverBottomsheet(),
-          isScrollControlled: true,
-        );
-      }
-    });
-  }
-
-  void _handleError(http.Response response) {
-    String errorMessage = 'Failed to send delivery details';
-    try {
-      final errorData = jsonDecode(response.body);
-      errorMessage = (errorData['error'] ??
-              errorData['detail'] ??
-              errorData['message'] ??
-              response.body)
-          .toString();
-    } catch (e) {
-      errorMessage = "Error: ${response.statusCode} - ${response.body}";
-    }
-    Fluttertoast.showToast(msg: errorMessage);
   }
 
   @override
@@ -271,6 +176,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                 controller: state.pickupController,
                 hintText: "Pickup location",
                 radioValue: "location",
+                groupValue: state.radioGroup,
                 onRadioChange: () {
                   ref
                       .read(deliveryDetailsNotifier.notifier)
@@ -313,6 +219,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
                 controller: state.destinationController,
                 hintText: "Destination",
                 radioValue: "destination",
+                groupValue: state.radioGroup,
                 onRadioChange: () {
                   ref
                       .read(deliveryDetailsNotifier.notifier)
