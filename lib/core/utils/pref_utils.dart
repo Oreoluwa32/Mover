@@ -60,4 +60,20 @@ class PrefUtils {
       return false;
     }
   }
+
+  Future<void> setNotificationLastSeenAt(String value) {
+    return _sharedPreferences!.setString('notificationLastSeenAt', value);
+  }
+
+  Future<DateTime?> getNotificationLastSeenAt() async {
+    try {
+      final value = _sharedPreferences!.getString('notificationLastSeenAt');
+      if (value == null || value.isEmpty) {
+        return null;
+      }
+      return DateTime.tryParse(value)?.toLocal();
+    } catch (e) {
+      return null;
+    }
+  }
 }

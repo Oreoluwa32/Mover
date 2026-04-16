@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import KycRecord, UserProfile, Vehicle
+from apps.mobility.models import TravelMatch
 
 User = get_user_model()
 
@@ -12,6 +14,10 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     home_away_label = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    completed_jobs = serializers.SerializerMethodField()
+    linked_socials = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -29,6 +35,10 @@ class UserSerializer(serializers.ModelSerializer):
             "home_city",
             "current_city",
             "home_away_label",
+            "rating_count",
+            "average_rating",
+            "completed_jobs",
+            "linked_socials",
             "created_at",
         ]
 
@@ -39,6 +49,23 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.home_city and obj.current_city and obj.home_city.lower() != obj.current_city.lower():
             return "away"
         return "home"
+
+    def get_rating_count(self, obj):
+        return obj.received_reviews.count()
+
+    def get_average_rating(self, obj):
+        aggregate = obj.received_reviews.aggregate(value=Avg("rating"))
+        return round(float(aggregate["value"] or 0), 1)
+
+    def get_completed_jobs(self, obj):
+        return TravelMatch.objects.filter(
+            travel_plan__created_by=obj,
+            status=TravelMatch.Status.COMPLETED,
+        ).count()
+
+    def get_linked_socials(self, obj):
+        profile = getattr(obj, "profile", None)
+        return profile.linked_socials if profile else {}
 
 
 class RegisterSerializer(serializers.ModelSerializer):

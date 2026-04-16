@@ -32,12 +32,12 @@ class SplashScreenOneState extends ConsumerState<SplashScreenOne>{
     // Check if onboarding is completed
     final onboardingCompleted = await PrefUtils().getOnboardingCompleted();
     
-    // Check if device is remembered (user already logged in)
-    final isDeviceRemembered = await deviceMemory.isDeviceRemembered();
+    // A user is considered logged in only when a real auth token exists.
+    final hasActiveSession = await deviceMemory.syncSessionState();
     
     _timer = Timer(const Duration(seconds: 3), () {
       if (onboardingCompleted) {
-        if (isDeviceRemembered) {
+        if (hasActiveSession) {
           // User already logged in, navigate to home
           NavigatorService.pushNamedAndRemoveUntil(AppRoutes.homeOneScreen);
         } else {

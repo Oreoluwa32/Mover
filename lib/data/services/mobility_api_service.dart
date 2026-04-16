@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/core/config/app_environment.dart';
+import 'package:movr/core/utils/task_state_sync.dart';
 
 class MobilityApiService {
   MobilityApiService({
@@ -51,6 +52,10 @@ class MobilityApiService {
           .toList();
     }
     return <Map<String, dynamic>>[];
+  }
+
+  void _notifyTaskStateChanged(String reason) {
+    TaskStateSync.emit(reason);
   }
 
   Future<List<Map<String, dynamic>>> getMyTravelPlans() async {
@@ -139,6 +144,7 @@ class MobilityApiService {
         'metadata': metadata ?? <String, dynamic>{},
       },
     );
+    _notifyTaskStateChanged('travel_plan_created');
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -152,7 +158,15 @@ class MobilityApiService {
         'is_live': isLive,
       },
     );
+    _notifyTaskStateChanged('travel_plan_live_toggled');
     return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<void> deleteTravelPlan({
+    required String travelPlanId,
+  }) async {
+    await _dio.delete('/api/mobility/travel-plans/$travelPlanId/');
+    _notifyTaskStateChanged('travel_plan_deleted');
   }
 
   Future<Map<String, dynamic>> createRideRequest({
@@ -182,6 +196,7 @@ class MobilityApiService {
         'note': note ?? '',
       },
     );
+    _notifyTaskStateChanged('ride_request_created');
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -214,6 +229,7 @@ class MobilityApiService {
         'insurance_opted': insuranceOpted,
       },
     );
+    _notifyTaskStateChanged('delivery_request_created');
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -222,9 +238,23 @@ class MobilityApiService {
     return _extractCollection(response.data);
   }
 
+  Future<void> deleteRideRequest({
+    required String requestId,
+  }) async {
+    await _dio.delete('/api/mobility/ride-requests/$requestId/');
+    _notifyTaskStateChanged('ride_request_deleted');
+  }
+
   Future<List<Map<String, dynamic>>> getDeliveryRequests() async {
     final response = await _dio.get('/api/mobility/delivery-requests/');
     return _extractCollection(response.data);
+  }
+
+  Future<void> deleteDeliveryRequest({
+    required String requestId,
+  }) async {
+    await _dio.delete('/api/mobility/delivery-requests/$requestId/');
+    _notifyTaskStateChanged('delivery_request_deleted');
   }
 
   Future<List<Map<String, dynamic>>> getDiscoverRideRequests() async {
@@ -256,6 +286,7 @@ class MobilityApiService {
           'travel_plan_id': travelPlanId,
       },
     );
+    _notifyTaskStateChanged('ride_bid_submitted');
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -272,12 +303,136 @@ class MobilityApiService {
           'travel_plan_id': travelPlanId,
       },
     );
+    _notifyTaskStateChanged('delivery_bid_submitted');
     return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<List<Map<String, dynamic>>> getMatches() async {
     final response = await _dio.get('/api/mobility/matches/');
     return _extractCollection(response.data);
+  }
+
+  Future<Map<String, dynamic>> acceptMatch({
+    required String matchId,
+  }) async {
+    final response = await _dio.post('/api/mobility/matches/$matchId/accept/');
+    _notifyTaskStateChanged('match_accepted');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> cancelMatch({
+    required String matchId,
+    String? reason,
+    String? details,
+  }) async {
+    final response = await _dio.post(
+      '/api/mobility/matches/$matchId/cancel/',
+      data: {
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+        if (details != null && details.isNotEmpty) 'details': details,
+      },
+    );
+    _notifyTaskStateChanged('match_cancelled');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> submitTaskReport({
+    required String matchId,
+    required String reason,
+    String? details,
+  }) async {
+    final response = await _dio.post(
+      '/api/mobility/matches/$matchId/report/',
+      data: {
+        'reason': reason,
+        if (details != null && details.isNotEmpty) 'details': details,
+      },
+    );
+    _notifyTaskStateChanged('task_report_submitted');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<List<Map<String, dynamic>>> getMatchMessages({
+    required String matchId,
+  }) async {
+    final response = await _dio.get('/api/mobility/matches/$matchId/messages/');
+    return _extractCollection(response.data);
+  }
+
+  Future<Map<String, dynamic>> sendMatchMessage({
+    required String matchId,
+    required String body,
+  }) async {
+    final response = await _dio.post(
+      '/api/mobility/matches/$matchId/messages/',
+      data: {
+        'body': body,
+      },
+    );
+    _notifyTaskStateChanged('task_message_sent');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> submitMatchReview({
+    required String matchId,
+    required int rating,
+    String? comment,
+    List<String>? tags,
+  }) async {
+    final response = await _dio.post(
+      '/api/mobility/matches/$matchId/review/',
+      data: {
+        'rating': rating,
+        'comment': comment ?? '',
+        'tags': tags ?? const <String>[],
+      },
+    );
+    _notifyTaskStateChanged('match_review_submitted');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> confirmDeliveryPickup({
+    required String matchId,
+    required String verificationCode,
+  }) async {
+    final response = await _dio.post(
+      '/api/mobility/matches/$matchId/confirm_pickup/',
+      data: {
+        'verification_code': verificationCode,
+      },
+    );
+    _notifyTaskStateChanged('delivery_pickup_confirmed');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> confirmDeliveryDropoff({
+    required String matchId,
+    required String verificationCode,
+  }) async {
+    final response = await _dio.post(
+      '/api/mobility/matches/$matchId/confirm_delivery/',
+      data: {
+        'verification_code': verificationCode,
+      },
+    );
+    _notifyTaskStateChanged('delivery_dropoff_confirmed');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> startRideTrip({
+    required String matchId,
+  }) async {
+    final response = await _dio.post('/api/mobility/matches/$matchId/start_ride/');
+    _notifyTaskStateChanged('ride_started');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> endRideTrip({
+    required String matchId,
+  }) async {
+    final response = await _dio.post('/api/mobility/matches/$matchId/end_ride/');
+    _notifyTaskStateChanged('ride_ended');
+    return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<List<Map<String, dynamic>>> getTrackingSessions() async {

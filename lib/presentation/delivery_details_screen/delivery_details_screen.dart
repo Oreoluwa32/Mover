@@ -91,6 +91,7 @@ class DeliveryDetailsScreenState extends ConsumerState<DeliveryDetailsScreen> {
       AppRoutes.homeOneScreen,
       (route) => false,
       arguments: {
+        'autoEnableLive': true,
         'searchNearbyMovers': true,
         'searchRequestType': 'delivery',
         'searchRequestData': requestData,

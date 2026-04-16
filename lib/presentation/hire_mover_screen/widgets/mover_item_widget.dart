@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
-import '../../../widgets/custom_rating_bar.dart';
 import '../models/mover_item_model.dart';
 
 // ignore for file, class must be immutable
@@ -83,10 +82,6 @@ class MoverItemWidget extends StatelessWidget{
                     ],
                   ),
                 ),
-                CustomRatingBar(
-                  ignoreGestures: true,
-                  initialRating: 5,
-                )
               ],
             ),
           ),

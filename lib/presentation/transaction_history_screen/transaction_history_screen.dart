@@ -307,7 +307,7 @@ class TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScre
   /// ✅ NEW: Show quick deposit bottom sheet
   /// Displays amount and email input, then navigates directly to payment WebView
   void _showQuickDepositSheet(BuildContext context) {
-    showModalBottomSheet(
+    AppBottomSheet.show(
       context: context,
       builder: (_) => const QuickDepositBottomsheet(),
       isScrollControlled: true,

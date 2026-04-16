@@ -22,7 +22,7 @@ class FileManager {
     List<String> allowedExtensions = const [],
     void Function(List<String?>)? getImages,
   }) async {
-    showModalBottomSheet(
+    AppBottomSheet.show(
       context: NavigatorService.navigatorKey.currentContext!,
       builder: (BuildContext context) {
         return SafeArea(

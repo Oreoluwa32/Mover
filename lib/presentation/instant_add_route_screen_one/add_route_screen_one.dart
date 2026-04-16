@@ -158,6 +158,8 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
             'destinationLng': notifierState.destinationLng,
             'destinationName': notifierState.destinationController?.text,
             'highlightRoute': true,
+            'autoEnableLive': true,
+            'autoEnableLiveRouteId': routeData['id']?.toString(),
             'searchNearbyMovers': true,
             'searchRequestType': _deriveSearchRequestType(selectedServiceTitle),
             'searchRequestData': routeData,
@@ -270,7 +272,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                   right: 15.h,
                 ),
                 onTap: () {
-                  showModalBottomSheet(
+                  AppBottomSheet.show(
                     context: context,
                     builder: (_) => AddRouteThreeBottomsheet(),
                     isScrollControlled: true

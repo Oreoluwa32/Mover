@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../services/device_memory_service.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../activity_in_progress_page/activity_in_progress_page.dart';
 import '../my_route_page/my_route_page.dart';
@@ -31,7 +34,16 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final hasActiveSession = await DeviceMemoryService().syncSessionState();
+      if (!mounted) {
+        return;
+      }
+      if (!hasActiveSession) {
+        NavigatorService.pushNamedAndRemoveUntil(AppRoutes.signInScreen);
+        return;
+      }
+
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null) {
         if (args['highlightRoute'] == true &&
@@ -55,6 +67,14 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
             builder: (context) => SaveYourRouteDialog(),
           );
         }
+        if (args['autoEnableLive'] == true) {
+          final routeId = args['autoEnableLiveRouteId']?.toString();
+          unawaited(
+            ref.read(homeNotifier.notifier).enableLiveIfNeeded(
+                  routeId: routeId,
+                ),
+          );
+        }
         if (args['searchNearbyMovers'] == true && !_searchSheetShown) {
           final searchType =
               args['searchRequestType']?.toString() ?? 'delivery';
@@ -66,8 +86,15 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
                 searchType: searchType,
                 searchData: searchData,
               );
-          showModalBottomSheet(
+          AppBottomSheet.show(
             context: context,
+            useRootNavigator: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(24.h),
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
             builder: (context) => SearchMoverBottomsheet(
               requestType: searchType,
               requestData: searchData,
@@ -97,7 +124,25 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
         initialRoute: AppRoutes.homeOneInitialPage,
         onGenerateRoute: (routeSetting) => PageRouteBuilder(
           pageBuilder: (ctx, ani, ani1) => getCurrentPage(context, routeSetting.name!),
-          transitionDuration: Duration(seconds: 0),
+          transitionDuration: const Duration(milliseconds: 260),
+          reverseTransitionDuration: const Duration(milliseconds: 220),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.03, 0),
+                  end: Offset.zero,
+                ).chain(
+                  CurveTween(curve: Curves.easeOutCubic),
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: _hideBottomBar ? null : Padding(

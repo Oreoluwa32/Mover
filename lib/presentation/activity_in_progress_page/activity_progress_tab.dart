@@ -82,30 +82,83 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
             itemBuilder: (context, index) {
               ProgressItemModel model = items[index];
               return GestureDetector(
-                onTap: () {
-                  NavigatorService.pushNamed(
-                    AppRoutes.userDeliveryBottomsheetOne,
-                    arguments: {
-                      'requestId': model.requestId,
-                      'requestType': model.requestType,
-                      'pickupLocation': model.pickupLocation,
-                      'destinationLocation': model.destinationLocation,
-                      'date': model.date,
-                      'time': model.time,
-                      'status': model.status,
-                      'moverName': model.moverName,
-                      'rating': model.rating,
-                      'price': model.price,
-                      'travelPlanId': model.matchedTravelPlanId,
-                    },
-                  );
-                },
+                onTap: () => _openActiveItem(model),
                 child: ProgressItemWidget(model),
               );
             },
           );
         },
       ),
+    );
+  }
+
+  void _openActiveItem(ProgressItemModel model) {
+    if (model.isMoverSide == true) {
+      if (model.requestType == 'delivery') {
+        final taskPhase = model.matchStatus == 'accepted' ? 'accepted' : 'active';
+        NavigatorService.pushNamed(
+          AppRoutes.deliveryPickupScreenOne,
+          arguments: {
+            'requestData': model.requestData,
+            'taskPhase': taskPhase,
+          },
+        );
+        return;
+      }
+
+      NavigatorService.pushNamed(
+        AppRoutes.rideSharingPickupTwo,
+        arguments: {
+          'requestData': model.requestData,
+        },
+      );
+      return;
+    }
+
+    if (model.requestType == 'delivery') {
+      final isPickupPhase = model.matchStatus == 'accepted';
+      NavigatorService.pushNamed(
+        isPickupPhase
+            ? AppRoutes.userDeliveryBottomsheetOne
+            : AppRoutes.userDeliveryBottomsheetTwo,
+        arguments: {
+          'requestId': model.requestId,
+          'requestType': model.requestType,
+          'pickupLocation': model.pickupLocation,
+          'destinationLocation': model.destinationLocation,
+          'date': model.date,
+          'time': model.time,
+          'status': model.status,
+          'moverName': model.moverName,
+          'rating': model.rating,
+          'price': model.price,
+          'travelPlanId': model.matchedTravelPlanId,
+          'matchId': model.matchId,
+          'requestData': model.requestData,
+          'matchStatus': model.matchStatus,
+        },
+      );
+      return;
+    }
+
+    NavigatorService.pushNamed(
+      AppRoutes.userDeliveryBottomsheetOne,
+      arguments: {
+        'requestId': model.requestId,
+        'requestType': model.requestType,
+        'pickupLocation': model.pickupLocation,
+        'destinationLocation': model.destinationLocation,
+        'date': model.date,
+        'time': model.time,
+        'status': model.status,
+        'moverName': model.moverName,
+        'rating': model.rating,
+        'price': model.price,
+        'travelPlanId': model.matchedTravelPlanId,
+        'matchId': model.matchId,
+        'requestData': model.requestData,
+        'matchStatus': model.matchStatus,
+      },
     );
   }
 }

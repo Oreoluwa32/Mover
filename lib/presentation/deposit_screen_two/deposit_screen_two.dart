@@ -391,7 +391,7 @@ class DepositScreenTwoState extends ConsumerState<DepositScreenTwo> {
             width: double.maxFinite,
             child: GestureDetector(
               onTap: () {
-                showModalBottomSheet(
+                AppBottomSheet.show(
                         context: context, 
                         builder: (_) => DepositBottomsheet(),
                         isScrollControlled: true,

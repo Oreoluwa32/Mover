@@ -70,6 +70,7 @@ import '../presentation/monnify_payment_screen/monnify_payment_screen.dart';
 import '../presentation/schedule_move_bottomsheet/schedule_move_bottomsheet.dart';
 import '../presentation/ride_sharing_details_screen/ride_sharing_details_screen.dart';
 import '../presentation/schedule_move_bottomsheet_one/schedule_move_bottomsheet_one.dart';
+import '../presentation/task_chat_screen/task_chat_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -219,6 +220,8 @@ class AppRoutes {
   static const String notificationScreen = '/notification_screen';
 
   static const String scheduleMoveBottomsheet = 'schedule_move_bottomsheet';
+
+  static const String taskChatScreen = '/task_chat_screen';
 
   static const String paystackPaymentScreen = '/paystack_payment_screen';
 
@@ -382,6 +385,8 @@ class AppRoutes {
     notificationScreen: (context) => NotificationScreen(),
 
     scheduleMoveBottomsheet: (context) => ScheduleMoveBottomsheet(),
+
+    taskChatScreen: (context) => const TaskChatScreen(),
   };
 
   /// Handle routes with parameters

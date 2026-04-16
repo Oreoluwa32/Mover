@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/app_export.dart';
+import '../../../core/utils/task_state_sync.dart';
 import '../../../data/services/mobility_api_service.dart';
 import '../models/activity_completed_model.dart';
 import '../models/completed_item_model.dart';
@@ -19,47 +22,28 @@ final activityCompletedNotifier = StateNotifierProvider.autoDispose<
 );
 
 class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
-  ActivityCompletedNotifier(super.state);
+  ActivityCompletedNotifier(super.state) {
+    _taskSyncSubscription = TaskStateSync.stream.listen((_) {
+      unawaited(fetchActivities(silent: true));
+    });
+  }
 
   final MobilityApiService _mobilityApiService = MobilityApiService();
+  StreamSubscription<TaskStateSyncEvent>? _taskSyncSubscription;
 
-  Future<void> fetchActivities() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> fetchActivities({bool silent = false}) async {
+    if (!silent) {
+      state = state.copyWith(isLoading: true, clearError: true);
+    }
 
     try {
-      final responses = await Future.wait([
-        _mobilityApiService.getRideRequests(),
-        _mobilityApiService.getDeliveryRequests(),
-        _mobilityApiService.getMatches(),
-      ]);
+      final matches = await _mobilityApiService.getMatches();
 
-      final rideRequests = List<Map<String, dynamic>>.from(responses[0] as List);
-      final deliveryRequests = List<Map<String, dynamic>>.from(responses[1] as List);
-      final matches = List<Map<String, dynamic>>.from(responses[2] as List);
-
-      final rideMatches = <String, Map<String, dynamic>>{};
-      final deliveryMatches = <String, Map<String, dynamic>>{};
-
-      for (final match in matches) {
-        final rideRequest = match['ride_request'];
-        if (rideRequest is Map && rideRequest['id'] != null) {
-          rideMatches[rideRequest['id'].toString()] = match;
-        }
-
-        final deliveryRequest = match['delivery_request'];
-        if (deliveryRequest is Map && deliveryRequest['id'] != null) {
-          deliveryMatches[deliveryRequest['id'].toString()] = match;
-        }
-      }
-
-      final items = <CompletedItemModel>[
-        ...rideRequests
-            .where((item) => item['status'] == 'completed')
-            .map((item) => _mapRideRequest(item, rideMatches[item['id'].toString()])),
-        ...deliveryRequests
-            .where((item) => item['status'] == 'delivered')
-            .map((item) => _mapDeliveryRequest(item, deliveryMatches[item['id'].toString()])),
-      ];
+      final items = matches
+          .where((match) => match['status']?.toString() == 'completed')
+          .map(_mapCompletedMatch)
+          .whereType<CompletedItemModel>()
+          .toList();
 
       items.sort(
         (left, right) =>
@@ -79,68 +63,97 @@ class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
     }
   }
 
-  CompletedItemModel _mapRideRequest(
-    Map<String, dynamic> request,
-    Map<String, dynamic>? match,
-  ) {
-    final scheduledTime = request['scheduled_time']?.toString();
-    return CompletedItemModel(
-      icon: ImageConstant.imgBlackCar,
-      address:
-          '${request['origin_name'] ?? 'Pickup'} to ${request['destination_name'] ?? 'Destination'}',
-      pickupLocation: request['origin_name']?.toString(),
-      destinationLocation: request['destination_name']?.toString(),
-      date: _formatDateLabel(scheduledTime),
-      time: _formatTimeLabel(scheduledTime),
-      status: 'Completed',
-      moverName: _resolveMoverName(match),
-      rating: 'Trip completed',
-      price: _resolvePrice(match),
-      id: request['id']?.toString(),
-      requestId: request['id']?.toString(),
-      requestType: 'ride',
-      scheduledAt: scheduledTime,
+  CompletedItemModel? _mapCompletedMatch(Map<String, dynamic> match) {
+    final rideRequest = Map<String, dynamic>.from(
+      match['ride_request'] as Map? ?? const <String, dynamic>{},
     );
+    final deliveryRequest = Map<String, dynamic>.from(
+      match['delivery_request'] as Map? ?? const <String, dynamic>{},
+    );
+    final travelPlan = Map<String, dynamic>.from(
+      match['travel_plan'] as Map? ?? const <String, dynamic>{},
+    );
+    final requestType = match['match_type']?.toString();
+
+    if (requestType == 'ride' && rideRequest.isNotEmpty) {
+      final scheduledTime = rideRequest['scheduled_time']?.toString();
+      final enrichedRequest = Map<String, dynamic>.from(rideRequest)
+        ..['_match'] = match
+        ..['_match_id'] = match['id']?.toString() ?? ''
+        ..['_travel_plan'] = travelPlan;
+      return CompletedItemModel(
+        icon: ImageConstant.imgBlackCar,
+        address:
+            '${rideRequest['origin_name'] ?? 'Pickup'} to ${rideRequest['destination_name'] ?? 'Destination'}',
+        pickupLocation: rideRequest['origin_name']?.toString(),
+        destinationLocation: rideRequest['destination_name']?.toString(),
+        pickupLatitude: _safeDouble(rideRequest['origin_latitude']),
+        pickupLongitude: _safeDouble(rideRequest['origin_longitude']),
+        destinationLatitude: _safeDouble(rideRequest['destination_latitude']),
+        destinationLongitude: _safeDouble(rideRequest['destination_longitude']),
+        date: _formatDateLabel(scheduledTime),
+        time: _formatTimeLabel(scheduledTime),
+        status: 'Completed',
+        moverName: _resolveMoverName(match),
+        rating: 'Trip completed',
+        price: _resolvePrice(match),
+        id: match['id']?.toString(),
+        requestId: rideRequest['id']?.toString(),
+        requestType: 'ride',
+        scheduledAt: scheduledTime,
+        requestData: enrichedRequest,
+      );
+    }
+
+    if (requestType == 'delivery' && deliveryRequest.isNotEmpty) {
+      final scheduledTime = deliveryRequest['scheduled_time']?.toString();
+      final enrichedRequest = Map<String, dynamic>.from(deliveryRequest)
+        ..['_match'] = match
+        ..['_match_id'] = match['id']?.toString() ?? ''
+        ..['_travel_plan'] = travelPlan;
+      return CompletedItemModel(
+        icon: ImageConstant.imgPackageBlack,
+        address:
+            '${deliveryRequest['pickup_name'] ?? 'Pickup'} to ${deliveryRequest['dropoff_name'] ?? 'Dropoff'}',
+        pickupLocation: deliveryRequest['pickup_name']?.toString(),
+        destinationLocation: deliveryRequest['dropoff_name']?.toString(),
+        pickupLatitude: _safeDouble(deliveryRequest['pickup_latitude']),
+        pickupLongitude: _safeDouble(deliveryRequest['pickup_longitude']),
+        destinationLatitude: _safeDouble(deliveryRequest['dropoff_latitude']),
+        destinationLongitude: _safeDouble(deliveryRequest['dropoff_longitude']),
+        date: _formatDateLabel(scheduledTime),
+        time: _formatTimeLabel(scheduledTime),
+        status: 'Completed',
+        moverName: _resolveMoverName(match),
+        rating: 'Delivery completed',
+        price: _resolvePrice(match),
+        id: match['id']?.toString(),
+        requestId: deliveryRequest['id']?.toString(),
+        requestType: 'delivery',
+        scheduledAt: scheduledTime,
+        requestData: enrichedRequest,
+      );
+    }
+
+    return null;
   }
 
-  CompletedItemModel _mapDeliveryRequest(
-    Map<String, dynamic> request,
-    Map<String, dynamic>? match,
-  ) {
-    final scheduledTime = request['scheduled_time']?.toString();
-    return CompletedItemModel(
-      icon: ImageConstant.imgPackageBlack,
-      address:
-          '${request['pickup_name'] ?? 'Pickup'} to ${request['dropoff_name'] ?? 'Dropoff'}',
-      pickupLocation: request['pickup_name']?.toString(),
-      destinationLocation: request['dropoff_name']?.toString(),
-      date: _formatDateLabel(scheduledTime),
-      time: _formatTimeLabel(scheduledTime),
-      status: 'Completed',
-      moverName: _resolveMoverName(match),
-      rating: 'Delivery completed',
-      price: _resolvePrice(match),
-      id: request['id']?.toString(),
-      requestId: request['id']?.toString(),
-      requestType: 'delivery',
-      scheduledAt: scheduledTime,
+  String _resolveMoverName(Map<String, dynamic> match) {
+    final travelPlan = Map<String, dynamic>.from(
+      match['travel_plan'] as Map? ?? const <String, dynamic>{},
     );
-  }
-
-  String _resolveMoverName(Map<String, dynamic>? match) {
-    final travelPlan = match?['travel_plan'];
-    if (travelPlan is Map && travelPlan['created_by'] is Map) {
-      final createdBy = travelPlan['created_by'] as Map;
-      final fullName = createdBy['full_name']?.toString();
-      if (fullName != null && fullName.isNotEmpty) {
-        return fullName;
-      }
+    final mover = Map<String, dynamic>.from(
+      travelPlan['created_by'] as Map? ?? const <String, dynamic>{},
+    );
+    final moverName = mover['full_name']?.toString().trim() ?? '';
+    if (moverName.isNotEmpty) {
+      return moverName;
     }
     return 'Completed request';
   }
 
-  String _resolvePrice(Map<String, dynamic>? match) {
-    final agreedPrice = match?['agreed_price'];
+  String _resolvePrice(Map<String, dynamic> match) {
+    final agreedPrice = match['agreed_price'];
     if (agreedPrice == null) {
       return 'Pending';
     }
@@ -165,5 +178,18 @@ class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
 
   DateTime _parseDate(String? rawDate) {
     return DateTime.tryParse(rawDate ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  double _safeDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  @override
+  void dispose() {
+    _taskSyncSubscription?.cancel();
+    super.dispose();
   }
 }

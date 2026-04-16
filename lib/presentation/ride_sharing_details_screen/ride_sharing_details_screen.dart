@@ -50,6 +50,7 @@ class RideSharingDetailsScreenState
         AppRoutes.homeOneScreen,
         (route) => false,
         arguments: {
+          'autoEnableLive': true,
           'searchNearbyMovers': true,
           'searchRequestType': 'ride',
           'searchRequestData': requestData,

@@ -163,7 +163,12 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                     .myRouteModelObj
                     ?.savedrouteItemList[index] ??
                 SavedRouteModel();
-            return SavedrouteItemWidget(model);
+            return SavedrouteItemWidget(
+              model,
+              onDelete: () => ref
+                  .read(myRouteNotifier.notifier)
+                  .deleteScheduledRoute(model.id ?? ''),
+            );
           },
         ),
       );

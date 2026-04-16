@@ -314,7 +314,7 @@ class ShareRideScreenOneState extends ConsumerState<ShareRideScreenOne> {
           CustomElevatedButton(
             text: "Share Ride",
             onPressed: () {
-              showModalBottomSheet(
+              AppBottomSheet.show(
                   context: context,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(

@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-
+import '../../widgets/custom_icon_button.dart';
 import '../../core/app_export.dart';
-import '../../data/services/mobility_api_service.dart';
-import '../../data/services/mobility_realtime_service.dart';
+import '../../core/utils/task_interaction_helper.dart';
+import '../../widgets/task_route_map.dart';
 import 'user_delivery_pin_tab.dart';
 import 'user_delivery_qr_tab.dart';
 
@@ -20,17 +18,8 @@ class UserDeliveryBottomsheetOne extends ConsumerStatefulWidget {
 class UserDeliveryBottomsheetOneState
     extends ConsumerState<UserDeliveryBottomsheetOne>
     with TickerProviderStateMixin {
-  final MobilityApiService _mobilityApiService = MobilityApiService();
-  final MobilityRealtimeService _mobilityRealtimeService =
-      MobilityRealtimeService();
   late TabController tabviewController;
-  StreamSubscription<Map<String, dynamic>>? _trackingSubscription;
   int tabIndex = 0;
-  String? _connectedTravelPlanId;
-  String _trackingStateLabel = 'Waiting';
-  String _trackingMessage = 'Tracking will appear when the mover goes live.';
-  String? _trackingUpdatedAt;
-  bool _isLoadingTracking = false;
 
   @override
   void initState() {
@@ -39,21 +28,7 @@ class UserDeliveryBottomsheetOneState
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-            const <String, dynamic>{};
-    final travelPlanId = args['travelPlanId']?.toString() ?? '';
-    if (travelPlanId != _connectedTravelPlanId) {
-      unawaited(_initializeTracking(travelPlanId));
-    }
-  }
-
-  @override
   void dispose() {
-    _trackingSubscription?.cancel();
-    unawaited(_mobilityRealtimeService.dispose());
     tabviewController.dispose();
     super.dispose();
   }
@@ -66,388 +41,376 @@ class UserDeliveryBottomsheetOneState
     final requestId = args['requestId']?.toString() ?? 'movr-request';
     final requestType = args['requestType']?.toString() ?? 'delivery';
     final moverName = args['moverName']?.toString() ?? 'Assigned mover';
-    final rating = args['rating']?.toString() ?? 'No ratings or reviews';
-    final status = args['status']?.toString() ?? 'In progress';
-    final pickupLocation = args['pickupLocation']?.toString() ?? 'Pickup';
-    final destinationLocation =
-        args['destinationLocation']?.toString() ?? 'Destination';
-    final travelPlanId = args['travelPlanId']?.toString() ?? '';
+    final requestData = Map<String, dynamic>.from(
+      args['requestData'] as Map? ?? const <String, dynamic>{},
+    );
     final pinCode = _buildPinFromRequestId(requestId);
+    final travelPlan = Map<String, dynamic>.from(
+      requestData['_travel_plan'] as Map? ?? const <String, dynamic>{},
+    );
+    final pickupLatitude = _safeDouble(
+      requestData['pickup_latitude'] ?? requestData['origin_latitude'],
+    );
+    final pickupLongitude = _safeDouble(
+      requestData['pickup_longitude'] ?? requestData['origin_longitude'],
+    );
+    final destinationLatitude = _safeDouble(
+      requestData['dropoff_latitude'] ?? requestData['destination_latitude'],
+    );
+    final destinationLongitude = _safeDouble(
+      requestData['dropoff_longitude'] ?? requestData['destination_longitude'],
+    );
+    final moverLatitude = _safeDouble(travelPlan['origin_latitude']);
+    final moverLongitude = _safeDouble(travelPlan['origin_longitude']);
 
-    return Material(
-      child: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
-              borderRadius: BorderRadiusStyle.customBorderTL24,
+    return Scaffold(
+      backgroundColor: theme.colorScheme.onPrimary,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: TaskRouteMap(
+              pickupLatitude: pickupLatitude,
+              pickupLongitude: pickupLongitude,
+              destinationLatitude: destinationLatitude,
+              destinationLongitude: destinationLongitude,
+              moverLatitude: moverLatitude == 0 ? null : moverLatitude,
+              moverLongitude: moverLongitude == 0 ? null : moverLongitude,
+              routeColor: const Color(0xFF2F2F2F),
+              showMoverRadius: true,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 16.h),
-                _buildColumn(
-                  context,
-                  requestId: requestId,
-                  moverName: moverName,
-                  rating: rating,
-                  requestType: requestType,
-                  status: status,
-                  pickupLocation: pickupLocation,
-                  destinationLocation: destinationLocation,
-                  travelPlanId: travelPlanId,
+          ),
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.h),
+              child: Row(
+                children: [
+                  _buildMapButton(
+                    icon: ImageConstant.imgLeftArrow,
+                    onTap: NavigatorService.goBack,
+                  ),
+                  const Spacer(),
+                  _buildMapButton(
+                    icon: ImageConstant.imgPackageBlack,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          DraggableScrollableSheet(
+            initialChildSize: 0.75,
+            minChildSize: 0.5,
+            maxChildSize: 0.75,
+            snap: true,
+            snapSizes: const [0.5, 0.75],
+            builder: (context, scrollController) {
+              return Container(
+                width: double.maxFinite,
+                padding: EdgeInsets.fromLTRB(16.h, 12.h, 16.h, 24.h),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onPrimary,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(28.h),
+                    topRight: Radius.circular(28.h),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 20.h,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
                 ),
-                _buildTabbar(
-                  context,
-                  requestId: requestId,
-                  pinCode: pinCode,
-                ),
-                SizedBox(height: 40.h),
-                GestureDetector(
-                  onTap: () {
-                    NavigatorService.pushNamed(AppRoutes.rideCancelScreenOne);
-                  },
-                  child: Text(
-                    "Cancel Request",
-                    style: CustomTextStyles.titleSmallRedA700,
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 52.h,
+                        height: 5.h,
+                        decoration: BoxDecoration(
+                          color: appTheme.gray300,
+                          borderRadius: BorderRadius.circular(12.h),
+                        ),
+                      ),
+                      SizedBox(height: 18.h),
+                      Text(
+                        'Mover will arrive in 10mins',
+                        style: CustomTextStyles.titleMediumGray80001,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20.h),
+                      Expanded(
+                        child: ScrollConfiguration(
+                          behavior: ScrollConfiguration.of(context).copyWith(
+                            scrollbars: false,
+                          ),
+                          child: SingleChildScrollView(
+                            controller: scrollController,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildMoverCard(moverName),
+                                SizedBox(height: 24.h),
+                                _buildActionsRow(
+                                  requestData: requestData,
+                                  args: args,
+                                  requestType: requestType,
+                                ),
+                                SizedBox(height: 24.h),
+                                _buildTabs(),
+                                SizedBox(height: 10.h),
+                                _buildTabBarView(
+                                  requestId: requestId,
+                                  pinCode: pinCode,
+                                ),
+                                SizedBox(height: 18.h),
+                                GestureDetector(
+                                  onTap: () async {
+                                    final matchMap = Map<String, dynamic>.from(
+                                      requestData['_match'] as Map? ?? const <String, dynamic>{},
+                                    );
+                                    final cancelled = await NavigatorService.pushNamed(
+                                      AppRoutes.rideCancelScreenOne,
+                                      arguments: {
+                                        'matchId': requestData['_match_id']?.toString() ??
+                                            matchMap['id']?.toString() ??
+                                            '',
+                                        'requestId': requestData['id']?.toString() ?? requestId,
+                                        'requestType': requestType,
+                                        'source': 'requester_task',
+                                      },
+                                    );
+                                    if (cancelled == true && mounted) {
+                                      NavigatorService.goBack();
+                                    }
+                                  },
+                                  child: Text(
+                                    'Cancel Request',
+                                    style: CustomTextStyles.titleSmallRedA700,
+                                  ),
+                                ),
+                                SizedBox(height: 6.h),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 24.h),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapButton({
+    required String icon,
+    VoidCallback? onTap,
+  }) {
+    return CustomIconButton(
+      height: 40.h,
+      width: 40.h,
+      padding: EdgeInsets.all(10.h),
+      decoration: IconButtonStyleHelper.outlineBlackTL201,
+      onTap: onTap,
+      child: CustomImageView(
+        imagePath: icon,
+      ),
+    );
+  }
+
+  Widget _buildMoverCard(String moverName) {
+    return Container(
+      width: double.maxFinite,
+      padding: EdgeInsets.all(12.h),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onPrimary,
+        borderRadius: BorderRadiusStyle.roundedBorder8,
+        border: Border.all(
+          color: appTheme.gray20001,
+          width: 1.h,
+        ),
+      ),
+      child: Row(
+        children: [
+          CustomImageView(
+            imagePath: ImageConstant.imgProfile,
+            height: 48.h,
+            width: 48.h,
+            radius: BorderRadius.circular(24.h),
+          ),
+          SizedBox(width: 12.h),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  moverName,
+                  style: CustomTextStyles.bodyMediumMulishGray800,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Text(
+                      '2km away',
+                      style: CustomTextStyles.bodySmallInterGray600,
+                    ),
+                    Container(
+                      width: 2.h,
+                      height: 2.h,
+                      margin: EdgeInsets.symmetric(horizontal: 4.h),
+                      decoration: BoxDecoration(
+                        color: appTheme.gray700,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    CustomImageView(
+                      imagePath: ImageConstant.imgBlackCar,
+                      height: 14.h,
+                      width: 14.h,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'No ratings or reviews',
+                  style: CustomTextStyles.labelLargeBluegray400,
+                ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionsRow({
+    required Map<String, dynamic> requestData,
+    required Map<String, dynamic> args,
+    required String requestType,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildAction(
+          ImageConstant.imgChatSquare,
+          'Chat',
+          onTap: () => TaskInteractionHelper.openTaskChat(
+            requestData,
+            isMoverSide: false,
+            args: args,
+          ),
+        ),
+        _buildAction(
+          ImageConstant.imgPhoneCall,
+          'Call',
+          onTap: () => TaskInteractionHelper.callParticipant(
+            requestData,
+            isMoverSide: false,
+          ),
+        ),
+        _buildAction(
+          ImageConstant.imgAlert,
+          'Report',
+          onTap: () => TaskInteractionHelper.openTaskReport(
+            requestData,
+            isMoverSide: false,
+            requestType: requestType,
+            args: args,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAction(String iconPath, String label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+      children: [
+        CustomImageView(
+          imagePath: iconPath,
+          height: 24.h,
+          width: 24.h,
+        ),
+        SizedBox(height: 6.h),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
+    ),
+    );
+  }
+
+  Widget _buildTabs() {
+    return SizedBox(
+      width: double.maxFinite,
+      child: TabBar(
+        controller: tabviewController,
+        labelPadding: EdgeInsets.zero,
+        indicatorColor: Colors.transparent,
+        dividerColor: Colors.transparent,
+        tabs: [
+          _buildTab(title: 'QR Code', selected: tabIndex == 0),
+          _buildTab(title: 'Pin Code', selected: tabIndex == 1),
+        ],
+        onTap: (index) {
+          setState(() {
+            tabIndex = index;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildTab({
+    required String title,
+    required bool selected,
+  }) {
+    return Tab(
+      child: Container(
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(bottom: 10.h),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: selected ? theme.colorScheme.primary : appTheme.gray300,
+              width: selected ? 2.h : 1.h,
+            ),
+          ),
+        ),
+        child: Text(
+          title,
+          style: selected
+              ? CustomTextStyles.bodyMediumMulishGray800
+              : CustomTextStyles.bodyMediumMulishGray800?.copyWith(
+                  color: appTheme.blueGray400,
+                ),
         ),
       ),
     );
   }
 
-  Widget _buildColumn(
-    BuildContext context, {
-    required String requestId,
-    required String moverName,
-    required String rating,
-    required String requestType,
-    required String status,
-    required String pickupLocation,
-    required String destinationLocation,
-    required String travelPlanId,
-  }) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 16.h),
-      child: Column(
-        children: [
-          SizedBox(width: 50.h, child: const Divider()),
-          SizedBox(height: 14.h),
-          Text(
-            status == 'In progress'
-                ? "Mover is handling your request"
-                : "Mover update",
-            style: CustomTextStyles.titleMediumGray80001,
-          ),
-          SizedBox(height: 20.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadiusStyle.roundedBorder8,
-              border: Border.all(color: appTheme.gray20001, width: 1.h),
-            ),
-            width: double.maxFinite,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomImageView(
-                  imagePath: ImageConstant.imgProfile,
-                  height: 50.h,
-                  width: 50.h,
-                  radius: BorderRadius.circular(24.h),
-                  margin: EdgeInsets.only(top: 4.h),
-                ),
-                SizedBox(width: 16.h),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 4.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              moverName,
-                              style: theme.textTheme.titleSmall
-                                  ?.copyWith(color: Colors.black87),
-                            ),
-                            Padding(padding: EdgeInsets.only(right: 8.h)),
-                            CustomImageView(
-                              imagePath: ImageConstant.imgAway,
-                              height: 16.h,
-                              width: 16.h,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              requestType == 'ride'
-                                  ? "Ride request active"
-                                  : "Delivery in progress",
-                              style: CustomTextStyles.bodySmallInterGray600,
-                            ),
-                            Container(
-                              height: 2.h,
-                              width: 2.h,
-                              margin: EdgeInsets.only(left: 4.h),
-                              decoration: BoxDecoration(
-                                color: appTheme.gray700,
-                                borderRadius: BorderRadius.circular(1.h),
-                              ),
-                            ),
-                            CustomImageView(
-                              imagePath: requestType == 'ride'
-                                  ? ImageConstant.imgBlackCar
-                                  : ImageConstant.imgPackageBlack,
-                              height: 16.h,
-                              width: 16.h,
-                              margin: EdgeInsets.only(left: 4.h),
-                            )
-                          ],
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          rating,
-                          style: CustomTextStyles.labelLargeBluegray400,
-                        )
-                      ],
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-          SizedBox(height: 24.h),
-          Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.all(14.h),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadiusStyle.roundedBorder8,
-              border: Border.all(color: appTheme.gray20001, width: 1.h),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Route",
-                  style: CustomTextStyles.labelLargeBold,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  pickupLocation,
-                  style: theme.textTheme.bodySmall,
-                ),
-                SizedBox(height: 6.h),
-                Text(
-                  destinationLocation,
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 16.h),
-          _buildTrackingCard(
-            context,
-            travelPlanId: travelPlanId,
-          ),
-          SizedBox(height: 28.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildActionIcon(context, ImageConstant.imgChatSquare, "Chat"),
-              Expanded(
-                child: _buildActionIcon(
-                  context,
-                  ImageConstant.imgPhoneCall,
-                  "Call",
-                ),
-              ),
-              _buildActionIcon(
-                context,
-                ImageConstant.imgAlert,
-                "Report",
-                onTap: () => _reportIssue(
-                  requestId: requestId,
-                  requestType: requestType,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 32.h),
-          SizedBox(
-            width: double.maxFinite,
-            child: TabBar(
-              controller: tabviewController,
-              labelPadding: EdgeInsets.zero,
-              labelColor: appTheme.gray80001,
-              labelStyle: TextStyle(
-                fontSize: 14.fSize,
-                fontFamily: 'Mulish',
-                fontWeight: FontWeight.w500,
-              ),
-              unselectedLabelColor: appTheme.blueGray400,
-              unselectedLabelStyle: TextStyle(
-                fontSize: 14.fSize,
-                fontFamily: 'Mulish',
-                fontWeight: FontWeight.w500,
-              ),
-              tabs: [
-                _buildTab(title: "QR Code", isSelected: tabIndex == 0),
-                _buildTab(title: "Pin Code", isSelected: tabIndex == 1),
-              ],
-              indicatorColor: Colors.white,
-              onTap: (index) {
-                tabIndex = index;
-                setState(() {});
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrackingCard(
-    BuildContext context, {
-    required String travelPlanId,
-  }) {
-    final isLive = _trackingStateLabel == 'Live';
-    final isSos = _trackingStateLabel == 'SOS';
-    final chipColor = isSos
-        ? const Color(0xFFE53935)
-        : (isLive ? appTheme.lightGreen500 : appTheme.deepPurple50);
-    final chipTextColor =
-        (isLive || isSos) ? Colors.white : appTheme.deepPurple600;
-
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.all(14.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(color: appTheme.gray20001, width: 1.h),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                "Live Tracking",
-                style: CustomTextStyles.labelLargeBold,
-              ),
-              const Spacer(),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: chipColor,
-                  borderRadius: BorderRadiusStyle.roundedBorder8,
-                ),
-                child: Text(
-                  _isLoadingTracking ? 'Connecting' : _trackingStateLabel,
-                  style: CustomTextStyles.labelLargeOnPrimary.copyWith(
-                    color: chipTextColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            _trackingMessage,
-            style: theme.textTheme.bodySmall,
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            travelPlanId.isEmpty
-                ? 'Tracking becomes available after a mover is matched.'
-                : 'Route ID: $travelPlanId',
-            style: CustomTextStyles.bodySmallInterGray600,
-          ),
-          if (_trackingUpdatedAt != null && _trackingUpdatedAt!.isNotEmpty) ...[
-            SizedBox(height: 6.h),
-            Text(
-              'Updated $_trackingUpdatedAt',
-              style: CustomTextStyles.bodySmallInterGray600,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionIcon(
-    BuildContext context,
-    String iconPath,
-    String label, {
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CustomImageView(
-            imagePath: iconPath,
-            height: 24.h,
-            width: 24.h,
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall,
-          )
-        ],
-      ),
-    );
-  }
-
-  Tab _buildTab({required String title, required bool isSelected}) {
-    return Tab(
-      height: 48,
-      child: Container(
-        alignment: Alignment.center,
-        width: double.maxFinite,
-        margin: EdgeInsets.symmetric(horizontal: 6.h),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: theme.colorScheme.onPrimary.withOpacity(1),
-                border: Border(
-                  bottom: BorderSide(
-                    color: theme.colorScheme.primary,
-                    width: 2.h,
-                  ),
-                ),
-              )
-            : BoxDecoration(
-                color: theme.colorScheme.onPrimary.withOpacity(1),
-              ),
-        child: Text(title),
-      ),
-    );
-  }
-
-  Widget _buildTabbar(
-    BuildContext context, {
+  Widget _buildTabBarView({
     required String requestId,
     required String pinCode,
   }) {
     return SizedBox(
-      height: 338.h,
+      height: 330.h,
       child: TabBarView(
         controller: tabviewController,
         children: [
           UserDeliveryQrTab(
             child: QrImageView(
               data: requestId,
-              size: 200.h,
+              size: 190.h,
               backgroundColor: Colors.white,
             ),
           ),
@@ -467,174 +430,10 @@ class UserDeliveryBottomsheetOneState
     return (100000 + (seed % 900000)).toString();
   }
 
-  Future<void> _initializeTracking(String travelPlanId) async {
-    _connectedTravelPlanId = travelPlanId;
-    await _trackingSubscription?.cancel();
-    _trackingSubscription = null;
-    await _mobilityRealtimeService.disconnect();
-
-    if (travelPlanId.isEmpty) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoadingTracking = false;
-        _trackingStateLabel = 'Waiting';
-        _trackingMessage = 'Tracking becomes available after a mover is matched.';
-        _trackingUpdatedAt = null;
-      });
-      return;
+  double _safeDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
     }
-
-    if (mounted) {
-      setState(() {
-        _isLoadingTracking = true;
-        _trackingStateLabel = 'Connecting';
-        _trackingMessage = 'Joining the mover live route...';
-      });
-    }
-
-    try {
-      final sessions = await _mobilityApiService.getTrackingSessions();
-      final matchingSession = sessions.cast<Map<String, dynamic>?>().firstWhere(
-            (session) => session?['travel_plan']?.toString() == travelPlanId,
-            orElse: () => null,
-          );
-
-      if (matchingSession != null) {
-        final events =
-            List<Map<String, dynamic>>.from(matchingSession['events'] as List? ?? const []);
-        final latestEvent = events.isNotEmpty ? events.last : null;
-        if (mounted) {
-          setState(() {
-            _trackingStateLabel = _buildTrackingStateLabel(
-              sessionStatus: matchingSession['status']?.toString(),
-              latestEvent: latestEvent,
-            );
-            _trackingMessage = _buildTrackingMessage(latestEvent);
-            _trackingUpdatedAt = _formatTrackingTimestamp(
-              latestEvent?['created_at']?.toString() ??
-                  matchingSession['updated_at']?.toString(),
-            );
-          });
-        }
-      } else if (mounted) {
-        setState(() {
-          _trackingStateLabel = 'Waiting';
-          _trackingMessage = 'The mover has not started live tracking for this route yet.';
-          _trackingUpdatedAt = null;
-        });
-      }
-
-      await _mobilityRealtimeService.connect(travelPlanId);
-      _trackingSubscription = _mobilityRealtimeService.events.listen((event) {
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          _trackingStateLabel = _buildTrackingStateLabel(latestEvent: event);
-          _trackingMessage = _buildTrackingMessage(event);
-          _trackingUpdatedAt =
-              _formatTrackingTimestamp(event['created_at']?.toString());
-        });
-      });
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _trackingStateLabel = 'Offline';
-        _trackingMessage = 'Unable to connect to live tracking right now.';
-      });
-    } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoadingTracking = false;
-      });
-    }
-  }
-
-  String _buildTrackingStateLabel({
-    String? sessionStatus,
-    Map<String, dynamic>? latestEvent,
-  }) {
-    final eventType = latestEvent?['event_type']?.toString();
-    if (eventType == 'sos') {
-      return 'SOS';
-    }
-    if (eventType == 'location' || sessionStatus == 'live') {
-      return 'Live';
-    }
-    if (eventType == 'status') {
-      return 'Status';
-    }
-    return 'Waiting';
-  }
-
-  String _buildTrackingMessage(Map<String, dynamic>? event) {
-    if (event == null) {
-      return 'The mover has not shared a live update yet.';
-    }
-
-    final eventType = event['event_type']?.toString();
-    final note = event['note']?.toString();
-    if (eventType == 'location') {
-      final latitude = event['latitude']?.toString();
-      final longitude = event['longitude']?.toString();
-      if (latitude != null && longitude != null) {
-        return 'Latest live location: $latitude, $longitude';
-      }
-      return 'The mover shared a live location update.';
-    }
-    if (eventType == 'sos') {
-      return note?.isNotEmpty == true
-          ? note!
-          : 'An emergency alert was raised on this route.';
-    }
-    if (note != null && note.isNotEmpty) {
-      return note;
-    }
-    return 'The mover shared a trip update.';
-  }
-
-  String? _formatTrackingTimestamp(String? value) {
-    final parsed = DateTime.tryParse(value ?? '');
-    if (parsed == null) {
-      return null;
-    }
-
-    final local = parsed.toLocal();
-    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
-    final minute = local.minute.toString().padLeft(2, '0');
-    final suffix = local.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $suffix';
-  }
-
-  Future<void> _reportIssue({
-    String? requestId,
-    required String requestType,
-  }) async {
-    try {
-      await _mobilityApiService.createEmergencyAlert(
-        message:
-            'User reported an issue from the active $requestType request screen. Request ID: ${requestId ?? 'unknown'}.',
-      );
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Issue reported to the Movr team.')),
-      );
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      final message = _mobilityApiService.extractErrorMessage(error);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    }
+    return double.tryParse(value?.toString() ?? '') ?? 0;
   }
 }

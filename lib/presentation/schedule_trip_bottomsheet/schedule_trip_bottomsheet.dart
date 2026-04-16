@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/task_interaction_helper.dart';
 import 'models/schedule_item_model.dart';
-import 'notifier/schedule_trip_notifier.dart';
 import 'widgets/schedule_item_widget.dart';
 
 class ScheduleTripBottomsheet extends ConsumerStatefulWidget {
@@ -30,6 +30,9 @@ class ScheduleTripBottomsheetState
     final price = args['price']?.toString() ?? 'Pending';
     final requestType = args['requestType']?.toString() ?? 'delivery';
     final status = args['status']?.toString() ?? 'Scheduled';
+    final requestData = Map<String, dynamic>.from(
+      args['requestData'] as Map? ?? const <String, dynamic>{},
+    );
 
     return Material(
       child: SizedBox(
@@ -48,7 +51,11 @@ class ScheduleTripBottomsheetState
                 SizedBox(width: 50.h, child: const Divider()),
                 SizedBox(height: 16.h),
                 Text(
-                  status == 'Matched' ? "Mover Matched" : "Trip Scheduled",
+                  status == 'Accepted'
+                      ? "Mover Selected"
+                      : status == 'Matched'
+                          ? "Mover Matched"
+                          : "Trip Scheduled",
                   style: CustomTextStyles.titleMediumGray80001,
                 ),
                 SizedBox(height: 16.h),
@@ -106,7 +113,12 @@ class ScheduleTripBottomsheetState
                         requestType: requestType,
                       ),
                       SizedBox(height: 24.h),
-                      _buildScheduleTrip(context),
+                      _buildScheduleTrip(
+                        context,
+                        requestData: requestData,
+                        requestType: requestType,
+                        args: args,
+                      ),
                       SizedBox(height: 34.h),
                       _buildDeliveryDetails(context, requestType: requestType),
                       SizedBox(height: 36.h),
@@ -269,33 +281,64 @@ class ScheduleTripBottomsheetState
     );
   }
 
-  Widget _buildScheduleTrip(BuildContext context) {
+  Widget _buildScheduleTrip(
+    BuildContext context, {
+    required Map<String, dynamic> requestData,
+    required String requestType,
+    required Map<String, dynamic> args,
+  }) {
     return Container(
       margin: EdgeInsets.only(left: 32.h, right: 26.h),
       width: double.maxFinite,
-      child: Consumer(
-        builder: (context, ref, _) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Wrap(
-              direction: Axis.horizontal,
-              spacing: 100.h,
-              children: List.generate(
-                ref.watch(scheduleTripNotifier).scheduleTripModelObj?.scheduleItemList.length ??
-                    0,
-                (index) {
-                  ScheduleItemModel model = ref
-                          .watch(scheduleTripNotifier)
-                          .scheduleTripModelObj
-                          ?.scheduleItemList[index] ??
-                      ScheduleItemModel();
-                  return ScheduleItemWidget(model);
-                },
-              ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildScheduleAction(
+            ScheduleItemModel(
+              icon: ImageConstant.imgChatSquare,
+              title: 'Chat',
             ),
-          );
-        },
+            onTap: () => TaskInteractionHelper.openTaskChat(
+              requestData,
+              isMoverSide: false,
+              args: args,
+            ),
+          ),
+          _buildScheduleAction(
+            ScheduleItemModel(
+              icon: ImageConstant.imgPhoneCall,
+              title: 'Call',
+            ),
+            onTap: () => TaskInteractionHelper.callParticipant(
+              requestData,
+              isMoverSide: false,
+            ),
+          ),
+          _buildScheduleAction(
+            ScheduleItemModel(
+              icon: ImageConstant.imgAlertCircle,
+              title: 'Report',
+            ),
+            onTap: () => TaskInteractionHelper.openTaskReport(
+              requestData,
+              isMoverSide: false,
+              requestType: requestType,
+              args: args,
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildScheduleAction(
+    ScheduleItemModel model, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: ScheduleItemWidget(model),
     );
   }
 

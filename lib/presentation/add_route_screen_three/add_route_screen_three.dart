@@ -685,7 +685,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           final dateRangeText = ref.watch(addRouteTwoNotifier).setDateController?.text ?? '';
           final parsedDates = _parseDateRange(dateRangeText);
           
-          showModalBottomSheet(
+          AppBottomSheet.show(
               context: context,
               shape: RoundedRectangleBorder(
                   borderRadius:

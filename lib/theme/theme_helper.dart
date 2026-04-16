@@ -98,6 +98,15 @@ class ThemeHelper {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colorScheme.onPrimary,
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: SmoothPageTransitionsBuilder(),
+          TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
+          TargetPlatform.macOS: SmoothPageTransitionsBuilder(),
+          TargetPlatform.windows: SmoothPageTransitionsBuilder(),
+          TargetPlatform.linux: SmoothPageTransitionsBuilder(),
+        },
+      ),
       dividerTheme: DividerThemeData(
         thickness: 4,
         space: 4,
@@ -285,4 +294,33 @@ class LightCodeColors{
   Color get redA700 => Color(0XFFE41212);
   // White
   Color get whiteA700 => Color(0XFFFDFDFD);
+}
+
+class SmoothPageTransitionsBuilder extends PageTransitionsBuilder {
+  const SmoothPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.05, 0),
+          end: Offset.zero,
+        ).chain(
+          CurveTween(curve: Curves.easeOutCubic),
+        ).animate(animation),
+        child: child,
+      ),
+    );
+  }
 }

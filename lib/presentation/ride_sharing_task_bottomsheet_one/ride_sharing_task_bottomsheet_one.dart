@@ -52,60 +52,65 @@ class _RideSharingTaskBottomsheetOneState
     return Material(
       child: SizedBox(
         width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
-              borderRadius: BorderRadiusStyle.customBorderTL24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 16.h),
-                _buildHeader(context),
-                SizedBox(height: 20.h),
-                Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.symmetric(horizontal: 16.h),
-                  child: Column(
-                    children: [
-                      _buildExpiresIn(context),
-                      SizedBox(height: 14.h),
-                      _buildRequester(
-                        context,
-                        requesterName: requesterName,
-                        seatsRequested: seatsRequested,
-                      ),
-                      SizedBox(height: 12.h),
-                      _buildHintCard(context),
-                      SizedBox(height: 16.h),
-                      _buildLocation(context, origin: origin, destination: destination),
-                      SizedBox(height: 14.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Price",
-                          style: CustomTextStyles.labelLargeGray600,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              width: double.maxFinite,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onPrimary.withOpacity(1),
+                borderRadius: BorderRadiusStyle.customBorderTL24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 16.h),
+                  _buildHeader(context),
+                  SizedBox(height: 20.h),
+                  Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.symmetric(horizontal: 16.h),
+                    child: Column(
+                      children: [
+                        _buildExpiresIn(context),
+                        SizedBox(height: 14.h),
+                        _buildRequester(
+                          context,
+                          requesterName: requesterName,
+                          seatsRequested: seatsRequested,
                         ),
-                      ),
-                      SizedBox(height: 4.h),
-                      CustomTextFormField(
-                        controller: _priceController,
-                        hintText: "NGN",
-                        hintStyle: theme.textTheme.bodySmall,
-                        contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                        textInputAction: TextInputAction.done,
-                        textInputType: TextInputType.number,
-                      ),
-                      SizedBox(height: 8.h),
-                      _buildPriceChips(context, currentValue: suggestedPrice),
-                      SizedBox(height: 32.h),
-                    ],
+                        SizedBox(height: 12.h),
+                        _buildHintCard(context),
+                        SizedBox(height: 16.h),
+                        _buildLocation(context, origin: origin, destination: destination),
+                        SizedBox(height: 14.h),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Price",
+                            style: CustomTextStyles.labelLargeGray600,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        CustomTextFormField(
+                          controller: _priceController,
+                          hintText: "NGN",
+                          hintStyle: theme.textTheme.bodySmall,
+                          contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+                          textInputAction: TextInputAction.done,
+                          textInputType: TextInputType.number,
+                        ),
+                        SizedBox(height: 8.h),
+                        _buildPriceChips(context, currentValue: suggestedPrice),
+                        SizedBox(height: 32.h),
+                      ],
+                    ),
                   ),
-                ),
-                _buildButtonnav(context, requestId: requestId),
-              ],
+                  _buildButtonnav(context, requestId: requestId),
+                ],
+              ),
             ),
           ),
         ),

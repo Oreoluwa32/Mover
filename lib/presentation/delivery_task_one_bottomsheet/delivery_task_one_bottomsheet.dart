@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -5,8 +7,6 @@ import '../../core/app_export.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
-import '../../widgets/custom_radio_button.dart';
-import '../../widgets/custom_text_form_field.dart';
 import '../home_one_screen/notifier/home_notifier.dart';
 
 class DeliveryTaskOneBottomsheet extends ConsumerStatefulWidget {
@@ -20,10 +20,33 @@ class DeliveryTaskBottomsheetState
     extends ConsumerState<DeliveryTaskOneBottomsheet> {
   final MobilityApiService _mobilityApiService = MobilityApiService();
   final TextEditingController _priceController = TextEditingController();
-  String _radioGroup = "";
+  Timer? _countdownTimer;
+  Duration _timeRemaining = const Duration(minutes: 1);
+
+  @override
+  void initState() {
+    super.initState();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_timeRemaining.inSeconds <= 1) {
+        timer.cancel();
+        setState(() {
+          _timeRemaining = Duration.zero;
+        });
+        return;
+      }
+      setState(() {
+        _timeRemaining -= const Duration(seconds: 1);
+      });
+    });
+  }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _priceController.dispose();
     super.dispose();
   }
@@ -33,102 +56,297 @@ class DeliveryTaskBottomsheetState
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             const <String, dynamic>{};
-    final requestData =
-        Map<String, dynamic>.from(args['requestData'] as Map? ?? const <String, dynamic>{});
+    final requestData = Map<String, dynamic>.from(
+      args['requestData'] as Map? ?? const <String, dynamic>{},
+    );
     final pickup = requestData['pickup_name']?.toString() ?? 'Pickup';
     final dropoff = requestData['dropoff_name']?.toString() ?? 'Destination';
     final requesterName =
         requestData['requester']?['full_name']?.toString() ?? 'Movr user';
     final requestId = requestData['id']?.toString() ?? '';
-    final description =
-        requestData['package_description']?.toString() ?? 'No description provided.';
-    final suggestedPrice = _deriveDeliverySuggestedPrice(requestData);
+    final description = requestData['package_description']?.toString() ??
+        'No description provided.';
     final weightLabel = _mapWeightLabel(requestData['weight_kg']?.toString());
+    final isPriceValid = double.tryParse(_priceController.text.trim()) != null;
 
     if (_priceController.text.isEmpty) {
-      _priceController.text = suggestedPrice;
+      _priceController.text = '';
     }
 
     return Material(
-      child: SizedBox(
+      color: Colors.transparent,
+      child: Container(
         width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-              borderRadius: BorderRadiusStyle.customBorderTL24,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24.h),
+            topRight: Radius.circular(24.h),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: 16.h),
-                _buildTitle(context),
-                SizedBox(height: 30.h),
                 Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.symmetric(horizontal: 16.h),
-                  child: Column(
+                  width: 50.h,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1D1D1),
+                    borderRadius: BorderRadius.circular(10.h),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.h, 16.h, 16.h, 0),
+                  child: Row(
                     children: [
+                      const Spacer(),
                       Text(
-                        "Open request",
-                        style: CustomTextStyles.bodyMediumMulishGray800,
-                      ),
-                      SizedBox(height: 28.h),
-                      _buildName(context, requesterName: requesterName, weightLabel: weightLabel),
-                      SizedBox(height: 16.h),
-                      Container(
-                        width: 320.h,
-                        padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
-                        decoration: BoxDecoration(
-                          color: appTheme.deepPurple50,
-                          borderRadius: BorderRadiusStyle.roundedBorder4,
-                        ),
-                        child: Text(
-                          "Set the amount you want to earn for handling this delivery.",
-                          style: CustomTextStyles.bodySmallDeeppurple600,
-                          textAlign: TextAlign.center,
+                        'Delivery task',
+                        style: TextStyle(
+                          fontFamily: 'Mulish',
+                          fontSize: 16.fSize,
+                          fontWeight: FontWeight.w600,
+                          height: 1.2,
+                          color: const Color(0xFF3D3D3D),
                         ),
                       ),
-                      SizedBox(height: 16.h),
-                      _buildLocation(context, pickup: pickup, dropoff: dropoff),
-                      SizedBox(height: 14.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Price",
-                          style: CustomTextStyles.labelLargeGray600,
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: NavigatorService.goBack,
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 24.h,
+                          color: const Color(0xFF3D3D3D),
                         ),
                       ),
-                      SizedBox(height: 4.h),
-                      CustomTextFormField(
-                        controller: _priceController,
-                        hintText: "NGN",
-                        hintStyle: theme.textTheme.bodySmall!,
-                        textInputAction: TextInputAction.done,
-                        contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                        textInputType: TextInputType.number,
-                      ),
-                      SizedBox(height: 8.h),
-                      _buildPrices(context, currentValue: suggestedPrice),
-                      SizedBox(height: 32.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Item Description",
-                          style: theme.textTheme.labelLarge,
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        description,
-                        style: CustomTextStyles.bodySmallGray800,
-                      ),
-                      SizedBox(height: 32.h),
                     ],
                   ),
                 ),
-                _buildButtonnav(context, requestId: requestId),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(16.h, 28.h, 16.h, 24.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            'Expires in ${_formatCountdown()}',
+                            style: TextStyle(
+                              fontFamily: 'Mulish',
+                              fontSize: 14.fSize,
+                              fontWeight: FontWeight.w400,
+                              height: 1.2,
+                              color: const Color(0xFF3D3D3D),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 32.h),
+                        _buildRequesterRow(
+                          requesterName: requesterName,
+                          weightLabel: weightLabel,
+                        ),
+                        SizedBox(height: 16.h),
+                        Container(
+                          width: double.maxFinite,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.h,
+                            vertical: 14.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEDE8FF),
+                            borderRadius: BorderRadius.circular(8.h),
+                          ),
+                          child: Text(
+                            '1234 movers are heading to the same destination',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Mulish',
+                              fontSize: 12.fSize,
+                              fontWeight: FontWeight.w400,
+                              height: 1.2,
+                              color: const Color(0xFF6018BF),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 18.h),
+                        _buildLocationCard(
+                          title: pickup,
+                          isPickup: true,
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildLocationCard(
+                          title: dropoff,
+                          isPickup: false,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Price',
+                          style: TextStyle(
+                            fontFamily: 'Mulish',
+                            fontSize: 12.fSize,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                            color: const Color(0xFF6D6D6D),
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Container(
+                          height: 50.h,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.h),
+                            border: Border.all(
+                              color: const Color(0xFFB0B0B0),
+                              width: 1.h,
+                            ),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 14.h),
+                          child: Row(
+                            children: [
+                              Text(
+                                'NGN',
+                                style: TextStyle(
+                                  fontFamily: 'Mulish',
+                                  fontSize: 12.fSize,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.2,
+                                  color: const Color(0xFF3D3D3D),
+                                ),
+                              ),
+                              SizedBox(width: 8.h),
+                              Expanded(
+                                child: TextField(
+                                  controller: _priceController,
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: InputDecoration(
+                                    hintText: 'Enter your price',
+                                    hintStyle: TextStyle(
+                                      fontFamily: 'Mulish',
+                                      fontSize: 12.fSize,
+                                      fontWeight: FontWeight.w400,
+                                      height: 1.2,
+                                      color: const Color(0xFFB0B0B0),
+                                    ),
+                                    border: InputBorder.none,
+                                    isCollapsed: true,
+                                  ),
+                                  style: TextStyle(
+                                    fontFamily: 'Mulish',
+                                    fontSize: 12.fSize,
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.2,
+                                    color: const Color(0xFF262626),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        _buildPriceSuggestions(),
+                        SizedBox(height: 34.h),
+                        Text(
+                          'Item Image',
+                          style: TextStyle(
+                            fontFamily: 'Mulish',
+                            fontSize: 12.fSize,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                            color: const Color(0xFF3D3D3D),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        Stack(
+                          children: [
+                            CustomImageView(
+                              imagePath: ImageConstant.imgShoes,
+                              height: 164.h,
+                              width: double.maxFinite,
+                              radius: BorderRadius.circular(8.h),
+                              fit: BoxFit.cover,
+                            ),
+                            Container(
+                              height: 164.h,
+                              width: double.maxFinite,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(8.h),
+                              ),
+                            ),
+                            Positioned(
+                              left: 12.h,
+                              bottom: 12.h,
+                              child: Container(
+                                width: 24.h,
+                                height: 24.h,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.zoom_in_rounded,
+                                  size: 16.h,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Item Description',
+                          style: TextStyle(
+                            fontFamily: 'Mulish',
+                            fontSize: 12.fSize,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                            color: const Color(0xFF3D3D3D),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontFamily: 'Mulish',
+                            fontSize: 12.fSize,
+                            fontWeight: FontWeight.w400,
+                            height: 1.5,
+                            color: const Color(0xFF414141),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: double.maxFinite,
+                  padding: EdgeInsets.fromLTRB(16.h, 22.h, 16.h, 24.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: const Color(0xFFE7E7E7),
+                        width: 1.h,
+                      ),
+                    ),
+                  ),
+                  child: CustomElevatedButton(
+                    text: 'Bid Price',
+                    isDisabled: !isPriceValid,
+                    buttonStyle: isPriceValid
+                        ? CustomButtonStyles.fillPrimaryTL41
+                        : CustomButtonStyles.fillBlueGray,
+                    onPressed: isPriceValid ? () => _submitBid(requestId) : null,
+                  ),
+                ),
               ],
             ),
           ),
@@ -137,215 +355,182 @@ class DeliveryTaskBottomsheetState
     );
   }
 
-  Widget _buildTitle(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      margin: EdgeInsets.symmetric(horizontal: 16.h),
-      child: Column(
-        children: [
-          SizedBox(width: 50.h, child: const Divider()),
-          SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                "Delivery task",
-                style: CustomTextStyles.titleMediumGray80001,
-              ),
-              CustomImageView(
-                imagePath: ImageConstant.imgCancel,
-                height: 24.h,
-                width: 24.h,
-                margin: EdgeInsets.only(left: 98.h),
-                onTap: () {
-                  NavigatorService.goBack();
-                },
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildName(
-    BuildContext context, {
+  Widget _buildRequesterRow({
     required String requesterName,
     required String weightLabel,
   }) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomImageView(
-            imagePath: ImageConstant.imgProfile,
-            height: 50.h,
-            width: 50.h,
-            radius: BorderRadius.circular(24.h),
-          ),
-          Expanded(
-            child: Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.symmetric(horizontal: 18.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      children: [
+        CustomImageView(
+          imagePath: ImageConstant.imgProfile,
+          height: 50.h,
+          width: 50.h,
+          radius: BorderRadius.circular(25.h),
+        ),
+        SizedBox(width: 19.h),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                requesterName,
+                style: TextStyle(
+                  fontFamily: 'Mulish',
+                  fontSize: 14.fSize,
+                  fontWeight: FontWeight.w400,
+                  height: 1.2,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Row(
                 children: [
                   Text(
-                    requesterName,
-                    style: CustomTextStyles.bodyMediumMulishGray800,
+                    '10m away',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10.fSize,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF6D6D6D),
+                    ),
                   ),
-                  SizedBox(height: 4.h),
+                  Container(
+                    width: 2.h,
+                    height: 2.h,
+                    margin: EdgeInsets.symmetric(horizontal: 4.h),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF6D6D6D),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                   Text(
-                    "Requester waiting for a mover",
-                    style: CustomTextStyles.bodySmallInterGray600,
-                  )
+                    '2mins',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10.fSize,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF6D6D6D),
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(left: 18.h),
-            padding: EdgeInsets.symmetric(horizontal: 16.h),
-            decoration: BoxDecoration(
-              color: appTheme.lightGreen500,
-              borderRadius: BorderRadiusStyle.roundedBorder8,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 1.5.h),
-                Text(
-                  weightLabel,
-                  style: CustomTextStyles.labelMediumInterOnPrimary,
-                )
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocation(
-    BuildContext context, {
-    required String pickup,
-    required String dropoff,
-  }) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        children: [
-          CustomRadioButton(
-            text: pickup,
-            value: pickup,
-            groupValue: _radioGroup,
-            padding: EdgeInsets.symmetric(horizontal: 30.h, vertical: 14.h),
-            isExpandedText: true,
-            overflow: TextOverflow.ellipsis,
-            decoration: RadioStyleHelper.fillOnPrimary,
-            onChange: (value) {
-              setState(() {
-                _radioGroup = value;
-              });
-            },
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 16.h),
-            child: CustomRadioButton(
-              text: dropoff,
-              value: dropoff,
-              groupValue: _radioGroup,
-              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 14.h),
-              isExpandedText: true,
-              overflow: TextOverflow.ellipsis,
-              decoration: RadioStyleHelper.fillOnPrimary,
-              onChange: (value) {
-                setState(() {
-                  _radioGroup = value;
-                });
-              },
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrices(BuildContext context, {required String currentValue}) {
-    final base = double.tryParse(currentValue) ?? 1000;
-    final suggestions = <String>[
-      base.toStringAsFixed(0),
-      (base + 300).toStringAsFixed(0),
-      (base + 600).toStringAsFixed(0),
-      (base + 900).toStringAsFixed(0),
-    ];
-
-    return SizedBox(
-      width: double.maxFinite,
-      child: Wrap(
-        spacing: 12.h,
-        children: suggestions.map((value) {
-          final isSelected = _priceController.text.trim() == value;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _priceController.text = value;
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 10.h),
-              decoration: BoxDecoration(
-                color: isSelected ? theme.colorScheme.primary : appTheme.gray10001,
-                borderRadius: BorderRadiusStyle.roundedBorder8,
-              ),
-              child: Text(
-                'NGN $value',
-                style: isSelected
-                    ? CustomTextStyles.labelLargeOnPrimary
-                    : CustomTextStyles.labelLargeGray600,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildButtonnav(BuildContext context, {required String requestId}) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.fromLTRB(16.h, 22.h, 16.h, 24.h),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-        border: Border(
-          top: BorderSide(
-            color: appTheme.gray20001,
-            width: 1.h,
+            ],
           ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomElevatedButton(
-            text: "Bid Price",
-            buttonStyle: CustomButtonStyles.fillPrimaryTL41,
-            onPressed: () => _submitBid(requestId),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: const Color(0xFF78C056),
+            borderRadius: BorderRadius.circular(50.h),
           ),
-          SizedBox(height: 22.h),
-          GestureDetector(
-            onTap: () {
-              NavigatorService.goBack();
-            },
-            child: Text(
-              "Decline",
-              style: CustomTextStyles.titleSmallRedA700Medium,
+          child: Text(
+            weightLabel,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 10.fSize,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
-          )
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationCard({
+    required String title,
+    required bool isPickup,
+  }) {
+    return Container(
+      width: double.maxFinite,
+      height: 50.h,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F6F6),
+        borderRadius: BorderRadius.circular(8.h),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.h),
+      child: Row(
+        children: [
+          Container(
+            width: 24.h,
+            height: 24.h,
+            alignment: Alignment.center,
+            child: Container(
+              width: 14.h,
+              height: 14.h,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFF6A1AD3),
+                  width: 2.h,
+                ),
+                color: isPickup ? const Color(0xFF6A1AD3) : Colors.transparent,
+              ),
+              child: isPickup
+                  ? Center(
+                      child: Container(
+                        width: 8.h,
+                        height: 8.h,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFEDE8FF),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+          SizedBox(width: 12.h),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: 'Mulish',
+                fontSize: 12.fSize,
+                fontWeight: FontWeight.w400,
+                height: 1.2,
+                color: const Color(0xFF262626),
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPriceSuggestions() {
+    const suggestions = <String>['400', '700', '1200', '1500'];
+    return Wrap(
+      spacing: 12.h,
+      runSpacing: 12.h,
+      children: suggestions.map((value) {
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _priceController.text = value;
+            });
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE7E7E7),
+              borderRadius: BorderRadius.circular(4.h),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'Mulish',
+                fontSize: 12.fSize,
+                fontWeight: FontWeight.w400,
+                height: 1.2,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -374,13 +559,10 @@ class DeliveryTaskBottomsheetState
     }
   }
 
-  String _deriveDeliverySuggestedPrice(Map<String, dynamic> requestData) {
-    final insuredValue =
-        double.tryParse(requestData['insured_value']?.toString() ?? '') ?? 0;
-    final weight = double.tryParse(requestData['weight_kg']?.toString() ?? '') ?? 0;
-    final base = insuredValue > 0 ? insuredValue * 0.01 : (weight * 250);
-    final safeBase = base <= 0 ? 1000 : base;
-    return safeBase.toStringAsFixed(0);
+  String _formatCountdown() {
+    final minutes = _timeRemaining.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = _timeRemaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   String _mapWeightLabel(String? weightKg) {

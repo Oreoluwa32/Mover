@@ -74,7 +74,7 @@ class UserMoveScreenState extends ConsumerState<UserMoveScreen> {
               },
               onTapScheduleTrip: () {
                 widget.onOverlayChanged?.call(true);
-                showModalBottomSheet(
+                AppBottomSheet.show(
                   context: context,
                   isScrollControlled: true,
                   builder: (BuildContext context) {

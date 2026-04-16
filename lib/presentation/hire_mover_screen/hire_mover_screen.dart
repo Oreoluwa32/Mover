@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/task_state_sync.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -18,6 +21,7 @@ class HireMoverScreen extends ConsumerStatefulWidget {
 
 class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
   final MobilityApiService _mobilityApiService = MobilityApiService();
+  StreamSubscription<TaskStateSyncEvent>? _taskSyncSubscription;
   bool _isLoading = true;
   String? _errorMessage;
   List<MoverItemModel> _moverOffers = const [];
@@ -27,6 +31,12 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
   @override
   void initState() {
     super.initState();
+    _taskSyncSubscription = TaskStateSync.stream.listen((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(_loadOffers(silent: true));
+    });
   }
 
   @override
@@ -37,6 +47,12 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
     }
     _loadedOnce = true;
     _loadOffers();
+  }
+
+  @override
+  void dispose() {
+    _taskSyncSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -138,9 +154,16 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
           final offer = _offerPayloads[index];
           return GestureDetector(
             onTap: () {
+              final args = ModalRoute.of(context)?.settings.arguments
+                      as Map<String, dynamic>? ??
+                  const <String, dynamic>{};
               NavigatorService.pushNamed(
                 AppRoutes.hireMoverScreenOne,
-                arguments: {'offerData': offer},
+                arguments: {
+                  'offerData': offer,
+                  'requestType': args['requestType'],
+                  'requestData': args['requestData'],
+                },
               );
             },
             child: MoverItemWidget(model),
@@ -150,7 +173,7 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
     );
   }
 
-  Future<void> _loadOffers() async {
+  Future<void> _loadOffers({bool silent = false}) async {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             const <String, dynamic>{};
@@ -162,6 +185,12 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
         List<Map<String, dynamic>>.from(args['nearbyMovers'] as List? ?? const []);
 
     try {
+      if (!silent && mounted) {
+        setState(() {
+          _isLoading = true;
+          _errorMessage = null;
+        });
+      }
       final matches = await _mobilityApiService.getMatches();
       final matchedOffers = matches.where((match) {
         if (requestType == 'ride') {
@@ -174,7 +203,8 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
               deliveryRequest['id']?.toString() == requestId;
         }
         return false;
-      }).toList();
+      }).toList()
+        ..sort((left, right) => _offerPriority(right).compareTo(_offerPriority(left)));
 
       final payloads = matchedOffers.isNotEmpty
           ? matchedOffers
@@ -187,6 +217,7 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
         _offerPayloads = payloads;
         _moverOffers = payloads.map(_mapOfferToItem).toList();
         _isLoading = false;
+        _errorMessage = null;
       });
     } catch (error) {
       if (!mounted) {
@@ -205,6 +236,9 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
     }
     if (_moverOffers.isEmpty) {
       return "No mover prices yet";
+    }
+    if (_offerPayloads.any((offer) => offer['status']?.toString() == 'accepted')) {
+      return "Mover selected";
     }
     if (_offerPayloads.any((offer) => offer['agreed_price'] != null)) {
       return "${_moverOffers.length} movers have sent prices";
@@ -230,7 +264,7 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
           : ImageConstant.imgHomeIcon,
       distance: _buildDistanceLabel(travelPlan),
       vehicleType: _mapVehicleIcon(vehicleType),
-      price: 'NGN ${price.toString()}',
+      price: '₦ ${price.toString()}',
       id: travelPlan['id']?.toString() ?? '',
     );
   }
@@ -253,6 +287,21 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
         return ImageConstant.imgBlackManWalk;
       default:
         return ImageConstant.imgBlackCar;
+    }
+  }
+
+  int _offerPriority(Map<String, dynamic> offer) {
+    switch (offer['status']?.toString()) {
+      case 'accepted':
+        return 4;
+      case 'active':
+        return 3;
+      case 'proposed':
+        return 2;
+      case 'completed':
+        return 1;
+      default:
+        return 0;
     }
   }
 }

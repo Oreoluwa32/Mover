@@ -1,8 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/app_export.dart';
-import '../../../widgets/custom_icon_button.dart';
+import '../../../widgets/task_route_map.dart';
 import '../models/progress_item_model.dart';
 
 // ignore for file, msut be immutable
@@ -11,8 +9,6 @@ class ProgressItemWidget extends StatelessWidget{
     : super(key: key,);
 
   ProgressItemModel progressItemModelObj;
-
-  Completer<GoogleMapController> googleMapController = Completer();
 
   @override
   Widget build(BuildContext context) {
@@ -41,40 +37,16 @@ class ProgressItemWidget extends StatelessWidget{
                 SizedBox(
                   height: 118.h,
                   width: 310.h,
-                  child: GoogleMap(
-                    mapType: MapType.normal,
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(
-                        37.43296265331129, 
-                        -122.08832357078792
-                      ),
-                      zoom: 14.4746,
-                    ),
-                    onMapCreated: (GoogleMapController controller) {
-                      googleMapController.complete(controller);
-                    },
-                    zoomControlsEnabled: false,
-                    zoomGesturesEnabled: false,
-                    myLocationButtonEnabled: false,
-                    myLocationEnabled: false,
+                  child: TaskRouteMap(
+                    pickupLatitude: progressItemModelObj.pickupLatitude ?? 0,
+                    pickupLongitude: progressItemModelObj.pickupLongitude ?? 0,
+                    destinationLatitude:
+                        progressItemModelObj.destinationLatitude ?? 0,
+                    destinationLongitude:
+                        progressItemModelObj.destinationLongitude ?? 0,
+                    overlayIconPath: progressItemModelObj.icon,
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: 12.h,
-                    right: 10.h
-                  ),
-                  child: CustomIconButton(
-                    height: 40.h,
-                    width: 40.h,
-                    padding: EdgeInsets.all(10.h),
-                    decoration: IconButtonStyleHelper.outlineBlackTL201,
-                    alignment: Alignment.topRight,
-                    child: CustomImageView(
-                      imagePath: progressItemModelObj.icon!,
-                    ),
-                  ),
-                )
               ],
             ),
           ),

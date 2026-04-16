@@ -67,12 +67,6 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
       height: 170.h,
       decoration: BoxDecoration(
         color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-        border: Border(
-          bottom: BorderSide(
-            color: appTheme.gray20001,
-            width: 1.h,
-          ),
-        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -115,6 +109,7 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                       fontFamily: 'Mulish',
                       fontWeight: FontWeight.w500,
                     ),
+                    dividerColor: Colors.transparent,
                     tabs: [
                       Tab(
                         height: 48,

@@ -6,7 +6,8 @@ part 'ride_cancel_state.dart';
 
 final rideCancelNotifier = StateNotifierProvider.autoDispose<RideCancelNotifier, RideCancelState>(
   (ref) => RideCancelNotifier(RideCancelState(
-    radioGroup: ""
+    radioGroup: "",
+    otherReason: "",
   )),
 );
 
@@ -16,5 +17,13 @@ class RideCancelNotifier extends StateNotifier<RideCancelState> {
 
   void changeRadioBtn(String value) {
     state = state.copyWith(radioGroup: value);
+  }
+
+  void changeOtherReason(String value) {
+    state = state.copyWith(otherReason: value);
+  }
+
+  void reset() {
+    state = state.copyWith(radioGroup: "", otherReason: "");
   }
 }

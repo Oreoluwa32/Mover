@@ -6,13 +6,18 @@ import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:google_navigation_flutter/google_navigation_flutter.dart';
 import 'package:location/location.dart' as loc;
 import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
+import 'package:movr/presentation/delivery_pickup_screen_one/delivery_pickup_screen_one.dart';
 import 'package:movr/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
+import 'package:movr/presentation/ride_sharing_task_bottomsheet_one/ride_sharing_task_bottomsheet_one.dart';
+import 'package:movr/presentation/ride_sharing_pickup_one/ride_sharing_pickup_one.dart';
+import 'package:movr/presentation/ride_sharing_pickup_two/ride_sharing_pickup_two.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/location_manager.dart';
 import '../../core/utils/map_utils.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../data/services/mobility_realtime_service.dart';
+import '../notification_screen/notifier/notification_notifier.dart';
 import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
@@ -51,6 +56,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   late AnimationController _sidebarAnimationController;
   late AnimationController _filterButtonAnimationController;
   late AnimationController _nearbySearchAnimationController;
+  late AnimationController _taskRequestCountdownController;
   late Animation<Offset> _sidebarSlideAnimation;
   late Animation<double> _filterButtonRotationAnimation;
   bool _isSidebarVisible = false;
@@ -63,6 +69,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   List<PolylineOptions> polylines = [];
   LatLng? routeSourceLocation;
   LatLng? routeDestinationLocation;
+  String? _lastPresentedPendingTaskId;
+  String? _openTaskCountdownKey;
+  String? _dismissedOpenTaskKey;
+  bool _hasHandledInitialPendingTaskSnapshot = false;
 
   @override
   void initState() {
@@ -86,6 +96,17 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
+
+    _taskRequestCountdownController = AnimationController(
+      duration: const Duration(seconds: 30),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.dismissed && mounted) {
+          setState(() {
+            _dismissedOpenTaskKey = _openTaskCountdownKey;
+          });
+        }
+      });
     
     // Initialize animations
     _sidebarSlideAnimation = Tween<Offset>(
@@ -191,6 +212,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     _sidebarAnimationController.dispose();
     _filterButtonAnimationController.dispose();
     _nearbySearchAnimationController.dispose();
+    _taskRequestCountdownController.dispose();
     _locationSubscription?.cancel();
     unawaited(_realtimeService.dispose());
     super.dispose();
@@ -234,6 +256,62 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         _nearbySearchAnimationController.stop();
         _nearbySearchAnimationController.reset();
       }
+    });
+    ref.listen(homeNotifier.select((s) => s.pendingTaskData), (previous, next) {
+      final homeState = ref.read(homeNotifier);
+      if (!homeState.isLive || next == null) {
+        return;
+      }
+
+      final taskId = next['id']?.toString();
+      final taskPhase = homeState.pendingTaskPhase ?? 'open';
+      final taskKey = '$taskId:$taskPhase';
+      if (taskId == null || taskId.isEmpty || taskKey == _lastPresentedPendingTaskId) {
+        return;
+      }
+
+      if (!_hasHandledInitialPendingTaskSnapshot) {
+        _hasHandledInitialPendingTaskSnapshot = true;
+        _lastPresentedPendingTaskId = taskKey;
+        if (taskPhase == 'open') {
+          _startOpenTaskCountdown(taskKey);
+        } else {
+          _openTaskCountdownKey = null;
+          _dismissedOpenTaskKey = null;
+          _taskRequestCountdownController.stop();
+          _highlightPendingTaskRoute(
+            pendingTask: next,
+            pendingTaskType: homeState.pendingTaskType ?? 'delivery',
+            pendingTaskPhase: taskPhase,
+          );
+        }
+        return;
+      }
+
+      _lastPresentedPendingTaskId = taskKey;
+      if (taskPhase == 'open') {
+        _startOpenTaskCountdown(taskKey);
+        return;
+      }
+      _openTaskCountdownKey = null;
+      _dismissedOpenTaskKey = null;
+      _taskRequestCountdownController.stop();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _highlightPendingTaskRoute(
+          pendingTask: next,
+          pendingTaskType: homeState.pendingTaskType ?? 'delivery',
+          pendingTaskPhase: taskPhase,
+        );
+        _openPendingTaskBottomsheet(
+          context,
+          pendingTask: next,
+          pendingTaskType: homeState.pendingTaskType ?? 'delivery',
+          pendingTaskPhase: taskPhase,
+        );
+      });
     });
     return Scaffold(
       body: Stack(
@@ -808,48 +886,68 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     return Positioned(
       top: 60.h,
       right: 20.h,
-      child: GestureDetector(
-        onTap: () => onTapNotification(context),
-        child: Container(
-          width: 40.h,
-          height: 40.h,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 8.h,
-                offset: Offset(0, 2),
+      child: Consumer(
+        builder: (context, ref, _) {
+          final unreadCount = ref.watch(notificationNotifier).unreadCount;
+          return GestureDetector(
+            onTap: () => onTapNotification(context),
+            child: Container(
+              width: 40.h,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8.h,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: CustomImageView(
-                  imagePath: ImageConstant.imgNotificationBell,
-                  height: 20.h,
-                  width: 20.h,
-                  color: Color(0xFF6D6D6D),
-                ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Center(
+                    child: CustomImageView(
+                      imagePath: ImageConstant.imgNotificationBell,
+                      height: 20.h,
+                      width: 20.h,
+                      color: Color(0xFF6D6D6D),
+                    ),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: -2.h,
+                      right: -2.h,
+                      child: Container(
+                        constraints: BoxConstraints(minWidth: 18.h),
+                        padding: EdgeInsets.symmetric(horizontal: 4.h, vertical: 1.5.h),
+                        decoration: BoxDecoration(
+                          color: appTheme.redA700,
+                          borderRadius: BorderRadius.circular(10.h),
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2.h,
+                          ),
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : unreadCount.toString(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9.fSize,
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              // Notification badge
-              // Positioned(
-              //   top: 8.h,
-              //   right: 8.h,
-              //   child: Container(
-              //     width: 8.h,
-              //     height: 8.h,
-              //     decoration: BoxDecoration(
-              //       color: Colors.red,
-              //       shape: BoxShape.circle,
-              //     ),
-              //   ),
-              // ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -998,15 +1096,25 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           return const SizedBox.shrink();
         }
 
+        final pendingTaskPhase = homeState.pendingTaskPhase ?? 'open';
+        final taskId = pendingTask['id']?.toString();
+        final taskKey = taskId == null ? null : '$taskId:$pendingTaskPhase';
+        if (pendingTaskPhase == 'open' &&
+            taskKey != null &&
+            _dismissedOpenTaskKey == taskKey) {
+          return const SizedBox.shrink();
+        }
+
         return Positioned(
-          top: 140.h,
-          left: 100.h,
-          right: 20.h,
+          top: pendingTaskPhase == 'open' ? 104.h : 140.h,
+          left: 16.h,
+          right: 16.h,
           child: tasks(
-            context,
-            pendingTask: pendingTask,
-            pendingTaskType: homeState.pendingTaskType ?? 'delivery',
-          ),
+              context,
+              pendingTask: pendingTask,
+              pendingTaskType: homeState.pendingTaskType ?? 'delivery',
+              pendingTaskPhase: pendingTaskPhase,
+            ),
         );
       },
     );
@@ -1089,13 +1197,23 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         final buttonText = isSearching ? 'Searching movers' : 'View prices';
 
         return Positioned(
-          bottom: homeState.highlightRoute ? 260.h : 190.h,
-          left: 20.h,
+          bottom: 318.h,
           right: 20.h,
-          child: GestureDetector(
+          child: CustomFloatingButton(
+            height: 48,
+            width: 48,
+            backgroundColor: theme.colorScheme.onPrimary,
+            shape: const CircleBorder(),
             onTap: () {
-              showModalBottomSheet(
+              AppBottomSheet.show(
                 context: context,
+                useRootNavigator: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(24.h),
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
                 builder: (context) => SearchMoverBottomsheet(
                   requestType: homeState.nearbyMoverSearchType,
                   requestData: searchData,
@@ -1103,65 +1221,33 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                 isScrollControlled: true,
               );
             },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 14.h),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.96),
-                borderRadius: BorderRadiusStyle.roundedBorder12,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10.h,
-                    offset: const Offset(0, 4),
+            child: Tooltip(
+              message: buttonText,
+              child: Container(
+                width: 48.h,
+                height: 48.h,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onPrimary,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 10.h,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                    width: 1.h,
                   ),
-                ],
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.18),
-                  width: 1.h,
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40.h,
-                    height: 40.h,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isSearching
-                          ? Icons.search_rounded
-                          : Icons.local_offer_outlined,
-                      color: theme.colorScheme.primary,
-                      size: 20.h,
-                    ),
-                  ),
-                  SizedBox(width: 12.h),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          buttonText,
-                          style: CustomTextStyles.titleSmallInter,
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          isSearching
-                              ? 'Tap to reopen the live mover search'
-                              : 'Tap to reopen the latest mover prices',
-                          style: CustomTextStyles.bodySmallInterGray600,
-                        ),
-                      ],
-                    ),
-                  ),
-                  CustomImageView(
-                    imagePath: ImageConstant.imgPurpleRightArrow,
-                    height: 16.h,
-                    width: 16.h,
-                  ),
-                ],
+                child: Icon(
+                  isSearching
+                      ? Icons.search_rounded
+                      : Icons.local_offer_outlined,
+                  color: theme.colorScheme.primary,
+                  size: 22.h,
+                ),
               ),
             ),
           ),
@@ -1295,12 +1381,27 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     BuildContext context, {
     required Map<String, dynamic> pendingTask,
     required String pendingTaskType,
+    required String pendingTaskPhase,
   }) {
+    if (pendingTaskPhase == 'open') {
+      return _buildOpenTaskNotificationCard(
+        context,
+        pendingTask: pendingTask,
+        pendingTaskType: pendingTaskType,
+        pendingTaskPhase: pendingTaskPhase,
+      );
+    }
+
     final isRide = pendingTaskType == 'ride';
-    final title = isRide ? "Ride sharing task" : "Delivery task";
-    final subtitle = isRide
-        ? "You have a ride request that matches your route"
-        : "You have a delivery request that matches your route";
+    final title = _pendingTaskTitle(
+      isRide: isRide,
+      phase: pendingTaskPhase,
+    );
+    final subtitle = _pendingTaskSubtitle(
+      isRide: isRide,
+      phase: pendingTaskPhase,
+    );
+    final actionLabel = _pendingTaskActionLabel(pendingTaskPhase);
     final origin = (isRide ? pendingTask['origin_name'] : pendingTask['pickup_name'])
             ?.toString() ??
         "Pickup";
@@ -1370,20 +1471,22 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                                                         width: double.maxFinite,
                                                         child: GestureDetector(
                                                           onTap: () {
-                                                            NavigatorService.pushNamed(
-                                                              isRide
-                                                                  ? AppRoutes.rideSharingTaskBottomsheetOne
-                                                                  : AppRoutes.deliveryTaskOneBottomsheet,
-                                                              arguments: {
-                                                                'requestType': pendingTaskType,
-                                                                'requestData': pendingTask,
-                                                              },
+                                                            _highlightPendingTaskRoute(
+                                                              pendingTask: pendingTask,
+                                                              pendingTaskType: pendingTaskType,
+                                                              pendingTaskPhase: pendingTaskPhase,
+                                                            );
+                                                            _openPendingTaskBottomsheet(
+                                                              context,
+                                                              pendingTask: pendingTask,
+                                                              pendingTaskType: pendingTaskType,
+                                                              pendingTaskPhase: pendingTaskPhase,
                                                             );
                                                           },
                                                           child: Row(
                                                             children: [
                                   Text(
-                                    "View details",
+                                    actionLabel,
                                     style: CustomTextStyles.labelLargePrimary,
                                   ),
                                   CustomImageView(
@@ -1404,12 +1507,21 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                 ),
                 SizedBox(width: 16.h,),
                 SizedBox(width: 16.h,),
-                CustomImageView(
-                  imagePath: ImageConstant.imgCancel,
-                  height: 20.h,
-                  width: 20.h,
-                  margin: EdgeInsets.only(
-                    top: 4.h
+                GestureDetector(
+                  onTap: () {
+                    _handlePendingTaskClose(
+                      context: context,
+                      pendingTaskPhase: pendingTaskPhase,
+                      pendingTaskType: pendingTaskType,
+                    );
+                  },
+                  child: CustomImageView(
+                    imagePath: ImageConstant.imgCancel,
+                    height: 20.h,
+                    width: 20.h,
+                    margin: EdgeInsets.only(
+                      top: 4.h
+                    ),
                   ),
                 )
               ],
@@ -1522,63 +1634,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   // Start ride button that appears when a route is highlighted
   Widget _buildStartRideButton(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final homeState = ref.watch(homeNotifier);
-        
-        if (!homeState.highlightRoute) {
-          return const SizedBox.shrink();
-        }
-        
-        return Positioned(
-          bottom: 120.h,
-          left: 20.h,
-          right: 20.h,
-          child: GestureDetector(
-            onTap: () {
-              if (homeState.isNavigationActive) {
-                ref.read(homeNotifier.notifier).stopNavigation();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Ride ended')),
-                );
-              } else {
-                ref.read(homeNotifier.notifier).startNavigation();
-                // Immediately focus on current position when navigation starts
-                if (currentPosition != null) {
-                  cameraToPosition(currentPosition!);
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Navigation started')),
-                );
-              }
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 16.h),
-              decoration: BoxDecoration(
-                color: homeState.isNavigationActive ? Colors.red : theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(12.h),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 10.h,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  homeState.isNavigationActive ? "Stop Ride" : "Start Ride",
-                  style: CustomTextStyles.titleMediumOnPrimary.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    // Keep navigation logic available behind the scenes, but don't expose
+    // the manual start/stop CTA until the full navigation flow is ready.
+    return const SizedBox.shrink();
   }
 
   // Floating action button positioned at bottom right
@@ -1648,8 +1706,408 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     );
   }
 
+  Widget _buildOpenTaskNotificationCard(
+    BuildContext context, {
+    required Map<String, dynamic> pendingTask,
+    required String pendingTaskType,
+    required String pendingTaskPhase,
+  }) {
+    final isRide = pendingTaskType == 'ride';
+    final taskId = pendingTask['id']?.toString() ?? '';
+    final taskKey = '$taskId:$pendingTaskPhase';
+    final title = _pendingTaskTitle(
+      isRide: isRide,
+      phase: pendingTaskPhase,
+    );
+    final subtitle = _pendingTaskSubtitle(
+      isRide: isRide,
+      phase: pendingTaskPhase,
+    );
+
+    return Container(
+      width: double.maxFinite,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.h),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A101828),
+            offset: Offset(0, 12),
+            blurRadius: 16,
+            spreadRadius: -4,
+          ),
+          BoxShadow(
+            color: Color(0x0D101828),
+            offset: Offset(0, 4),
+            blurRadius: 6,
+            spreadRadius: -2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.h),
+        child: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.h, 16.h, 16.h, 18.h),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 40.h,
+                    height: 40.h,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFEDE8FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 32.h,
+                        height: 32.h,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFDDD4FF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: CustomImageView(
+                            imagePath: isRide
+                                ? ImageConstant.imgBlackCar
+                                : ImageConstant.imgPackage,
+                            height: 18.h,
+                            width: 18.h,
+                            color: const Color(0xFF6A1AD3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 20.h),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 1.h),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 14.fSize,
+                              height: 20 / 14,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF3D3D3D),
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              fontFamily: 'Mulish',
+                              fontSize: 12.fSize,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF4F4F4F),
+                              letterSpacing: -0.6,
+                            ),
+                          ),
+                          SizedBox(height: 6.h),
+                          GestureDetector(
+                            onTap: () {
+                              _highlightPendingTaskRoute(
+                                pendingTask: pendingTask,
+                                pendingTaskType: pendingTaskType,
+                                pendingTaskPhase: pendingTaskPhase,
+                              );
+                              _openPendingTaskBottomsheet(
+                                context,
+                                pendingTask: pendingTask,
+                                pendingTaskType: pendingTaskType,
+                                pendingTaskPhase: pendingTaskPhase,
+                              );
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'View Details',
+                                  style: TextStyle(
+                                    fontFamily: 'Mulish',
+                                    fontSize: 12.fSize,
+                                    height: 1.2,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF6A1AD3),
+                                  ),
+                                ),
+                                SizedBox(width: 4.h),
+                                CustomImageView(
+                                  imagePath: ImageConstant.imgPurpleRightArrow,
+                                  height: 14.h,
+                                  width: 14.h,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.h),
+                  GestureDetector(
+                    onTap: () => _dismissOpenTask(taskKey),
+                    child: Container(
+                      width: 20.h,
+                      height: 20.h,
+                      alignment: Alignment.topRight,
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 20.h,
+                        color: const Color(0xFF6D6D6D),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: 2.h,
+                color: const Color(0xFFEDE8FF),
+                child: AnimatedBuilder(
+                  animation: _taskRequestCountdownController,
+                  builder: (context, child) {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: _taskRequestCountdownController.value.clamp(0.0, 1.0),
+                        child: Container(
+                          height: 2.h,
+                          color: const Color(0xFF6A1AD3),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   onTapNotification(BuildContext context) {
     NavigatorService.pushNamed(AppRoutes.notificationScreen);
+  }
+
+  Future<void> _openPendingTaskBottomsheet(
+    BuildContext context, {
+    required Map<String, dynamic> pendingTask,
+    required String pendingTaskType,
+    required String pendingTaskPhase,
+  }) async {
+    await AppBottomSheet.show(
+      context: context,
+      useRootNavigator: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24.h),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      isScrollControlled: true,
+      builder: (context) {
+        if (pendingTaskType == 'ride' && pendingTaskPhase == 'active') {
+          return RideSharingPickupTwo();
+        }
+        if (pendingTaskType == 'ride' && pendingTaskPhase == 'accepted') {
+          return RideSharingPickupOne();
+        }
+        if (pendingTaskType == 'ride') {
+          return RideSharingTaskBottomsheetOne();
+        }
+        if (pendingTaskPhase == 'accepted' || pendingTaskPhase == 'active') {
+          return DeliveryPickupScreenOne();
+        }
+        return DeliveryTaskOneBottomsheet();
+      },
+      routeSettings: RouteSettings(
+        arguments: {
+          'requestType': pendingTaskType,
+          'requestData': pendingTask,
+          'taskPhase': pendingTaskPhase,
+        },
+      ),
+    );
+  }
+
+  String _pendingTaskTitle({
+    required bool isRide,
+    required String phase,
+  }) {
+    if (isRide) {
+      switch (phase) {
+        case 'accepted':
+          return 'Ride request accepted';
+        case 'active':
+          return 'Trip in progress';
+        default:
+          return 'Ride sharing task';
+      }
+    }
+
+    switch (phase) {
+      case 'accepted':
+        return 'Delivery accepted';
+      case 'active':
+        return 'Delivery in progress';
+      default:
+        return 'Delivery task';
+    }
+  }
+
+  String _pendingTaskSubtitle({
+    required bool isRide,
+    required String phase,
+  }) {
+    if (isRide) {
+      switch (phase) {
+        case 'accepted':
+          return 'Passenger selected your fare. Proceed to pickup.';
+        case 'active':
+          return 'The trip is active and ready to resume.';
+        default:
+          return 'You have a ride sharing request';
+      }
+    }
+
+    switch (phase) {
+      case 'accepted':
+        return 'Your delivery offer was selected. Proceed to pickup.';
+      case 'active':
+        return 'The package is already in transit.';
+      default:
+        return 'You have a delivery request';
+    }
+  }
+
+  String _pendingTaskActionLabel(String phase) {
+    switch (phase) {
+      case 'accepted':
+        return 'Open task';
+      case 'active':
+        return 'Resume task';
+      default:
+        return 'View details';
+    }
+  }
+
+  void _highlightPendingTaskRoute({
+    required Map<String, dynamic> pendingTask,
+    required String pendingTaskType,
+    required String pendingTaskPhase,
+  }) {
+    final isRide = pendingTaskType == 'ride';
+    final isActive = pendingTaskPhase == 'active';
+    final destinationLat = double.tryParse(
+      (isRide
+              ? (isActive
+                  ? pendingTask['destination_latitude']
+                  : pendingTask['origin_latitude'])
+              : (isActive
+                  ? pendingTask['dropoff_latitude']
+                  : pendingTask['pickup_latitude']))
+          ?.toString() ??
+          '',
+    );
+    final destinationLng = double.tryParse(
+      (isRide
+              ? (isActive
+                  ? pendingTask['destination_longitude']
+                  : pendingTask['origin_longitude'])
+              : (isActive
+                  ? pendingTask['dropoff_longitude']
+                  : pendingTask['pickup_longitude']))
+          ?.toString() ??
+          '',
+    );
+    final destinationName = (isRide
+            ? (isActive
+                ? pendingTask['destination_name']
+                : pendingTask['origin_name'])
+            : (isActive
+                ? pendingTask['dropoff_name']
+                : pendingTask['pickup_name']))
+        ?.toString();
+
+    if (destinationLat == null || destinationLng == null) {
+      return;
+    }
+
+    final sourceLat = currentPosition?.latitude ?? destinationLat;
+    final sourceLng = currentPosition?.longitude ?? destinationLng;
+    ref.read(homeNotifier.notifier).setRouteCoordinates(
+          locationLat: sourceLat,
+          locationLng: sourceLng,
+          destinationLat: destinationLat,
+          destinationLng: destinationLng,
+          destinationName: destinationName,
+        );
+  }
+
+  void _startOpenTaskCountdown(String taskKey) {
+    _openTaskCountdownKey = taskKey;
+    _dismissedOpenTaskKey = null;
+    _taskRequestCountdownController.stop();
+    _taskRequestCountdownController.reverse(from: 1.0);
+  }
+
+  void _dismissOpenTask(String taskKey) {
+    setState(() {
+      _dismissedOpenTaskKey = taskKey;
+    });
+    _taskRequestCountdownController.stop();
+  }
+
+  Future<void> _handlePendingTaskClose({
+    required BuildContext context,
+    required String pendingTaskPhase,
+    required String pendingTaskType,
+  }) async {
+    if (pendingTaskPhase != 'accepted') {
+      return;
+    }
+
+    final pendingTask = ref.read(homeNotifier).pendingTaskData;
+    final matchId = pendingTask?['_match_id']?.toString() ?? '';
+    if (matchId.isEmpty) {
+      return;
+    }
+
+    final cancelled = await NavigatorService.pushNamed(
+          AppRoutes.rideCancelScreenOne,
+          arguments: {
+            'matchId': matchId,
+            'requestType': pendingTaskType,
+            'source': 'mover_task',
+          },
+        ) ??
+        false;
+
+    if (cancelled == true && mounted) {
+      ref.read(homeNotifier.notifier).clearRouteHighlight();
+      await ref.read(homeNotifier.notifier).loadPendingTask();
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task cancelled. You can receive new requests now.'),
+        ),
+      );
+    }
   }
 
   // Asks the user for permission to access location

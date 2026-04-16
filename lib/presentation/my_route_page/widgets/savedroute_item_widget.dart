@@ -3,125 +3,193 @@ import '../../../core/app_export.dart';
 import '../models/saved_route_model.dart';
 
 class SavedrouteItemWidget extends StatelessWidget {
-  SavedrouteItemWidget(this.savedrouteItemModelObj, {Key? key})
+  SavedrouteItemWidget(
+    this.savedrouteItemModelObj, {
+    Key? key,
+    this.onDelete,
+  })
       : super(
           key: key,
         );
 
   SavedRouteModel savedrouteItemModelObj;
+  final Future<bool> Function()? onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(
-        horizontal: 14.h,
-        vertical: 12.h,
+    return Dismissible(
+      key: ValueKey(savedrouteItemModelObj.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        if (onDelete == null) {
+          return false;
+        }
+        final shouldDelete = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              title: const Text('Delete route?'),
+              content: const Text(
+                'This scheduled route will be removed from My Route.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (shouldDelete != true) {
+          return false;
+        }
+
+        return await onDelete!.call();
+      },
+      background: Container(
+        width: double.maxFinite,
+        padding: EdgeInsets.symmetric(horizontal: 16.h),
+        alignment: Alignment.centerRight,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE41212),
+          borderRadius: BorderRadiusStyle.roundedBorder8,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Icon(
+              Icons.delete_outline,
+              color: Colors.white,
+              size: 20.h,
+            ),
+            SizedBox(width: 8.h),
+            Text(
+              'Delete',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(color: appTheme.gray20001, width: 1.h),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        savedrouteItemModelObj.routetitle!,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: appTheme.gray800,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    if ((savedrouteItemModelObj.islive ?? false) ||
-                        (savedrouteItemModelObj.status?.isNotEmpty ?? false))
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8.h,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (savedrouteItemModelObj.islive ?? false)
-                              ? appTheme.lightGreen100
-                              : appTheme.gray100,
-                          borderRadius: BorderRadius.circular(12.h),
-                        ),
+      child: Container(
+        width: double.maxFinite,
+        padding: EdgeInsets.symmetric(
+          horizontal: 14.h,
+          vertical: 12.h,
+        ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+          borderRadius: BorderRadiusStyle.roundedBorder8,
+          border: Border.all(color: appTheme.gray20001, width: 1.h),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                          (savedrouteItemModelObj.islive ?? false)
-                              ? 'Live'
-                              : savedrouteItemModelObj.status!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: (savedrouteItemModelObj.islive ?? false)
-                                ? appTheme.lightGreen900
-                                : appTheme.gray600,
+                          savedrouteItemModelObj.routetitle!,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: appTheme.gray800,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  savedrouteItemModelObj.address!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: appTheme.gray600,
+                        ),
+                      if ((savedrouteItemModelObj.islive ?? false) ||
+                          (savedrouteItemModelObj.status?.isNotEmpty ?? false))
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.h,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (savedrouteItemModelObj.islive ?? false)
+                                ? appTheme.lightGreen100
+                                : appTheme.gray100,
+                            borderRadius: BorderRadius.circular(12.h),
+                          ),
+                          child: Text(
+                            (savedrouteItemModelObj.islive ?? false)
+                                ? 'Live'
+                                : savedrouteItemModelObj.status!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: (savedrouteItemModelObj.islive ?? false)
+                                  ? appTheme.lightGreen900
+                                  : appTheme.gray600,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    CustomImageView(
-                      imagePath: ImageConstant.imgClock,
-                      height: 16.h,
-                      width: 16.h,
+                  SizedBox(height: 8.h),
+                  Text(
+                    savedrouteItemModelObj.address!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       color: appTheme.gray600,
                     ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 6.h),
-                      child: Text(
-                        savedrouteItemModelObj.time!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: appTheme.gray600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    children: [
+                      CustomImageView(
+                        imagePath: ImageConstant.imgClock,
+                        height: 16.h,
+                        width: 16.h,
+                        color: appTheme.gray600,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 6.h),
+                        child: Text(
+                          savedrouteItemModelObj.time!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: appTheme.gray600,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 16.h),
-                    CustomImageView(
-                      imagePath: ImageConstant.imgCalendar,
-                      height: 16.h,
-                      width: 16.h,
-                      color: appTheme.gray600,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 6.h),
-                      child: Text(
-                        savedrouteItemModelObj.days!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: appTheme.gray600,
+                      SizedBox(width: 16.h),
+                      CustomImageView(
+                        imagePath: ImageConstant.imgCalendar,
+                        height: 16.h,
+                        width: 16.h,
+                        color: appTheme.gray600,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 6.h),
+                        child: Text(
+                          savedrouteItemModelObj.days!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: appTheme.gray600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          CustomImageView(
-            imagePath: ImageConstant.imgChevronRightBlack,
-            height: 20.h,
-            width: 20.h,
-            margin: EdgeInsets.only(left: 8.h),
-          ),
-        ],
+            CustomImageView(
+              imagePath: ImageConstant.imgChevronRightBlack,
+              height: 20.h,
+              width: 20.h,
+              margin: EdgeInsets.only(left: 8.h),
+            ),
+          ],
+        ),
       ),
     );
   }

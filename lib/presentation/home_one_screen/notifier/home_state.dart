@@ -18,12 +18,15 @@ class HomeState extends Equatable{
     this.routeDestinationLng,
     this.routeDestinationName,
     this.pendingTaskType,
+    this.pendingTaskPhase,
     this.pendingTaskData,
     this.isLoadingPendingTask = false,
     this.isSearchingNearbyMovers = false,
     this.nearbyMoverSearchType,
     this.nearbyMoverSearchData,
     this.nearbyMoverSearchEndsAt,
+    this.nearbyMovers = const <Map<String, dynamic>>[],
+    this.nearbyMoverLastUpdatedAt,
   });
 
   bool isSelectedSwitch;
@@ -40,12 +43,15 @@ class HomeState extends Equatable{
   double? routeDestinationLng;
   String? routeDestinationName;
   String? pendingTaskType;
+  String? pendingTaskPhase;
   Map<String, dynamic>? pendingTaskData;
   bool isLoadingPendingTask;
   bool isSearchingNearbyMovers;
   String? nearbyMoverSearchType;
   Map<String, dynamic>? nearbyMoverSearchData;
   DateTime? nearbyMoverSearchEndsAt;
+  List<Map<String, dynamic>> nearbyMovers;
+  DateTime? nearbyMoverLastUpdatedAt;
 
   @override
   List<Object?> get props => [
@@ -63,12 +69,15 @@ class HomeState extends Equatable{
     routeDestinationLng,
     routeDestinationName,
     pendingTaskType,
+    pendingTaskPhase,
     pendingTaskData,
     isLoadingPendingTask,
     isSearchingNearbyMovers,
     nearbyMoverSearchType,
     nearbyMoverSearchData,
     nearbyMoverSearchEndsAt,
+    nearbyMovers,
+    nearbyMoverLastUpdatedAt,
   ];
 
   HomeState copyWith({
@@ -86,12 +95,15 @@ class HomeState extends Equatable{
     double? routeDestinationLng,
     String? routeDestinationName,
     String? pendingTaskType,
+    String? pendingTaskPhase,
     Map<String, dynamic>? pendingTaskData,
     bool? isLoadingPendingTask,
     bool? isSearchingNearbyMovers,
     String? nearbyMoverSearchType,
     Map<String, dynamic>? nearbyMoverSearchData,
     DateTime? nearbyMoverSearchEndsAt,
+    List<Map<String, dynamic>>? nearbyMovers,
+    DateTime? nearbyMoverLastUpdatedAt,
     bool clearPendingTask = false,
     bool clearNearbyMoverSearch = false,
   }) {
@@ -110,6 +122,7 @@ class HomeState extends Equatable{
       routeDestinationLng: routeDestinationLng ?? this.routeDestinationLng,
       routeDestinationName: routeDestinationName ?? this.routeDestinationName,
       pendingTaskType: clearPendingTask ? null : (pendingTaskType ?? this.pendingTaskType),
+      pendingTaskPhase: clearPendingTask ? null : (pendingTaskPhase ?? this.pendingTaskPhase),
       pendingTaskData: clearPendingTask ? null : (pendingTaskData ?? this.pendingTaskData),
       isLoadingPendingTask: isLoadingPendingTask ?? this.isLoadingPendingTask,
       isSearchingNearbyMovers:
@@ -123,6 +136,12 @@ class HomeState extends Equatable{
       nearbyMoverSearchEndsAt: clearNearbyMoverSearch
           ? null
           : (nearbyMoverSearchEndsAt ?? this.nearbyMoverSearchEndsAt),
+      nearbyMovers: clearNearbyMoverSearch
+          ? const <Map<String, dynamic>>[]
+          : (nearbyMovers ?? this.nearbyMovers),
+      nearbyMoverLastUpdatedAt: clearNearbyMoverSearch
+          ? null
+          : (nearbyMoverLastUpdatedAt ?? this.nearbyMoverLastUpdatedAt),
     );
   }
 }

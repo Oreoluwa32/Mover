@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/permission_manager.dart';
 import '../../data/services/account_api_service.dart';
+import '../../services/device_memory_service.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -17,6 +18,7 @@ import 'notifier/profile_screen_notifier.dart';
 Future<void> logoutUser(BuildContext context) async {
   try {
     await AccountApiService().clearSession();
+    await DeviceMemoryService().forgetDevice();
     if (context.mounted) {
       NavigatorService.pushNamedAndRemoveUntil(
         AppRoutes.signInScreen,
@@ -24,6 +26,7 @@ Future<void> logoutUser(BuildContext context) async {
     }
   } catch (e) {
     await AccountApiService().clearSession();
+    await DeviceMemoryService().forgetDevice();
     if (context.mounted) {
       NavigatorService.pushNamedAndRemoveUntil(
         AppRoutes.signInScreen,
@@ -406,7 +409,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Show modern bottom sheet to choose between camera and gallery
     if (!mounted) return;
     
-    showModalBottomSheet(
+    AppBottomSheet.show(
       context: context,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/app_export.dart';
 import '../../../data/services/mobility_api_service.dart';
@@ -55,6 +56,31 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
           savedrouteItemList: const [],
         ),
       );
+    }
+  }
+
+  Future<bool> deleteScheduledRoute(String routeId) async {
+    if (routeId.isEmpty) {
+      return false;
+    }
+
+    try {
+      await _mobilityApiService.deleteTravelPlan(travelPlanId: routeId);
+      final currentRoutes =
+          List<SavedRouteModel>.from(state.myRouteModelObj?.savedrouteItemList ?? const []);
+      currentRoutes.removeWhere((route) => route.id == routeId);
+      state = state.copyWith(
+        myRouteModelObj: state.myRouteModelObj?.copyWith(
+          savedrouteItemList: currentRoutes,
+        ),
+      );
+      Fluttertoast.showToast(msg: 'Route deleted');
+      return true;
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: _mobilityApiService.extractErrorMessage(error),
+      );
+      return false;
     }
   }
 

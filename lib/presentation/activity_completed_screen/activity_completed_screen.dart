@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../completed_bottomsheet/completed_bottomsheet.dart';
 import 'models/completed_item_model.dart';
 import 'notifier/activity_completed_notifier.dart';
 import 'widgets/completed_item_widget.dart'; // ignore for file, class must be immutable
@@ -85,7 +86,11 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
             shrinkWrap: true,
             itemBuilder: (context, index) {
               CompletedItemModel model = items[index];
-              return CompletedItemWidget(model);
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _handleCompletedTap(context, model),
+                child: CompletedItemWidget(model),
+              );
             }, 
             separatorBuilder: (context, index) {
               return SizedBox(
@@ -95,6 +100,31 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
             itemCount: items.length,
           );
         },
+      ),
+    );
+  }
+
+  void _handleCompletedTap(BuildContext context, CompletedItemModel model) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => const CompletedBottomsheet(),
+        settings: RouteSettings(
+          arguments: {
+            'requestType': model.requestType,
+            'pickupLocation': model.pickupLocation,
+            'destinationLocation': model.destinationLocation,
+            'pickupLatitude': model.pickupLatitude,
+            'pickupLongitude': model.pickupLongitude,
+            'destinationLatitude': model.destinationLatitude,
+            'destinationLongitude': model.destinationLongitude,
+            'date': model.date,
+            'time': model.time,
+            'moverName': model.moverName,
+            'rating': model.rating,
+            'price': model.price?.replaceAll('NGN', '').trim(),
+            'requestData': model.requestData,
+          },
+        ),
       ),
     );
   }

@@ -63,6 +63,16 @@ class RideRequest(models.Model):
     seats_requested = models.PositiveSmallIntegerField(default=1)
     note = models.TextField(blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    cancelled_reason = models.CharField(max_length=255, blank=True)
+    cancelled_notes = models.TextField(blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cancelled_ride_requests",
+    )
+    cancelled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -92,6 +102,16 @@ class DeliveryRequest(models.Model):
     insurance_opted = models.BooleanField(default=False)
     damage_report = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    cancelled_reason = models.CharField(max_length=255, blank=True)
+    cancelled_notes = models.TextField(blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cancelled_delivery_requests",
+    )
+    cancelled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -116,7 +136,82 @@ class TravelMatch(models.Model):
     match_type = models.CharField(max_length=16, choices=MatchType.choices)
     agreed_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PROPOSED)
+    cancelled_reason = models.CharField(max_length=255, blank=True)
+    cancelled_notes = models.TextField(blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cancelled_matches",
+    )
+    cancelled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class TaskReview(models.Model):
+    class ReviewType(models.TextChoices):
+        RIDE = "ride", "Ride"
+        DELIVERY = "delivery", "Delivery"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    match = models.ForeignKey(TravelMatch, on_delete=models.CASCADE, related_name="reviews")
+    review_type = models.CharField(max_length=16, choices=ReviewType.choices)
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="written_reviews",
+    )
+    reviewee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="received_reviews",
+    )
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True)
+    tags = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["match", "reviewer"],
+                name="unique_task_review_per_reviewer",
+            )
+        ]
+
+
+class TaskMessage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    match = models.ForeignKey(TravelMatch, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="sent_task_messages",
+    )
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+
+class TaskIncidentReport(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    match = models.ForeignKey(TravelMatch, on_delete=models.CASCADE, related_name="incident_reports")
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="task_incident_reports",
+    )
+    reason = models.CharField(max_length=255)
+    details = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
 
 class TrackingSession(models.Model):

@@ -34,6 +34,11 @@ class SearchMoverBottomsheetState
   @override
   void initState() {
     super.initState();
+    final homeState = ref.read(homeNotifier);
+    _nearbyMovers = List<Map<String, dynamic>>.from(homeState.nearbyMovers);
+    _lastUpdatedAt = homeState.nearbyMoverLastUpdatedAt;
+    _isLoading =
+        homeState.isSearchingNearbyMovers && homeState.nearbyMovers.isEmpty;
     _refreshNearbyMovers();
     _pollingTimer = Timer.periodic(
       const Duration(seconds: 5),
@@ -64,7 +69,10 @@ class SearchMoverBottomsheetState
       alternateKeys: const ['destination_name', 'dropoff_name'],
       fallback: 'Destination',
     );
-    final seenMovers = _nearbyMovers.length;
+    final movers = homeState.nearbyMovers.isNotEmpty
+        ? homeState.nearbyMovers
+        : _nearbyMovers;
+    final seenMovers = movers.length;
     final isSearching = homeState.isSearchingNearbyMovers;
 
     return Material(
@@ -72,7 +80,7 @@ class SearchMoverBottomsheetState
         width: double.maxFinite,
         padding: EdgeInsets.only(left: 16.h, top: 16.h, right: 16.h),
         decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withOpacity(1),
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
           borderRadius: BorderRadiusStyle.customBorderTL24,
         ),
         child: Column(
@@ -111,7 +119,7 @@ class SearchMoverBottomsheetState
               destinationLocation: destinationLocation,
             ),
             SizedBox(height: 18.h),
-            _buildNearbyMoverSection(context),
+            _buildNearbyMoverSection(context, movers),
             SizedBox(height: 24.h),
             CustomElevatedButton(
               text: "View Prices",
@@ -122,7 +130,7 @@ class SearchMoverBottomsheetState
                   arguments: {
                     'requestType': widget.requestType,
                     'requestData': requestData,
-                    'nearbyMovers': _nearbyMovers,
+                    'nearbyMovers': movers,
                   },
                 );
               },
@@ -159,7 +167,7 @@ class SearchMoverBottomsheetState
             height: 50.h,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withOpacity(1),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 1),
               borderRadius: BorderRadiusStyle.roundedBorder24,
               border: Border.all(
                 color: appTheme.gray400,
@@ -190,7 +198,10 @@ class SearchMoverBottomsheetState
     );
   }
 
-  Widget _buildNearbyMoverSection(BuildContext context) {
+  Widget _buildNearbyMoverSection(
+    BuildContext context,
+    List<Map<String, dynamic>> movers,
+  ) {
     final isSearching = ref.watch(homeNotifier).isSearchingNearbyMovers;
     if (_isLoading) {
       return Container(
@@ -228,7 +239,7 @@ class SearchMoverBottomsheetState
       );
     }
 
-    if (_nearbyMovers.isEmpty) {
+    if (movers.isEmpty) {
       return Container(
         width: double.maxFinite,
         padding: EdgeInsets.all(14.h),
@@ -262,7 +273,7 @@ class SearchMoverBottomsheetState
       );
     }
 
-    final moversToShow = _nearbyMovers.take(3).toList();
+    final moversToShow = movers.take(3).toList();
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.all(14.h),
@@ -447,6 +458,8 @@ class SearchMoverBottomsheetState
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _nearbyMovers = List<Map<String, dynamic>>.from(homeState.nearbyMovers);
+          _lastUpdatedAt = homeState.nearbyMoverLastUpdatedAt;
         });
       }
       return;
@@ -459,6 +472,10 @@ class SearchMoverBottomsheetState
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _nearbyMovers = List<Map<String, dynamic>>.from(
+            ref.read(homeNotifier).nearbyMovers,
+          );
+          _lastUpdatedAt = ref.read(homeNotifier).nearbyMoverLastUpdatedAt;
         });
       }
       return;
@@ -498,13 +515,18 @@ class SearchMoverBottomsheetState
       final liveMovers = nearbyMovers
           .where((plan) => plan['is_live'] == true)
           .toList();
+      final updatedAt = DateTime.now();
+      ref.read(homeNotifier.notifier).updateNearbyMoverResults(
+            movers: liveMovers,
+            updatedAt: updatedAt,
+          );
 
       if (!mounted) {
         return;
       }
       setState(() {
         _nearbyMovers = liveMovers;
-        _lastUpdatedAt = DateTime.now();
+        _lastUpdatedAt = updatedAt;
         _isLoading = false;
       });
     } catch (error) {

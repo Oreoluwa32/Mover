@@ -44,7 +44,23 @@ class DeviceMemoryService {
     final isRemembered = _prefs.getBool(_deviceRememberedKey) ?? false;
     if (!isRemembered) return false;
 
-    // Check if auth token exists in secure storage
+    return hasAuthToken();
+  }
+
+  /// Strict auth guard for the app.
+  /// If the token is gone, clear any remembered-device flags so startup
+  /// never treats the user as still logged in.
+  Future<bool> syncSessionState() async {
+    final hasToken = await hasAuthToken();
+    if (!hasToken) {
+      await _prefs.remove(_deviceRememberedKey);
+      await _prefs.remove(_userEmailKey);
+      await _prefs.remove(_lastLoginTimeKey);
+    }
+    return hasToken;
+  }
+
+  Future<bool> hasAuthToken() async {
     final token = await _secureStorage.read(key: 'auth_token');
     return token != null && token.isNotEmpty;
   }
@@ -68,6 +84,7 @@ class DeviceMemoryService {
     await _prefs.remove(_userEmailKey);
     await _prefs.remove(_lastLoginTimeKey);
     await _secureStorage.delete(key: 'auth_token');
+    await _secureStorage.delete(key: 'refresh_token');
   }
 
   /// Clear all device memory
@@ -79,7 +96,6 @@ class DeviceMemoryService {
   /// Check if session is still valid (optional: can add session timeout logic)
   /// For now, as long as token exists, session is valid
   Future<bool> isSessionValid() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-    return token != null && token.isNotEmpty;
+    return hasAuthToken();
   }
 }

@@ -15,6 +15,14 @@ class DeliveryRatingScreenTwo extends ConsumerStatefulWidget{
 class DeliveryRatingScreenTwoState extends ConsumerState<DeliveryRatingScreenTwo>{
   @override
   Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+            const <String, dynamic>{};
+    final moverName = args['moverName']?.toString() ?? 'Assigned mover';
+    final requestType = args['requestType']?.toString() ?? 'delivery';
+    final completionTitle = args['completionTitle']?.toString() ??
+        (requestType == 'ride' ? 'Ride Sharing Complete' : 'Delivery Complete');
+
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
@@ -29,7 +37,7 @@ class DeliveryRatingScreenTwoState extends ConsumerState<DeliveryRatingScreenTwo
           child: Column(
             children: [
               Text(
-                "Delivery Complete",
+                completionTitle,
                 style: CustomTextStyles.titleMediumGray80001,
               ),
               SizedBox(height: 90.h),
@@ -45,7 +53,8 @@ class DeliveryRatingScreenTwoState extends ConsumerState<DeliveryRatingScreenTwo
               ),
               SizedBox(height: 14.h),
               Text(
-                "Your response has been recorded",
+                "Your response for $moverName has been recorded",
+                textAlign: TextAlign.center,
                 style: CustomTextStyles.bodySmallBlack900,
               ),
               SizedBox(height: 4.h)
