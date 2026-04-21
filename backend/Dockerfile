@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* && 
 
 COPY . /app
 
+RUN python manage.py collectstatic --noinput
+
 RUN adduser --disabled-password --gecos "" django && \
     chown -R django:django /app
 

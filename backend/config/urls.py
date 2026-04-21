@@ -16,6 +16,11 @@ from apps.payments.views import (
 def healthcheck(_request):
     return JsonResponse({"status": "ok", "service": "movr-backend"})
 
+
+admin.site.site_header = "Movr Control Center"
+admin.site.site_title = "Movr Admin"
+admin.site.index_title = "Operations dashboard"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", healthcheck),

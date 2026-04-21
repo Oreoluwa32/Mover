@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Movr Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'admin/css/movr_admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="movr-admin-brand">
+    <span class="movr-admin-mark" aria-hidden="true">M</span>
+    <span>
+        <strong>Movr Control Center</strong>
+        <small>Trips, deliveries, movers, safety, and payments</small>
+    </span>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<a class="movr-admin-pill" href="/health/" target="_blank" rel="noopener">Health check</a>
+{% endblock %}
