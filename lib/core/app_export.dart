@@ -1,6 +1,7 @@
 export 'package:flutter_riverpod/flutter_riverpod.dart';
 export 'package:movr/core/utils/image_constant.dart';
 export 'package:movr/core/utils/app_bottom_sheet.dart';
+export 'package:movr/core/utils/map_theme_utils.dart';
 export 'package:movr/core/utils/navigator_service.dart';
 export 'package:movr/core/utils/pref_utils.dart';
 export 'package:movr/core/utils/size_utils.dart';

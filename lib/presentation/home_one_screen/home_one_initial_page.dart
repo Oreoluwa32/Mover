@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:google_navigation_flutter/google_navigation_flutter.dart';
 import 'package:location/location.dart' as loc;
-import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
+import 'package:flutter_polyline_points/flutter_polyline_points.dart'
+    as polyline;
 import 'package:movr/presentation/delivery_pickup_screen_one/delivery_pickup_screen_one.dart';
 import 'package:movr/presentation/delivery_task_one_bottomsheet/delivery_task_one_bottomsheet.dart';
 import 'package:movr/presentation/ride_sharing_task_bottomsheet_one/ride_sharing_task_bottomsheet_one.dart';
@@ -25,7 +24,7 @@ import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/custom_switch.dart';
 import 'notifier/home_notifier.dart';
 
-class HomeOneInitialPage extends ConsumerStatefulWidget{
+class HomeOneInitialPage extends ConsumerStatefulWidget {
   const HomeOneInitialPage({super.key});
 
   @override
@@ -33,7 +32,8 @@ class HomeOneInitialPage extends ConsumerStatefulWidget{
 }
 
 // ignore for file: must be immutabel
-class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with TickerProviderStateMixin {
+class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
+    with TickerProviderStateMixin {
   final loc.Location locationController = loc.Location();
   final MobilityApiService _mobilityApiService = MobilityApiService();
   final MobilityRealtimeService _realtimeService = MobilityRealtimeService();
@@ -43,9 +43,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   DateTime? _lastRealtimeBroadcast;
   String? _liveTravelPlanId;
 
-  static const LatLng defaultLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
-  static const LatLng sourceLocation = LatLng(latitude: 6.6085, longitude: 3.2881);
-  static const LatLng destinationLocation = LatLng(latitude: 6.5243, longitude: 3.3792);
+  static const LatLng defaultLocation =
+      LatLng(latitude: 6.6085, longitude: 3.2881);
+  static const LatLng sourceLocation =
+      LatLng(latitude: 6.6085, longitude: 3.2881);
+  static const LatLng destinationLocation =
+      LatLng(latitude: 6.5243, longitude: 3.3792);
 
   late Completer<GoogleNavigationViewController> googleMapController;
   late Completer<GoogleNavigationViewController> googleMapController1;
@@ -60,7 +63,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   late Animation<Offset> _sidebarSlideAnimation;
   late Animation<double> _filterButtonRotationAnimation;
   bool _isSidebarVisible = false;
-  
+
   // Location stream subscription
   StreamSubscription? _locationSubscription;
 
@@ -77,16 +80,16 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   @override
   void initState() {
     super.initState();
-    
+
     googleMapController = Completer();
     googleMapController1 = Completer();
-    
+
     // Initialize animation controllers with reduced durations for better performance
     _sidebarAnimationController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
-    
+
     _filterButtonAnimationController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
@@ -107,7 +110,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           });
         }
       });
-    
+
     // Initialize animations
     _sidebarSlideAnimation = Tween<Offset>(
       begin: const Offset(-3.0, 0.0),
@@ -116,7 +119,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       parent: _sidebarAnimationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _filterButtonRotationAnimation = Tween<double>(
       begin: 0.0,
       end: 0.25,
@@ -124,7 +127,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       parent: _filterButtonAnimationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _initializeLocationAndPolyline();
     _initializeNavigation();
   }
@@ -134,7 +137,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       if (!await GoogleMapsNavigator.isInitialized()) {
         await GoogleMapsNavigator.initializeNavigationSession();
       }
-      
+
       // Check if terms are accepted, if not show dialog
       if (!await GoogleMapsNavigator.areTermsAccepted()) {
         await GoogleMapsNavigator.showTermsAndConditionsDialog(
@@ -148,7 +151,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         if (mounted) {
           ref.read(homeNotifier.notifier).stopNavigation();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('You have arrived at your destination')),
+            const SnackBar(
+                content: Text('You have arrived at your destination')),
           );
         }
       });
@@ -159,7 +163,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   Future<void> _initializeLocationAndPolyline() async {
     try {
-      final ByteData data = await rootBundle.load(ImageConstant.imgCustomMarker);
+      final ByteData data =
+          await rootBundle.load(ImageConstant.imgCustomMarker);
       final icon = await registerBitmapImage(
         bitmap: data,
         width: 40, // Set logical width for custom marker
@@ -178,12 +183,13 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       if (bytes != null) {
         final icon = await registerBitmapImage(
           bitmap: ByteData.view(bytes.buffer),
-          width: 60, // Set logical width for beam marker (larger to accommodate the cone)
+          width:
+              60, // Set logical width for beam marker (larger to accommodate the cone)
         );
         setState(() {
           customMarkerIcon = icon;
         });
-        
+
         // Update markers immediately if map is ready
         if (googleMapController.isCompleted) {
           final controller = await googleMapController.future;
@@ -199,7 +205,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     } catch (e) {
       // Error getting location updates
     }
-    
+
     try {
       await getPolylinePoints();
     } catch (e) {
@@ -223,7 +229,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     setState(() {
       _isSidebarVisible = !_isSidebarVisible;
     });
-    
+
     if (_isSidebarVisible) {
       _sidebarAnimationController.forward();
       _filterButtonAnimationController.forward();
@@ -234,8 +240,17 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   }
 
   @override
-  Widget build(BuildContext context){
-    ref.listen(homeNotifier.select((s) => s.isNavigationActive), (previous, next) {
+  Widget build(BuildContext context) {
+    ref.listen(themeNotifier.select((state) => state.themeType),
+        (previous, next) {
+      if (googleMapController.isCompleted) {
+        googleMapController.future.then((controller) {
+          _applyNavigationMapTheme(controller, next);
+        });
+      }
+    });
+    ref.listen(homeNotifier.select((s) => s.isNavigationActive),
+        (previous, next) {
       if (next == true) {
         _startNavigation();
       } else if (next == false && previous == true) {
@@ -249,7 +264,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         _stopLiveTracking();
       }
     });
-    ref.listen(homeNotifier.select((s) => s.isSearchingNearbyMovers), (previous, next) {
+    ref.listen(homeNotifier.select((s) => s.isSearchingNearbyMovers),
+        (previous, next) {
       if (next == true) {
         _nearbySearchAnimationController.repeat();
       } else {
@@ -266,7 +282,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       final taskId = next['id']?.toString();
       final taskPhase = homeState.pendingTaskPhase ?? 'open';
       final taskKey = '$taskId:$taskPhase';
-      if (taskId == null || taskId.isEmpty || taskKey == _lastPresentedPendingTaskId) {
+      if (taskId == null ||
+          taskId.isEmpty ||
+          taskKey == _lastPresentedPendingTaskId) {
         return;
       }
 
@@ -318,7 +336,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         children: [
           // Google Map as background - full screen
           _buildMaps(context),
-          
+
           // Static UI overlays
           _buildTopRightNotificationButton(context),
           _buildIsLiveToggleSwitch(context),
@@ -346,7 +364,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                   child: AnimatedOpacity(
                     opacity: homeState.showLiveNotification ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
-                    child: _buildLiveRouteNotificationContent(context, homeState.isLive),
+                    child: _buildLiveRouteNotificationContent(
+                        context, homeState.isLive),
                   ),
                 ),
               );
@@ -360,7 +379,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   void _updateMarkers(GoogleNavigationViewController controller) {
     final homeState = ref.read(homeNotifier);
     List<MarkerOptions> markerOptions = [];
-    
+
     if (currentPosition != null) {
       markerOptions.add(
         MarkerOptions(
@@ -371,15 +390,19 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         ),
       );
     }
-    
+
     if (homeState.highlightRoute &&
         homeState.routeLocationLat != null &&
         homeState.routeLocationLng != null &&
         homeState.routeDestinationLat != null &&
         homeState.routeDestinationLng != null) {
-      final source = LatLng(latitude: homeState.routeLocationLat!, longitude: homeState.routeLocationLng!);
-      final destination = LatLng(latitude: homeState.routeDestinationLat!, longitude: homeState.routeDestinationLng!);
-      
+      final source = LatLng(
+          latitude: homeState.routeLocationLat!,
+          longitude: homeState.routeLocationLng!);
+      final destination = LatLng(
+          latitude: homeState.routeDestinationLat!,
+          longitude: homeState.routeDestinationLng!);
+
       markerOptions.add(
         MarkerOptions(
           position: source,
@@ -391,51 +414,89 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         ),
       );
     }
-    
+
     controller.clearMarkers();
     controller.addMarkers(markerOptions);
   }
 
-  Widget _buildMaps(BuildContext context){
+  Future<void> _applyNavigationMapTheme(
+    GoogleNavigationViewController controller,
+    String themeType,
+  ) async {
+    final isDark = ThemeHelper.isDarkThemeType(themeType);
+    try {
+      await controller.setMapColorScheme(
+        isDark ? MapColorScheme.dark : MapColorScheme.light,
+      );
+    } catch (_) {
+      // The Navigation SDK ignores mapColorScheme when navigation UI is active.
+    }
+
+    try {
+      await controller.setForceNightMode(
+        isDark
+            ? NavigationForceNightMode.forceNight
+            : NavigationForceNightMode.forceDay,
+      );
+    } catch (_) {
+      // Keep the app usable if a platform SDK version does not support this.
+    }
+  }
+
+  Widget _buildMaps(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
+        final themeType =
+            ref.watch(themeNotifier.select((state) => state.themeType));
         final homeState = ref.watch(homeNotifier);
-        
+
         return GoogleMapsNavigationView(
-            initialCameraPosition: CameraPosition(
-              target: currentPosition ?? defaultLocation,
-              zoom: 18.0,
-            ),
-            onViewCreated: (GoogleNavigationViewController controller){
-              if (!googleMapController.isCompleted) {
-                googleMapController.complete(controller);
-              }
-              _updateMarkers(controller);
-              
-              if (homeState.highlightRoute &&
-                  homeState.routeLocationLat != null &&
-                  homeState.routeLocationLng != null &&
-                  homeState.routeDestinationLat != null &&
-                  homeState.routeDestinationLng != null) {
-                _loadAndDisplayRoute(
-                  LatLng(latitude: homeState.routeLocationLat!, longitude: homeState.routeLocationLng!),
-                  LatLng(latitude: homeState.routeDestinationLat!, longitude: homeState.routeDestinationLng!),
-                  controller,
-                );
-              }
-            },
-          );
+          initialMapColorScheme: ThemeHelper.isDarkThemeType(themeType)
+              ? MapColorScheme.dark
+              : MapColorScheme.light,
+          initialForceNightMode: ThemeHelper.isDarkThemeType(themeType)
+              ? NavigationForceNightMode.forceNight
+              : NavigationForceNightMode.forceDay,
+          initialCameraPosition: CameraPosition(
+            target: currentPosition ?? defaultLocation,
+            zoom: 18.0,
+          ),
+          onViewCreated: (GoogleNavigationViewController controller) {
+            if (!googleMapController.isCompleted) {
+              googleMapController.complete(controller);
+            }
+            _applyNavigationMapTheme(controller, themeType);
+            _updateMarkers(controller);
+
+            if (homeState.highlightRoute &&
+                homeState.routeLocationLat != null &&
+                homeState.routeLocationLng != null &&
+                homeState.routeDestinationLat != null &&
+                homeState.routeDestinationLng != null) {
+              _loadAndDisplayRoute(
+                LatLng(
+                    latitude: homeState.routeLocationLat!,
+                    longitude: homeState.routeLocationLng!),
+                LatLng(
+                    latitude: homeState.routeDestinationLat!,
+                    longitude: homeState.routeDestinationLng!),
+                controller,
+              );
+            }
+          },
+        );
       },
     );
   }
 
-  Future<void> _loadAndDisplayRoute(LatLng source, LatLng destination, GoogleNavigationViewController controller) async {
+  Future<void> _loadAndDisplayRoute(LatLng source, LatLng destination,
+      GoogleNavigationViewController controller) async {
     try {
       final coordinates = await getPolylinePoints(
         origin: source,
         destination: destination,
       );
-      
+
       setState(() {
         polylineCoordinates = coordinates;
         polylines = [
@@ -446,10 +507,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           )
         ];
       });
-      
+
       controller.addPolylines(polylines);
       _updateMarkers(controller);
-      
+
       if (coordinates.isNotEmpty) {
         await _animateCameraToShowRoute(source, destination, controller);
       }
@@ -458,24 +519,35 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     }
   }
 
-  Future<void> _animateCameraToShowRoute(LatLng source, LatLng destination, GoogleNavigationViewController controller) async {
+  Future<void> _animateCameraToShowRoute(LatLng source, LatLng destination,
+      GoogleNavigationViewController controller) async {
     final sw = LatLng(
-      latitude: source.latitude < destination.latitude ? source.latitude : destination.latitude,
-      longitude: source.longitude < destination.longitude ? source.longitude : destination.longitude,
+      latitude: source.latitude < destination.latitude
+          ? source.latitude
+          : destination.latitude,
+      longitude: source.longitude < destination.longitude
+          ? source.longitude
+          : destination.longitude,
     );
     final ne = LatLng(
-      latitude: source.latitude > destination.latitude ? source.latitude : destination.latitude,
-      longitude: source.longitude > destination.longitude ? source.longitude : destination.longitude,
+      latitude: source.latitude > destination.latitude
+          ? source.latitude
+          : destination.latitude,
+      longitude: source.longitude > destination.longitude
+          ? source.longitude
+          : destination.longitude,
     );
-    
+
     final bounds = LatLngBounds(southwest: sw, northeast: ne);
-    await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, padding: 100));
+    await controller
+        .animateCamera(CameraUpdate.newLatLngBounds(bounds, padding: 100));
   }
 
   Future<void> cameraToPosition(LatLng position) async {
-    final GoogleNavigationViewController controller = await googleMapController.future;
+    final GoogleNavigationViewController controller =
+        await googleMapController.future;
     final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
-    
+
     controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -490,13 +562,14 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   Future<void> _startNavigation() async {
     final homeState = ref.read(homeNotifier);
-    
-    if (homeState.routeDestinationLat != null && homeState.routeDestinationLng != null) {
+
+    if (homeState.routeDestinationLat != null &&
+        homeState.routeDestinationLng != null) {
       final destination = LatLng(
         latitude: homeState.routeDestinationLat!,
         longitude: homeState.routeDestinationLng!,
       );
-      
+
       await GoogleMapsNavigator.setDestinations(
         Destinations(
           waypoints: [
@@ -512,7 +585,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           ),
         ),
       );
-      
+
       await GoogleMapsNavigator.startGuidance();
     }
   }
@@ -524,8 +597,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   Future<void> getLocationUpdates() async {
     try {
-      bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
-      
+      bool hasPermission =
+          await LocationManager.checkAndRequestLocationPermission();
+
       if (!hasPermission) {
         return;
       }
@@ -538,39 +612,44 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       );
 
       _locationSubscription?.cancel();
-      _locationSubscription = locationController.onLocationChanged.listen((loc.LocationData currentLocation) {
-        if (currentLocation.latitude != null && currentLocation.longitude != null && mounted) {
+      _locationSubscription = locationController.onLocationChanged.listen(
+          (loc.LocationData currentLocation) {
+        if (currentLocation.latitude != null &&
+            currentLocation.longitude != null &&
+            mounted) {
           final newPosition = LatLng(
             latitude: currentLocation.latitude!,
             longitude: currentLocation.longitude!,
           );
-          
+
           final double newHeading = currentLocation.heading ?? userHeading;
-          
+
           final bool isFirstLocation = currentPosition == null;
           final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
-          
+
           // Use smaller threshold when navigating to keep focus on custom marker
-          final double threshold = isNavigating ? 0.00002 : 0.0001; 
-          
-          if (isFirstLocation || 
-              (currentPosition!.latitude - newPosition.latitude).abs() > threshold ||
-              (currentPosition!.longitude - newPosition.longitude).abs() > threshold ||
+          final double threshold = isNavigating ? 0.00002 : 0.0001;
+
+          if (isFirstLocation ||
+              (currentPosition!.latitude - newPosition.latitude).abs() >
+                  threshold ||
+              (currentPosition!.longitude - newPosition.longitude).abs() >
+                  threshold ||
               (userHeading - newHeading).abs() > 1.0) {
             setState(() {
               currentPosition = newPosition;
               userHeading = newHeading;
             });
-            
+
             if (googleMapController.isCompleted) {
               googleMapController.future.then((controller) {
                 _updateMarkers(controller);
               });
             }
-            
+
             if (isFirstLocation || isNavigating) {
               cameraToPosition(newPosition);
-              
+
               // Trim polyline to clear trailing highlight during navigation
               if (isNavigating && polylineCoordinates.isNotEmpty) {
                 _trimPolyline(newPosition);
@@ -632,7 +711,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     }
   }
 
-  Future<void> _broadcastLiveLocation(LatLng position, {bool force = false}) async {
+  Future<void> _broadcastLiveLocation(LatLng position,
+      {bool force = false}) async {
     final now = DateTime.now();
     if (!force &&
         _lastRealtimeBroadcast != null &&
@@ -660,7 +740,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     try {
       if (currentPosition == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Current location is not available yet.')),
+          const SnackBar(
+              content: Text('Current location is not available yet.')),
         );
         return;
       }
@@ -719,7 +800,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         minDistance = distance;
         closestIndex = i;
       }
-      
+
       // If we find a point very close (within 20m), we stop searching to save performance
       if (distance < 0.02) {
         closestIndex = i;
@@ -732,7 +813,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       setState(() {
         // Keep points from closestIndex onwards
         polylineCoordinates = polylineCoordinates.sublist(closestIndex);
-        
+
         // Update the polyline on the map
         polylines = [
           PolylineOptions(
@@ -742,7 +823,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           )
         ];
       });
-      
+
       googleMapController.future.then((controller) {
         controller.clearPolylines();
         controller.addPolylines(polylines);
@@ -757,18 +838,20 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     List<LatLng> coordinates = [];
     final source = origin ?? sourceLocation;
     final dest = destination ?? destinationLocation;
-    
-    polyline.PolylinePoints polylinePoints = polyline.PolylinePoints(apiKey: googleMapsApiKey);
+
+    polyline.PolylinePoints polylinePoints =
+        polyline.PolylinePoints(apiKey: googleMapsApiKey);
     polyline.RoutesApiRequest request = polyline.RoutesApiRequest(
-      origin: polyline.PointLatLng(source.latitude, source.longitude),
-      destination: polyline.PointLatLng(dest.latitude, dest.longitude),
-      travelMode: polyline.TravelMode.driving
-    );
-    polyline.RoutesApiResponse response = await polylinePoints.getRouteBetweenCoordinatesV2(request: request);
+        origin: polyline.PointLatLng(source.latitude, source.longitude),
+        destination: polyline.PointLatLng(dest.latitude, dest.longitude),
+        travelMode: polyline.TravelMode.driving);
+    polyline.RoutesApiResponse response =
+        await polylinePoints.getRouteBetweenCoordinatesV2(request: request);
     if (response.routes.isNotEmpty) {
       polyline.Route route = response.routes.first;
       route.polylinePoints?.forEach((polyline.PointLatLng point) {
-        coordinates.add(LatLng(latitude: point.latitude, longitude: point.longitude));
+        coordinates
+            .add(LatLng(latitude: point.latitude, longitude: point.longitude));
       });
     }
     return coordinates;
@@ -783,17 +866,16 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 6.h),
           decoration: BoxDecoration(
-            color: appTheme.gray10001,
-            borderRadius: BorderRadius.circular(20.h),
-            boxShadow: [
-              BoxShadow(
-                color: appTheme.black900.withValues(alpha: 0.08),
-                spreadRadius: 2.h,
-                blurRadius: 2.h,
-                offset: const Offset(0, 0),
-              )
-            ]
-          ),
+              color: appTheme.gray10001,
+              borderRadius: BorderRadius.circular(20.h),
+              boxShadow: [
+                BoxShadow(
+                  color: appTheme.black900.withValues(alpha: 0.08),
+                  spreadRadius: 2.h,
+                  blurRadius: 2.h,
+                  offset: const Offset(0, 0),
+                )
+              ]),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -826,9 +908,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       child: SlideTransition(
         position: _sidebarSlideAnimation,
         child: Container(
-            width: 34.h,
-            padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 10.h),
-            decoration: BoxDecoration(
+          width: 34.h,
+          padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 10.h),
+          decoration: BoxDecoration(
               color: theme.colorScheme.onPrimary.withValues(alpha: 1.0),
               borderRadius: BorderRadiusStyle.CircleBorder20,
               boxShadow: [
@@ -838,28 +920,27 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                   blurRadius: 2.h,
                   offset: Offset(0, 0),
                 )
-              ]
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTransportModeItem(ImageConstant.imgWalking, "PT"),
-                SizedBox(height: 14.h),
-                _buildTransportModeItem(ImageConstant.imgBike, "Bike"),
-                SizedBox(height: 14.h),
-                _buildTransportModeItem(ImageConstant.imgCar, "Car"),
-                SizedBox(height: 14.h),
-                _buildTransportModeItem(ImageConstant.imgPlane, "Plane"),
-                SizedBox(height: 14.h),
-                _buildTransportModeItem(ImageConstant.imgTruck, "Truck"),
-                SizedBox(height: 14.h),
-                _buildTransportModeItem(ImageConstant.imgBus, "Bus"),
-                SizedBox(height: 14.h),
-                _buildTransportModeItem(ImageConstant.imgTrain, "Train"),
-              ],
-            ),
+              ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildTransportModeItem(ImageConstant.imgWalking, "PT"),
+              SizedBox(height: 14.h),
+              _buildTransportModeItem(ImageConstant.imgBike, "Bike"),
+              SizedBox(height: 14.h),
+              _buildTransportModeItem(ImageConstant.imgCar, "Car"),
+              SizedBox(height: 14.h),
+              _buildTransportModeItem(ImageConstant.imgPlane, "Plane"),
+              SizedBox(height: 14.h),
+              _buildTransportModeItem(ImageConstant.imgTruck, "Truck"),
+              SizedBox(height: 14.h),
+              _buildTransportModeItem(ImageConstant.imgBus, "Bus"),
+              SizedBox(height: 14.h),
+              _buildTransportModeItem(ImageConstant.imgTrain, "Train"),
+            ],
           ),
         ),
+      ),
     );
   }
 
@@ -922,7 +1003,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                       right: -2.h,
                       child: Container(
                         constraints: BoxConstraints(minWidth: 18.h),
-                        padding: EdgeInsets.symmetric(horizontal: 4.h, vertical: 1.5.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 4.h, vertical: 1.5.h),
                         decoration: BoxDecoration(
                           color: appTheme.redA700,
                           borderRadius: BorderRadius.circular(10.h),
@@ -964,11 +1046,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
             value: homeState.isLive,
             isDisabled: homeState.isToggling,
             onChange: (value) {
-              ref.read(homeNotifier.notifier).toggleIsLive(value).catchError((error) {
+              ref
+                  .read(homeNotifier.notifier)
+                  .toggleIsLive(value)
+                  .catchError((error) {
                 if (!context.mounted) {
                   return;
                 }
-                final message = error.toString().replaceFirst('Exception: ', '');
+                final message =
+                    error.toString().replaceFirst('Exception: ', '');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(message)),
                 );
@@ -982,11 +1068,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
 
   // Live route notification card that displays temporarily with fade effect
   Widget _buildLiveRouteNotificationContent(BuildContext context, bool isLive) {
-    final message = isLive ? "Your route is now live" : "Your route is now disabled";
-    final backgroundColor = isLive ? const Color(0xFFD4EDDA) : const Color(0xFFFFE5E5);
-    final iconColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
-    final messageColor = isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
-    
+    final message =
+        isLive ? "Your route is now live" : "Your route is now disabled";
+    final backgroundColor =
+        isLive ? const Color(0xFFD4EDDA) : const Color(0xFFFFE5E5);
+    final iconColor =
+        isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
+    final messageColor =
+        isLive ? const Color(0xFF28A745) : const Color(0xFFDC3545);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
       decoration: BoxDecoration(
@@ -1110,11 +1200,11 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
           left: 16.h,
           right: 16.h,
           child: tasks(
-              context,
-              pendingTask: pendingTask,
-              pendingTaskType: homeState.pendingTaskType ?? 'delivery',
-              pendingTaskPhase: pendingTaskPhase,
-            ),
+            context,
+            pendingTask: pendingTask,
+            pendingTaskType: homeState.pendingTaskType ?? 'delivery',
+            pendingTaskPhase: pendingTaskPhase,
+          ),
         );
       },
     );
@@ -1143,7 +1233,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          _buildRippleCircle(scale: 0.6 + value, opacity: 0.25 * (1 - value)),
+                          _buildRippleCircle(
+                              scale: 0.6 + value, opacity: 0.25 * (1 - value)),
                           _buildRippleCircle(
                             scale: 0.35 + ((value + 0.35) % 1),
                             opacity: 0.18 * (1 - ((value + 0.35) % 1)),
@@ -1156,7 +1247,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                             width: 54.h,
                             height: 54.h,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.18),
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: theme.colorScheme.primary,
@@ -1305,27 +1397,21 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     );
   }
 
-
-
   // Section Widget
   Widget liveRoute(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10.h,
-        vertical: 12.h
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 12.h),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        boxShadow: [
-          BoxShadow(
-            color: appTheme.gray9000c,
-            spreadRadius: 2.h,
-            blurRadius: 2.h,
-            offset: Offset(0, 4),
-          )
-        ]
-      ),
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+          borderRadius: BorderRadiusStyle.roundedBorder8,
+          boxShadow: [
+            BoxShadow(
+              color: appTheme.gray9000c,
+              spreadRadius: 2.h,
+              blurRadius: 2.h,
+              offset: Offset(0, 4),
+            )
+          ]),
       width: double.maxFinite,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1366,10 +1452,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
             height: 20.h,
             width: 20.h,
             alignment: Alignment.topCenter,
-            margin: EdgeInsets.only(
-              top: 4.h, 
-              right: 4.h
-            ),
+            margin: EdgeInsets.only(top: 4.h, right: 4.h),
           )
         ],
       ),
@@ -1402,130 +1485,130 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
       phase: pendingTaskPhase,
     );
     final actionLabel = _pendingTaskActionLabel(pendingTaskPhase);
-    final origin = (isRide ? pendingTask['origin_name'] : pendingTask['pickup_name'])
-            ?.toString() ??
-        "Pickup";
+    final origin =
+        (isRide ? pendingTask['origin_name'] : pendingTask['pickup_name'])
+                ?.toString() ??
+            "Pickup";
     final destination =
         (isRide ? pendingTask['destination_name'] : pendingTask['dropoff_name'])
                 ?.toString() ??
             "Destination";
 
     return Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 10.h,
-              vertical: 12.h
+      padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 12.h),
+      decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1.0),
+          borderRadius: BorderRadiusStyle.roundedBorder8,
+          boxShadow: [
+            BoxShadow(
+              color: appTheme.gray9000c,
+              spreadRadius: 2.h,
+              blurRadius: 2.h,
+              offset: Offset(0, 4),
+            )
+          ]),
+      width: double.maxFinite,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomIconButton(
+            height: 40.h,
+            width: 40.h,
+            padding: EdgeInsets.all(10.h),
+            decoration: IconButtonStyleHelper.outlineDeepPurple,
+            child: CustomImageView(
+              imagePath:
+                  isRide ? ImageConstant.imgBlackCar : ImageConstant.imgPackage,
             ),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 1.0),
-              borderRadius: BorderRadiusStyle.roundedBorder8,
-              boxShadow: [
-                BoxShadow(
-                  color: appTheme.gray9000c,
-                  spreadRadius: 2.h,
-                  blurRadius: 2.h,
-                  offset: Offset(0, 4),
-                )
-              ]
-            ),
-            width: double.maxFinite,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomIconButton(
-                    height: 40.h,
-                    width: 40.h,
-                    padding: EdgeInsets.all(10.h),
-                    decoration: IconButtonStyleHelper.outlineDeepPurple,
-                    child: CustomImageView(
-                      imagePath: isRide
-                          ? ImageConstant.imgBlackCar
-                          : ImageConstant.imgPackage,
+          ),
+          SizedBox(width: 16.h),
+          SizedBox(
+            width: 16.h,
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Padding(
+                padding: EdgeInsets.only(top: 6.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: CustomTextStyles.titleSmallInter,
                     ),
-                  ),
-                SizedBox(width: 16.h),
-                SizedBox(width: 16.h,),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 6.h),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        title,
-                                                        style: CustomTextStyles.titleSmallInter,
-                                                      ),
-                                                      Text(
-                                                        subtitle,
-                                                        style: CustomTextStyles.bodySmallErrorContainer,
-                                                      ),
-                                                      Text(
-                                                        '$origin to $destination',
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
-                                                        style: CustomTextStyles.bodySmallInterGray600,
-                                                      ),
-                                                      SizedBox(
-                                                        width: double.maxFinite,
-                                                        child: GestureDetector(
-                                                          onTap: () {
-                                                            _highlightPendingTaskRoute(
-                                                              pendingTask: pendingTask,
-                                                              pendingTaskType: pendingTaskType,
-                                                              pendingTaskPhase: pendingTaskPhase,
-                                                            );
-                                                            _openPendingTaskBottomsheet(
-                                                              context,
-                                                              pendingTask: pendingTask,
-                                                              pendingTaskType: pendingTaskType,
-                                                              pendingTaskPhase: pendingTaskPhase,
-                                                            );
-                                                          },
-                                                          child: Row(
-                                                            children: [
-                                  Text(
-                                    actionLabel,
-                                    style: CustomTextStyles.labelLargePrimary,
-                                  ),
-                                  CustomImageView(
-                                    imagePath: ImageConstant.imgPurpleRightArrow,
-                                    height: 14.h,
-                                    width: 14.h,
-                                    alignment: Alignment.topCenter,
-                                    margin: EdgeInsets.only(left: 4.h),
-                                  )
-                                ],
-                              ),
+                    Text(
+                      subtitle,
+                      style: CustomTextStyles.bodySmallErrorContainer,
+                    ),
+                    Text(
+                      '$origin to $destination',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyles.bodySmallInterGray600,
+                    ),
+                    SizedBox(
+                      width: double.maxFinite,
+                      child: GestureDetector(
+                        onTap: () {
+                          _highlightPendingTaskRoute(
+                            pendingTask: pendingTask,
+                            pendingTaskType: pendingTaskType,
+                            pendingTaskPhase: pendingTaskPhase,
+                          );
+                          _openPendingTaskBottomsheet(
+                            context,
+                            pendingTask: pendingTask,
+                            pendingTaskType: pendingTaskType,
+                            pendingTaskPhase: pendingTaskPhase,
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Text(
+                              actionLabel,
+                              style: CustomTextStyles.labelLargePrimary,
                             ),
-                          )
-                        ],
+                            CustomImageView(
+                              imagePath: ImageConstant.imgPurpleRightArrow,
+                              height: 14.h,
+                              width: 14.h,
+                              alignment: Alignment.topCenter,
+                              margin: EdgeInsets.only(left: 4.h),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    )
+                  ],
                 ),
-                SizedBox(width: 16.h,),
-                SizedBox(width: 16.h,),
-                GestureDetector(
-                  onTap: () {
-                    _handlePendingTaskClose(
-                      context: context,
-                      pendingTaskPhase: pendingTaskPhase,
-                      pendingTaskType: pendingTaskType,
-                    );
-                  },
-                  child: CustomImageView(
-                    imagePath: ImageConstant.imgCancel,
-                    height: 20.h,
-                    width: 20.h,
-                    margin: EdgeInsets.only(
-                      top: 4.h
-                    ),
-                  ),
-                )
-              ],
+              ),
             ),
+          ),
+          SizedBox(
+            width: 16.h,
+          ),
+          SizedBox(
+            width: 16.h,
+          ),
+          GestureDetector(
+            onTap: () {
+              _handlePendingTaskClose(
+                context: context,
+                pendingTaskPhase: pendingTaskPhase,
+                pendingTaskType: pendingTaskType,
+              );
+            },
+            child: CustomImageView(
+              imagePath: ImageConstant.imgCancel,
+              height: 20.h,
+              width: 20.h,
+              margin: EdgeInsets.only(top: 4.h),
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -1534,11 +1617,11 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     return Consumer(
       builder: (context, ref, child) {
         final homeState = ref.watch(homeNotifier);
-        
+
         if (!homeState.isNavigationActive) {
           return const SizedBox.shrink();
         }
-        
+
         return Positioned(
           top: 110.h,
           left: 16.h,
@@ -1585,7 +1668,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                         children: [
                           Text(
                             "Navigating to",
-                            style: CustomTextStyles.bodySmallErrorContainer.copyWith(
+                            style: CustomTextStyles.bodySmallErrorContainer
+                                .copyWith(
                               fontSize: 12.fSize,
                             ),
                           ),
@@ -1640,7 +1724,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
   }
 
   // Floating action button positioned at bottom right
-  Widget _buildFloatingactionb(BuildContext context){
+  Widget _buildFloatingactionb(BuildContext context) {
     return Positioned(
       bottom: 256.h, // Above bottom navigation
       right: 20.h,
@@ -1881,7 +1965,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
                     return Align(
                       alignment: Alignment.centerLeft,
                       child: FractionallySizedBox(
-                        widthFactor: _taskRequestCountdownController.value.clamp(0.0, 1.0),
+                        widthFactor: _taskRequestCountdownController.value
+                            .clamp(0.0, 1.0),
                         child: Container(
                           height: 2.h,
                           color: const Color(0xFF6A1AD3),
@@ -2013,24 +2098,24 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage> with Tic
     final isActive = pendingTaskPhase == 'active';
     final destinationLat = double.tryParse(
       (isRide
-              ? (isActive
-                  ? pendingTask['destination_latitude']
-                  : pendingTask['origin_latitude'])
-              : (isActive
-                  ? pendingTask['dropoff_latitude']
-                  : pendingTask['pickup_latitude']))
-          ?.toString() ??
+                  ? (isActive
+                      ? pendingTask['destination_latitude']
+                      : pendingTask['origin_latitude'])
+                  : (isActive
+                      ? pendingTask['dropoff_latitude']
+                      : pendingTask['pickup_latitude']))
+              ?.toString() ??
           '',
     );
     final destinationLng = double.tryParse(
       (isRide
-              ? (isActive
-                  ? pendingTask['destination_longitude']
-                  : pendingTask['origin_longitude'])
-              : (isActive
-                  ? pendingTask['dropoff_longitude']
-                  : pendingTask['pickup_longitude']))
-          ?.toString() ??
+                  ? (isActive
+                      ? pendingTask['destination_longitude']
+                      : pendingTask['origin_longitude'])
+                  : (isActive
+                      ? pendingTask['dropoff_longitude']
+                      : pendingTask['pickup_longitude']))
+              ?.toString() ??
           '',
     );
     final destinationName = (isRide

@@ -11,9 +11,11 @@ import '../my_route_page/my_route_page.dart';
 
 // ignore for file, must be immutable
 
-class HomeDeliveryRequestScreen extends StatelessWidget{
+class HomeDeliveryRequestScreen extends StatelessWidget {
   HomeDeliveryRequestScreen({Key? key})
-    : super(key: key,);
+      : super(
+          key: key,
+        );
 
   Completer<GoogleMapController> googleMapController = Completer();
   GlobalKey<NavigatorState> navigatorKey = GlobalKey();
@@ -24,27 +26,27 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
       extendBody: true,
       extendBodyBehindAppBar: true,
       body: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Container(
-              height: 1148.h,
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  _buildHorizontalscrol(context),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      width: 40.h,
-                      margin: EdgeInsets.only(
-                        left: 16.h,
-                        top: 48.h,
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.h,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Container(
+            height: 1148.h,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                _buildHorizontalscrol(context),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Container(
+                    width: 40.h,
+                    margin: EdgeInsets.only(
+                      left: 16.h,
+                      top: 48.h,
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.h,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
                         color: theme.colorScheme.onPrimary.withOpacity(1),
                         borderRadius: BorderRadiusStyle.CircleBorder20,
                         boxShadow: [
@@ -52,46 +54,48 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                             color: appTheme.black900.withOpacity(0.1),
                             spreadRadius: 2.h,
                             blurRadius: 2.h,
-                            offset: Offset(0, 0,),
-                          )
-                        ]
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgWalking,
-                            height: 18.h,
-                            width: double.maxFinite,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: 4.h),
-                            child: Text(
-                              "PT",
-                              style: CustomTextStyles.interErrorContainer,
+                            offset: Offset(
+                              0,
+                              0,
                             ),
                           )
-                        ],
-                      ),
+                        ]),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomImageView(
+                          imagePath: ImageConstant.imgWalking,
+                          height: 18.h,
+                          width: double.maxFinite,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: 4.h),
+                          child: Text(
+                            "PT",
+                            style: CustomTextStyles.interErrorContainer,
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
           ),
         ),
-        bottomNavigationBar: Container(
-          width: double.maxFinite,
-          margin: EdgeInsets.symmetric(horizontal: 16.h),
-          child: _buildBottombar(context),
-        ),
-        floatingActionButton: _buildFloatingactionb(context),
-      );
+      ),
+      bottomNavigationBar: Container(
+        width: double.maxFinite,
+        margin: EdgeInsets.symmetric(horizontal: 16.h),
+        child: _buildBottombar(context),
+      ),
+      floatingActionButton: _buildFloatingactionb(context),
+    );
   }
 
   // Section Widget
-  Widget _buildHorizontalscrol(BuildContext context){
+  Widget _buildHorizontalscrol(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: IntrinsicWidth(
@@ -116,19 +120,26 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                     height: 646.h,
                     width: 1202.h,
                     child: Stack(
-                      alignment: 
-                      Alignment.centerRight,
+                      alignment: Alignment.centerRight,
                       children: [
                         SizedBox(
                           height: 646.h,
                           width: 928.h,
                           child: GoogleMap(
                             mapType: MapType.normal,
+                            style: MapThemeUtils.googleMapStyleForTheme(
+                              ThemeHelper().isDarkMode
+                                  ? AppThemeTypes.darkCode
+                                  : AppThemeTypes.lightCode,
+                            ),
                             initialCameraPosition: CameraPosition(
-                              target: LatLng(37.43296265331129, -122.08832357078792,),
+                              target: LatLng(
+                                37.43296265331129,
+                                -122.08832357078792,
+                              ),
                               zoom: 14.4746,
                             ),
-                            onMapCreated: (GoogleMapController controller){
+                            onMapCreated: (GoogleMapController controller) {
                               googleMapController.complete(controller);
                             },
                             zoomControlsEnabled: false,
@@ -151,7 +162,8 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                 SizedBox(
                                   width: double.maxFinite,
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
                                         width: 146.h,
@@ -161,32 +173,39 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                           vertical: 6.h,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: appTheme.gray10001,
-                                          borderRadius: BorderRadiusStyle.CircleBorder20,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: appTheme.black900.withOpacity(0.08),
-                                              spreadRadius: 2.h,
-                                              blurRadius: 2.h,
-                                              offset: Offset(0, 0,),
-                                            )
-                                          ]
-                                        ),
+                                            color: appTheme.gray10001,
+                                            borderRadius: BorderRadiusStyle
+                                                .CircleBorder20,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: appTheme.black900
+                                                    .withOpacity(0.08),
+                                                spreadRadius: 2.h,
+                                                blurRadius: 2.h,
+                                                offset: Offset(
+                                                  0,
+                                                  0,
+                                                ),
+                                              )
+                                            ]),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Container(
                                               height: 6.h,
                                               width: 6.h,
                                               decoration: BoxDecoration(
                                                 color: appTheme.redA700,
-                                                borderRadius: BorderRadius.circular(3.h),
+                                                borderRadius:
+                                                    BorderRadius.circular(3.h),
                                               ),
                                             ),
                                             SizedBox(width: 6.h),
                                             Text(
                                               "1000+ routes are live",
-                                              style: CustomTextStyles.labelMediumInterPrimary,
+                                              style: CustomTextStyles
+                                                  .labelMediumInterPrimary,
                                             )
                                           ],
                                         ),
@@ -195,8 +214,12 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                         height: 40.h,
                                         width: 40.h,
                                         padding: EdgeInsets.all(10.h),
-                                        decoration: IconButtonStyleHelper.outlineBlackTL201,
-                                        child: CustomImageView(imagePath: ImageConstant.imgNotificationBell,),
+                                        decoration: IconButtonStyleHelper
+                                            .outlineBlackTL201,
+                                        child: CustomImageView(
+                                          imagePath:
+                                              ImageConstant.imgNotificationBell,
+                                        ),
                                       )
                                     ],
                                   ),
@@ -227,30 +250,42 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                           padding: EdgeInsets.all(2.h),
                                           decoration: BoxDecoration(
                                             color: appTheme.deepPurple600,
-                                            borderRadius: BorderRadiusStyle.CircleBorder20,
+                                            borderRadius: BorderRadiusStyle
+                                                .CircleBorder20,
                                             boxShadow: [
                                               BoxShadow(
-                                                color: appTheme.black900.withOpacity(0.1),
+                                                color: appTheme.black900
+                                                    .withOpacity(0.1),
                                                 spreadRadius: 2.h,
                                                 blurRadius: 2.h,
-                                                offset: Offset(0, 0,),
+                                                offset: Offset(
+                                                  0,
+                                                  0,
+                                                ),
                                               )
                                             ],
                                           ),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
                                               Text(
                                                 "ON",
-                                                style: CustomTextStyles.labelMediumOnPrimary,
+                                                style: CustomTextStyles
+                                                    .labelMediumOnPrimary,
                                               ),
                                               SizedBox(width: 4.h),
                                               Container(
                                                 height: 18.h,
                                                 width: 18.h,
                                                 decoration: BoxDecoration(
-                                                  color: theme.colorScheme.onPrimary.withOpacity(1),
-                                                  borderRadius: BorderRadius.circular(8.h,),
+                                                  color: theme
+                                                      .colorScheme.onPrimary
+                                                      .withOpacity(1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                    8.h,
+                                                  ),
                                                 ),
                                               )
                                             ],
@@ -264,28 +299,36 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                           vertical: 12.h,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: theme.colorScheme.onPrimary.withOpacity(1),
-                                          borderRadius: BorderRadiusStyle.roundedBorder8,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: appTheme.gray9000c,
-                                              spreadRadius: 2.h,
-                                              blurRadius: 2.h,
-                                              offset: Offset(0, 4,),
-                                            )
-                                          ]
-                                        ),
+                                            color: theme.colorScheme.onPrimary
+                                                .withOpacity(1),
+                                            borderRadius: BorderRadiusStyle
+                                                .roundedBorder8,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: appTheme.gray9000c,
+                                                spreadRadius: 2.h,
+                                                blurRadius: 2.h,
+                                                offset: Offset(
+                                                  0,
+                                                  4,
+                                                ),
+                                              )
+                                            ]),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             CustomIconButton(
                                               height: 40.h,
                                               width: 40.h,
                                               padding: EdgeInsets.all(10.h),
-                                              decoration: IconButtonStyleHelper.outlineDeepPurple,
+                                              decoration: IconButtonStyleHelper
+                                                  .outlineDeepPurple,
                                               child: CustomImageView(
-                                                imagePath: ImageConstant.imgPackage,
+                                                imagePath:
+                                                    ImageConstant.imgPackage,
                                               ),
                                             ),
                                             SizedBox(width: 16.h),
@@ -293,17 +336,22 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                               child: Align(
                                                 alignment: Alignment.bottomLeft,
                                                 child: Padding(
-                                                  padding: EdgeInsets.only(top: 6.h),
+                                                  padding:
+                                                      EdgeInsets.only(top: 6.h),
                                                   child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Text(
                                                         "Delivery task",
-                                                        style: CustomTextStyles.titleSmallInter,
+                                                        style: CustomTextStyles
+                                                            .titleSmallInter,
                                                       ),
                                                       Text(
                                                         "You have a delivery request",
-                                                        style: CustomTextStyles.bodySmallErrorContainer,
+                                                        style: CustomTextStyles
+                                                            .bodySmallErrorContainer,
                                                       ),
                                                       SizedBox(
                                                         width: double.maxFinite,
@@ -311,14 +359,22 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                                           children: [
                                                             Text(
                                                               "View Details",
-                                                              style: CustomTextStyles.labelLargePrimary,
+                                                              style: CustomTextStyles
+                                                                  .labelLargePrimary,
                                                             ),
                                                             CustomImageView(
-                                                              imagePath: ImageConstant.imgRightArrow,
+                                                              imagePath:
+                                                                  ImageConstant
+                                                                      .imgRightArrow,
                                                               height: 14.h,
                                                               width: 14.h,
-                                                              alignment: Alignment.topCenter,
-                                                              margin: EdgeInsets.only(left: 4.h),
+                                                              alignment:
+                                                                  Alignment
+                                                                      .topCenter,
+                                                              margin: EdgeInsets
+                                                                  .only(
+                                                                      left:
+                                                                          4.h),
                                                             )
                                                           ],
                                                         ),
@@ -330,7 +386,8 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                             ),
                                             SizedBox(width: 16.h),
                                             CustomImageView(
-                                              imagePath: ImageConstant.imgCancel,
+                                              imagePath:
+                                                  ImageConstant.imgCancel,
                                               height: 20.h,
                                               width: 20.h,
                                               margin: EdgeInsets.only(top: 4.h),
@@ -338,7 +395,7 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
                                           ],
                                         ),
                                       )
-                                    ], 
+                                    ],
                                   ),
                                 )
                               ],
@@ -384,19 +441,20 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
   }
 
   // Section Widget
-  Widget _buildBottombar(BuildContext context){
+  Widget _buildBottombar(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: CustomBottomBar(
         onChanged: (BottomBarEnum type) {
-          Navigator.pushNamed(navigatorKey.currentContext!, getCurrentRoute(type));
+          Navigator.pushNamed(
+              navigatorKey.currentContext!, getCurrentRoute(type));
         },
       ),
     );
   }
 
   // Section Widget
-  Widget _buildFloatingactionb(BuildContext context){
+  Widget _buildFloatingactionb(BuildContext context) {
     return CustomFloatingButton(
       height: 48,
       width: 48,
@@ -409,8 +467,8 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
     );
   }
 
-  // Handling route based on bottom click actions 
-  String getCurrentRoute(BottomBarEnum type){
+  // Handling route based on bottom click actions
+  String getCurrentRoute(BottomBarEnum type) {
     switch (type) {
       case BottomBarEnum.Home:
         return AppRoutes.homeOneInitialPage;
@@ -421,7 +479,7 @@ class HomeDeliveryRequestScreen extends StatelessWidget{
       case BottomBarEnum.Profile:
         return AppRoutes.myRoutePage;
       default:
-      return "/";
+        return "/";
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart' as polyline;
+import 'package:flutter_polyline_points/flutter_polyline_points.dart'
+    as polyline;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../core/app_export.dart';
@@ -107,6 +108,9 @@ class _TaskRouteMapState extends State<TaskRouteMap> {
 
   @override
   Widget build(BuildContext context) {
+    final themeType = ThemeHelper().isDarkMode
+        ? AppThemeTypes.darkCode
+        : AppThemeTypes.lightCode;
     return SizedBox(
       height: widget.height,
       width: widget.width,
@@ -115,6 +119,7 @@ class _TaskRouteMapState extends State<TaskRouteMap> {
         children: [
           GoogleMap(
             mapType: MapType.normal,
+            style: MapThemeUtils.googleMapStyleForTheme(themeType),
             initialCameraPosition: _initialCameraPosition,
             onMapCreated: (controller) {
               _controller = controller;
@@ -173,7 +178,8 @@ class _TaskRouteMapState extends State<TaskRouteMap> {
       Marker(
         markerId: const MarkerId('destination'),
         position: destination,
-        icon: BitmapDescriptor.defaultMarkerWithHue(widget.destinationMarkerHue),
+        icon:
+            BitmapDescriptor.defaultMarkerWithHue(widget.destinationMarkerHue),
       ),
     };
 
@@ -208,7 +214,9 @@ class _TaskRouteMapState extends State<TaskRouteMap> {
     );
     final points = <LatLng>[
       if (mover != null) mover,
-      if (mover != null && (mover.latitude != pickup.latitude || mover.longitude != pickup.longitude))
+      if (mover != null &&
+          (mover.latitude != pickup.latitude ||
+              mover.longitude != pickup.longitude))
         pickup,
       ...routePoints.isNotEmpty
           ? (mover != null ? routePoints.skip(1) : routePoints)
@@ -263,7 +271,8 @@ class _TaskRouteMapState extends State<TaskRouteMap> {
 
       final route = response.routes.first;
       final points = <LatLng>[];
-      for (final point in route.polylinePoints ?? const <polyline.PointLatLng>[]) {
+      for (final point
+          in route.polylinePoints ?? const <polyline.PointLatLng>[]) {
         points.add(LatLng(point.latitude, point.longitude));
       }
       return points.isNotEmpty ? points : <LatLng>[origin, destination];

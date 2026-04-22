@@ -24,11 +24,14 @@ class PrefUtils {
   }
 
   String getThemeData() {
-    try{
-      return _sharedPreferences!.getString('themeData')!;
-    }
-    catch(e) {
-      return 'primary';
+    try {
+      final theme = _sharedPreferences!.getString('themeData');
+      if (theme == 'darkCode' || theme == 'lightCode') {
+        return theme!;
+      }
+      return 'lightCode';
+    } catch (e) {
+      return 'lightCode';
     }
   }
 

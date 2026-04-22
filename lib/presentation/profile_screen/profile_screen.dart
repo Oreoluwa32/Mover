@@ -5,16 +5,13 @@ import '../../core/app_export.dart';
 import '../../core/utils/permission_manager.dart';
 import '../../data/services/account_api_service.dart';
 import '../../services/device_memory_service.dart';
-import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
-import '../../widgets/app_bar/appbar_title.dart';
 import '../../widgets/user_avatar.dart';
-import '../transaction_history_screen/transaction_history_screen.dart';
 import '../wallet/notifier/wallet_notifier.dart';
 import 'notifier/profile_screen_notifier.dart';
 
-// Function to handle to log out the user 
+// Function to handle to log out the user
 Future<void> logoutUser(BuildContext context) async {
   try {
     await AccountApiService().clearSession();
@@ -36,8 +33,7 @@ Future<void> logoutUser(BuildContext context) async {
 }
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({Key? key})
-      : super(key: key);
+  const ProfileScreen({Key? key}) : super(key: key);
 
   @override
   ProfileScreenState createState() => ProfileScreenState();
@@ -45,7 +41,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 // ignore for file, class must be immutable
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -66,27 +61,22 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
       extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Container(
-          width: double.maxFinite,
-          padding: EdgeInsets.symmetric(horizontal: 16.h),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 28.h
-                ), 
-                _buildAccount(context)
-              ],
-            ),
+        width: double.maxFinite,
+        padding: EdgeInsets.symmetric(horizontal: 16.h),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [SizedBox(height: 28.h), _buildAccount(context)],
           ),
         ),
-        // bottomNavigationBar: Container(
-        //   width: double.maxFinite,
-        //   margin: EdgeInsets.symmetric(horizontal: 16.h),
-        //   child: _buildBottombar(context),
-        // ),
-      );
+      ),
+      // bottomNavigationBar: Container(
+      //   width: double.maxFinite,
+      //   margin: EdgeInsets.symmetric(horizontal: 16.h),
+      //   child: _buildBottombar(context),
+      // ),
+    );
   }
 
   // Section Widget
@@ -121,24 +111,27 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildProfileDetails(context),
-                SizedBox(height: 30.h,),
+                SizedBox(
+                  height: 30.h,
+                ),
                 Text(
                   "Account",
                   style: CustomTextStyles.bodySmallBluegray400,
                 ),
-                SizedBox(height: 4.h,),
+                SizedBox(
+                  height: 4.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
-                  child: _buildCard(
-                    context,
-                    icon: ImageConstant.imgBlackWallet,
-                    title: walletTitle,
-                    onTapCard: () {
-                      onTapWallet(context);
-                    }
-                  ),
+                  child: _buildCard(context,
+                      icon: ImageConstant.imgBlackWallet,
+                      title: walletTitle, onTapCard: () {
+                    onTapWallet(context);
+                  }),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -147,7 +140,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Document",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -156,7 +151,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Notifications",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -165,12 +162,16 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Chats",
                   ),
                 ),
-                SizedBox(height: 16.h,),
+                SizedBox(
+                  height: 16.h,
+                ),
                 Text(
                   "Privacy",
                   style: CustomTextStyles.bodySmallBluegray400,
                 ),
-                SizedBox(height: 10.h,),
+                SizedBox(
+                  height: 10.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -179,7 +180,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Security",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -188,19 +191,20 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Chat Support",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
-                  child: _buildCard(
-                    context,
-                    icon: ImageConstant.imgReferParty,
-                    title: "Refer Friends",
-                    onTapCard: () {
-                      onTapReferFriends(context);
-                    }
-                  ),
+                  child: _buildCard(context,
+                      icon: ImageConstant.imgReferParty,
+                      title: "Refer Friends", onTapCard: () {
+                    onTapReferFriends(context);
+                  }),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -209,7 +213,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Rate Us",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -218,7 +224,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Policy",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
                   child: _buildCard(
@@ -227,19 +235,34 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: "Language (English)",
                   ),
                 ),
-                SizedBox(height: 8.h,),
+                SizedBox(
+                  height: 16.h,
+                ),
+                Text(
+                  "Appearance",
+                  style: CustomTextStyles.bodySmallBluegray400,
+                ),
+                SizedBox(
+                  height: 8.h,
+                ),
                 SizedBox(
                   width: double.maxFinite,
-                  child: _buildCard(
-                    context,
-                    icon: ImageConstant.imgLogout,
-                    title: "Log out",
-                    onTapCard: () {
-                      logoutUser(context);
-                    }
-                  ),
+                  child: _buildThemeToggleCard(context),
                 ),
-                SizedBox(height: 100.h,),
+                SizedBox(
+                  height: 8.h,
+                ),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: _buildCard(context,
+                      icon: ImageConstant.imgLogout,
+                      title: "Log out", onTapCard: () {
+                    logoutUser(context);
+                  }),
+                ),
+                SizedBox(
+                  height: 100.h,
+                ),
               ],
             ),
           ),
@@ -265,9 +288,11 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                 alignment: Alignment.center,
                 children: [
                   GestureDetector(
-                    onTap: isUploading ? null : () {
-                      requestCameraGalleryPermission(context);
-                    },
+                    onTap: isUploading
+                        ? null
+                        : () {
+                            requestCameraGalleryPermission(context);
+                          },
                     child: UserAvatar(
                       imagePath: profileImagePath,
                       name: userName.asData?.value,
@@ -275,14 +300,14 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       height: 50.h,
                     ),
                   ),
-                  
+
                   // Loading indicator overlay
                   if (isUploading)
                     Container(
                       width: 50.h,
                       height: 50.h,
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha:0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(24.h),
                       ),
                       child: Center(
@@ -291,18 +316,22 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           height: 20.h,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
                       ),
                     ),
                 ],
               ),
-              SizedBox(width: 16.h,),
+              SizedBox(
+                width: 16.h,
+              ),
               Expanded(
                 child: GestureDetector(
                   onTap: () {
-                    NavigatorService.pushNamed(AppRoutes.personalInformationScreen);
+                    NavigatorService.pushNamed(
+                        AppRoutes.personalInformationScreen);
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 4.h),
@@ -318,18 +347,23 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                               userName.when(
                                 data: (name) => Text(
                                   name ?? "John Doe",
-                                  style: CustomTextStyles.titleMediumGray80001Medium,
+                                  style: CustomTextStyles
+                                      .titleMediumGray80001Medium,
                                 ),
                                 loading: () => Text(
                                   "Loading...",
-                                  style: CustomTextStyles.titleMediumGray80001Medium,
+                                  style: CustomTextStyles
+                                      .titleMediumGray80001Medium,
                                 ),
                                 error: (_, __) => Text(
                                   "User",
-                                  style: CustomTextStyles.titleMediumGray80001Medium,
+                                  style: CustomTextStyles
+                                      .titleMediumGray80001Medium,
                                 ),
                               ),
-                              SizedBox(height: 2.h,),
+                              SizedBox(
+                                height: 2.h,
+                              ),
                               Text(
                                 "Profile Information",
                                 style: CustomTextStyles.bodySmall110,
@@ -355,7 +389,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // Common Widget
-  Widget _buildCard(BuildContext context, {
+  Widget _buildCard(
+    BuildContext context, {
     required String icon,
     required String title,
     Function? onTapCard,
@@ -365,9 +400,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
         onTapCard?.call();
       },
       child: Container(
-        padding: EdgeInsets.symmetric(
-          vertical: 16.h
-        ),
+        padding: EdgeInsets.symmetric(vertical: 16.h),
         decoration: BoxDecoration(
           color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         ),
@@ -382,9 +415,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: EdgeInsets.only(left: 16.h),
               child: Text(
                 title,
-                style: CustomTextStyles.labelLargeMedium.copyWith(
-                  color: appTheme.gray80001
-                ),
+                style: CustomTextStyles.labelLargeMedium
+                    .copyWith(color: appTheme.gray80001),
               ),
             ),
             Spacer(),
@@ -399,6 +431,64 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Widget _buildThemeToggleCard(BuildContext context) {
+    final themeType =
+        ref.watch(themeNotifier.select((state) => state.themeType));
+    final isDarkMode = ThemeHelper.isDarkThemeType(themeType);
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 14.h),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 30.h,
+            width: 30.h,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+              color: theme.colorScheme.primary,
+              size: 18.h,
+            ),
+          ),
+          SizedBox(width: 12.h),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isDarkMode ? "Dark mode" : "Light mode",
+                  style: CustomTextStyles.labelLargeMedium.copyWith(
+                    color: appTheme.gray80001,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  "Updates app colors, maps, and device status bar",
+                  style: CustomTextStyles.bodySmallBluegray40012,
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: isDarkMode,
+            activeThumbColor: theme.colorScheme.primary,
+            onChanged: (value) {
+              ref.read(themeNotifier.notifier).changeTheme(
+                    value ? AppThemeTypes.darkCode : AppThemeTypes.lightCode,
+                  );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   // Requests permission to access the camera and storage, and displays a dialog for selecting images
   // Allows user to choose between camera and gallery
   requestCameraGalleryPermission(BuildContext context) async {
@@ -408,7 +498,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     // Show modern bottom sheet to choose between camera and gallery
     if (!mounted) return;
-    
+
     AppBottomSheet.show(
       context: context,
       useRootNavigator: true,
@@ -516,13 +606,14 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _uploadFromCamera(BuildContext context) async {
     final notifier = ref.read(profileScreenNotifier.notifier);
     final success = await notifier.selectAndUploadProfileImage(useCamera: true);
-    
+
     if (mounted) {
       if (success) {
         Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        Fluttertoast.showToast(msg: error ?? 'Failed to upload profile picture');
+        Fluttertoast.showToast(
+            msg: error ?? 'Failed to upload profile picture');
       }
     }
   }
@@ -530,14 +621,16 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Upload profile image from gallery
   Future<void> _uploadFromGallery(BuildContext context) async {
     final notifier = ref.read(profileScreenNotifier.notifier);
-    final success = await notifier.selectAndUploadProfileImage(useCamera: false);
-    
+    final success =
+        await notifier.selectAndUploadProfileImage(useCamera: false);
+
     if (mounted) {
       if (success) {
         Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        Fluttertoast.showToast(msg: error ?? 'Failed to upload profile picture');
+        Fluttertoast.showToast(
+            msg: error ?? 'Failed to upload profile picture');
       }
     }
   }

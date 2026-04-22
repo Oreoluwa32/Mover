@@ -14,20 +14,15 @@ bool _deepLinkInitialized = false;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Disable animations on lower-end devices
   Future.wait([
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
     PrefUtils().init(),
     DeviceMemoryService().init(),
     Future(() => SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.transparent,
-      ),
-    )),
+          ThemeHelper.systemOverlayStyleForTheme(PrefUtils().getThemeData()),
+        )),
   ]).then((value) {
     runApp(const ProviderScope(child: MyApp()));
   });
@@ -35,23 +30,24 @@ void main() {
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
-  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Only watch theme changes, not the entire notifier
-    ref.watch(themeNotifier).themeType;
-    
+    final themeType =
+        ref.watch(themeNotifier.select((state) => state.themeType));
+    ThemeHelper().changeTheme(themeType);
+    final systemOverlayStyle =
+        ThemeHelper.systemOverlayStyleForTheme(themeType);
+
     return Sizer(
       builder: (context, orientation, deviceType) {
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: const SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-            statusBarBrightness: Brightness.light,
-            systemNavigationBarColor: Colors.transparent,
-          ),
+          value: systemOverlayStyle,
           child: MaterialApp(
             theme: theme,
+            themeMode: ThemeHelper.isDarkThemeType(themeType)
+                ? ThemeMode.dark
+                : ThemeMode.light,
             title: 'Movr',
             builder: (context, child) {
               // Initialize deep link service with context (only once)
@@ -62,13 +58,11 @@ class MyApp extends ConsumerWidget {
                   _deepLinkInitialized = true;
                 });
               }
-              
+
               return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(1.0)
-                ), 
-                child: child!
-              );
+                  data: MediaQuery.of(context)
+                      .copyWith(textScaler: TextScaler.linear(1.0)),
+                  child: child!);
             },
             navigatorKey: NavigatorService.navigatorKey,
             debugShowCheckedModeBanner: false,
@@ -78,9 +72,7 @@ class MyApp extends ConsumerWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate
             ],
-            supportedLocales: const [
-              Locale('en', '')
-            ],
+            supportedLocales: const [Locale('en', '')],
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,
             onGenerateRoute: AppRoutes.onGenerateRoute,
