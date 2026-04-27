@@ -3,10 +3,19 @@ from __future__ import annotations
 import os
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _split_env(name: str, default: str = "") -> list[str]:
@@ -14,19 +23,54 @@ def _split_env(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "movr-dev-secret-key")
-DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
+DEV_SECRET_KEY = "movr-dev-secret-key"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEV_SECRET_KEY)
+DEBUG = _bool_env("DJANGO_DEBUG", default=False)
 MOVR_ENV = os.getenv("MOVR_ENV", "development")
+IS_CLOUD_RUNTIME = _bool_env("RENDER") or _bool_env("KOYEB")
+IS_PRODUCTION_LIKE = IS_CLOUD_RUNTIME or MOVR_ENV.lower() not in {
+    "development",
+    "dev",
+    "local",
+    "test",
+}
+
+LOCAL_ALLOWED_HOSTS = "127.0.0.1,localhost,0.0.0.0,10.0.2.2"
+LOCAL_FRONTEND_ORIGINS = "http://localhost:3000,http://localhost:8080"
 
 ALLOWED_HOSTS = _split_env(
     "DJANGO_ALLOWED_HOSTS",
-    "127.0.0.1,localhost,0.0.0.0,10.0.2.2",
+    "" if IS_PRODUCTION_LIKE else LOCAL_ALLOWED_HOSTS,
 )
-CORS_ALLOWED_ORIGINS = _split_env("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080")
-CSRF_TRUSTED_ORIGINS = _split_env("CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://localhost:8080")
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CORS_ALLOWED_ORIGINS = _split_env(
+    "CORS_ALLOWED_ORIGINS",
+    "" if IS_PRODUCTION_LIKE else LOCAL_FRONTEND_ORIGINS,
+)
+CSRF_TRUSTED_ORIGINS = _split_env(
+    "CSRF_TRUSTED_ORIGINS",
+    "" if IS_PRODUCTION_LIKE else LOCAL_FRONTEND_ORIGINS,
+)
 
 if DEBUG and "*" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("*")
+
+if IS_PRODUCTION_LIKE:
+    if DEBUG:
+        raise ImproperlyConfigured("DJANGO_DEBUG must be false outside local development.")
+    if SECRET_KEY in {"", DEV_SECRET_KEY, "change-this-to-a-random-string-in-production"}:
+        raise ImproperlyConfigured("Set a unique DJANGO_SECRET_KEY before deploying Movr.")
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS is required outside local development.")
+    if "*" in ALLOWED_HOSTS:
+        raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS must not contain '*' outside local development.")
+    if "*" in CORS_ALLOWED_ORIGINS:
+        raise ImproperlyConfigured("CORS_ALLOWED_ORIGINS must list exact origins outside local development.")
+    if "*" in CSRF_TRUSTED_ORIGINS:
+        raise ImproperlyConfigured("CSRF_TRUSTED_ORIGINS must list exact origins outside local development.")
 
 INSTALLED_APPS = [
     "daphne",
@@ -79,11 +123,26 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+DATABASE_SSL_REQUIRE = IS_PRODUCTION_LIKE and bool(DATABASE_URL)
+
+if IS_PRODUCTION_LIKE and not DATABASE_URL:
+    raise ImproperlyConfigured("DATABASE_URL is required outside local development.")
+
+if DATABASE_URL:
+    parsed_database_url = urlparse(DATABASE_URL)
+    if parsed_database_url.scheme.startswith("postgres"):
+        sslmode = parse_qs(parsed_database_url.query).get("sslmode", [""])[0].lower()
+        if sslmode in {"disable", "allow", "prefer"}:
+            raise ImproperlyConfigured(
+                "DATABASE_URL must require SSL. Use sslmode=require, verify-ca, or verify-full."
+            )
+
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        ssl_require=not DEBUG and bool(os.getenv("DATABASE_URL")),
+        ssl_require=DATABASE_SSL_REQUIRE,
     )
 }
 
