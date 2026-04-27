@@ -137,10 +137,37 @@ class SearchMoverBottomsheetState
             ),
             SizedBox(height: 24.h),
             GestureDetector(
-              onTap: () {
+              onTap: () async {
+                final routeId = requestData['id']?.toString() ?? '';
+
+                try {
+                  if (routeId.isNotEmpty) {
+                    await _mobilityApiService.deleteTravelPlan(
+                      travelPlanId: routeId,
+                    );
+                  }
+                } catch (error) {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        _mobilityApiService.extractErrorMessage(error),
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
                 ref
                     .read(homeNotifier.notifier)
                     .stopNearbyMoverSearch(clearSearch: true);
+                ref.read(homeNotifier.notifier).clearRouteHighlight();
+                await ref.read(homeNotifier.notifier).loadPendingTask();
+                if (!context.mounted) {
+                  return;
+                }
                 NavigatorService.goBack();
               },
               child: Text(
@@ -458,7 +485,8 @@ class SearchMoverBottomsheetState
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _nearbyMovers = List<Map<String, dynamic>>.from(homeState.nearbyMovers);
+          _nearbyMovers =
+              List<Map<String, dynamic>>.from(homeState.nearbyMovers);
           _lastUpdatedAt = homeState.nearbyMoverLastUpdatedAt;
         });
       }
@@ -491,9 +519,7 @@ class SearchMoverBottomsheetState
     );
     final destination = _readLocation(
       requestData,
-      primaryKey: searchType == 'ride'
-          ? 'destination_name'
-          : 'dropoff_name',
+      primaryKey: searchType == 'ride' ? 'destination_name' : 'dropoff_name',
       alternateKeys: const ['destination_name', 'dropoff_name'],
       fallback: '',
     );
@@ -506,15 +532,13 @@ class SearchMoverBottomsheetState
         });
       }
 
-      final nearbyMovers =
-          await _mobilityApiService.searchAvailableTravelPlans(
+      final nearbyMovers = await _mobilityApiService.searchAvailableTravelPlans(
         origin: origin,
         destination: destination,
         planType: searchType,
       );
-      final liveMovers = nearbyMovers
-          .where((plan) => plan['is_live'] == true)
-          .toList();
+      final liveMovers =
+          nearbyMovers.where((plan) => plan['is_live'] == true).toList();
       final updatedAt = DateTime.now();
       ref.read(homeNotifier.notifier).updateNearbyMoverResults(
             movers: liveMovers,

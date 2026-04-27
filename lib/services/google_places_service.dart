@@ -56,6 +56,9 @@ class GooglePlacesService {
   final String apiKey;
   final Dio dio;
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api/place';
+  static const String _defaultCountryComponents = 'country:ng';
+  static const String _defaultRegion = 'ng';
+  static const String _defaultLanguage = 'en';
 
   GooglePlacesService({
     required this.apiKey,
@@ -73,28 +76,38 @@ class GooglePlacesService {
     String? language,
   }) async {
     try {
+      final effectiveComponents =
+          (components == null || components.trim().isEmpty)
+              ? _defaultCountryComponents
+              : components.trim();
+      final effectiveLanguage = (language == null || language.trim().isEmpty)
+          ? _defaultLanguage
+          : language.trim();
+
       final response = await dio.get(
         '$_baseUrl/autocomplete/json',
         queryParameters: {
           'input': input,
           'key': apiKey,
           if (sessionToken != null) 'sessiontoken': sessionToken,
-          if (components != null) 'components': components,
-          if (language != null) 'language': language,
+          'components': effectiveComponents,
+          'region': _defaultRegion,
+          'language': effectiveLanguage,
         },
       );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final status = data['status'] as String?;
-        
+
         if (status != 'OK' && status != 'ZERO_RESULTS') {
           print('Google Places API Error: $status - ${data['error_message']}');
           return [];
         }
-        
+
         final predictions = (data['predictions'] as List<dynamic>?)
-                ?.map((p) => PlacePrediction.fromJson(p as Map<String, dynamic>))
+                ?.map(
+                    (p) => PlacePrediction.fromJson(p as Map<String, dynamic>))
                 .toList() ??
             [];
         return predictions;
@@ -113,6 +126,10 @@ class GooglePlacesService {
     String? language,
   }) async {
     try {
+      final effectiveLanguage = (language == null || language.trim().isEmpty)
+          ? _defaultLanguage
+          : language.trim();
+
       final response = await dio.get(
         '$_baseUrl/details/json',
         queryParameters: {
@@ -120,19 +137,21 @@ class GooglePlacesService {
           'key': apiKey,
           'fields': 'place_id,name,formatted_address,geometry',
           if (sessionToken != null) 'sessiontoken': sessionToken,
-          if (language != null) 'language': language,
+          'region': _defaultRegion,
+          'language': effectiveLanguage,
         },
       );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         final status = data['status'] as String?;
-        
+
         if (status != 'OK') {
-          print('Google Places Details API Error: $status - ${data['error_message']}');
+          print(
+              'Google Places Details API Error: $status - ${data['error_message']}');
           throw Exception('API Error: $status');
         }
-        
+
         final result = data['result'] as Map<String, dynamic>?;
         if (result != null) {
           return PlaceDetails.fromJson(result);
@@ -140,7 +159,8 @@ class GooglePlacesService {
           throw Exception('No result found');
         }
       } else {
-        throw Exception('Failed to fetch place details: ${response.statusCode}');
+        throw Exception(
+            'Failed to fetch place details: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching place details: $e');
@@ -163,7 +183,7 @@ class GooglePlacesService {
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         print('Geocoding data status: ${data['status']}');
-        
+
         if (data['status'] == 'OK') {
           final results = data['results'] as List?;
           if (results != null && results.isNotEmpty) {

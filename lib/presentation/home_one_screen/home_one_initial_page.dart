@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
 import 'package:google_navigation_flutter/google_navigation_flutter.dart';
 import 'package:location/location.dart' as loc;
@@ -66,6 +68,11 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
   // Location stream subscription
   StreamSubscription? _locationSubscription;
+  StreamSubscription<CompassEvent>? _compassSubscription;
+  Timer? _motionSmoothingTimer;
+  LatLng? _targetPosition;
+  double? _targetHeading;
+  int _motionTickCount = 0;
 
   // Polyline variables
   List<LatLng> polylineCoordinates = [];
@@ -207,6 +214,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     }
 
     try {
+      await _startCompassUpdates();
+    } catch (e) {
+      // Error getting compass updates
+    }
+
+    try {
       await getPolylinePoints();
     } catch (e) {
       // Error getting polyline points
@@ -220,6 +233,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     _nearbySearchAnimationController.dispose();
     _taskRequestCountdownController.dispose();
     _locationSubscription?.cancel();
+    _compassSubscription?.cancel();
+    _motionSmoothingTimer?.cancel();
     unawaited(_realtimeService.dispose());
     super.dispose();
   }
@@ -457,6 +472,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
           initialForceNightMode: ThemeHelper.isDarkThemeType(themeType)
               ? NavigationForceNightMode.forceNight
               : NavigationForceNightMode.forceDay,
+          initialZoomControlsEnabled: false,
           initialCameraPosition: CameraPosition(
             target: currentPosition ?? defaultLocation,
             zoom: 18.0,
@@ -607,8 +623,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       // Configure location settings for better tracking during transit
       await locationController.changeSettings(
         accuracy: loc.LocationAccuracy.high,
-        interval: 1000, // Update every second
-        distanceFilter: 2, // Update if moved more than 2 meters
+        interval: 700, // Faster updates for smoother transit feedback
+        distanceFilter: 1, // Capture small movements while in motion
       );
 
       _locationSubscription?.cancel();
@@ -622,7 +638,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
             longitude: currentLocation.longitude!,
           );
 
-          final double newHeading = currentLocation.heading ?? userHeading;
+          final double fallbackHeading = currentLocation.heading ?? userHeading;
+          final double newHeading = _isValidHeading(_targetHeading)
+              ? _normalizeHeading(_targetHeading!)
+              : fallbackHeading;
 
           final bool isFirstLocation = currentPosition == null;
           final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
@@ -635,25 +654,32 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                   threshold ||
               (currentPosition!.longitude - newPosition.longitude).abs() >
                   threshold ||
-              (userHeading - newHeading).abs() > 1.0) {
-            setState(() {
-              currentPosition = newPosition;
-              userHeading = newHeading;
-            });
-
-            if (googleMapController.isCompleted) {
-              googleMapController.future.then((controller) {
-                _updateMarkers(controller);
+              _angleDifference(userHeading, newHeading).abs() > 1.0) {
+            if (isFirstLocation) {
+              setState(() {
+                currentPosition = newPosition;
+                _targetPosition = newPosition;
+                userHeading = _normalizeHeading(newHeading);
+                _targetHeading = _normalizeHeading(newHeading);
               });
+
+              if (googleMapController.isCompleted) {
+                googleMapController.future.then((controller) {
+                  _updateMarkers(controller);
+                });
+              }
+
+              cameraToPosition(newPosition);
+            } else {
+              _targetPosition = newPosition;
+              if (_isValidHeading(newHeading)) {
+                _targetHeading = _normalizeHeading(newHeading);
+              }
+              _startMotionSmoothing();
             }
 
-            if (isFirstLocation || isNavigating) {
-              cameraToPosition(newPosition);
-
-              // Trim polyline to clear trailing highlight during navigation
-              if (isNavigating && polylineCoordinates.isNotEmpty) {
-                _trimPolyline(newPosition);
-              }
+            if (isNavigating && polylineCoordinates.isNotEmpty) {
+              _trimPolyline(newPosition);
             }
 
             if (ref.read(homeNotifier).isLive) {
@@ -667,6 +693,130 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     } catch (e) {
       // Handle error in getLocationUpdates
     }
+  }
+
+  Future<void> _startCompassUpdates() async {
+    _compassSubscription?.cancel();
+    _compassSubscription = FlutterCompass.events?.listen((event) {
+      final heading = event.heading;
+      if (!mounted || !_isValidHeading(heading)) {
+        return;
+      }
+
+      final normalizedHeading = _normalizeHeading(heading!);
+      if (_angleDifference(userHeading, normalizedHeading).abs() < 0.5) {
+        return;
+      }
+
+      _targetHeading = normalizedHeading;
+      _startMotionSmoothing();
+    });
+  }
+
+  void _startMotionSmoothing() {
+    if (!mounted) {
+      return;
+    }
+
+    if (_motionSmoothingTimer == null) {
+      _motionTickCount = 0;
+    }
+
+    _motionSmoothingTimer ??=
+        Timer.periodic(const Duration(milliseconds: 80), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        _motionSmoothingTimer = null;
+        return;
+      }
+
+      final positionChanged = _stepTowardTargetPosition();
+      final headingChanged = _stepTowardTargetHeading();
+
+      if (!positionChanged && !headingChanged) {
+        timer.cancel();
+        _motionSmoothingTimer = null;
+        _motionTickCount = 0;
+        return;
+      }
+
+      _motionTickCount++;
+
+      if (googleMapController.isCompleted) {
+        googleMapController.future.then((controller) {
+          _updateMarkers(controller);
+        });
+      }
+
+      final shouldFollowMap = ref.read(homeNotifier).isNavigationActive;
+      if (shouldFollowMap &&
+          currentPosition != null &&
+          (_motionTickCount % 3 == 0 || positionChanged)) {
+        unawaited(cameraToPosition(currentPosition!));
+      }
+    });
+  }
+
+  bool _stepTowardTargetPosition() {
+    if (currentPosition == null || _targetPosition == null) {
+      return false;
+    }
+
+    final latDiff = _targetPosition!.latitude - currentPosition!.latitude;
+    final lngDiff = _targetPosition!.longitude - currentPosition!.longitude;
+
+    if (latDiff.abs() < 0.000001 && lngDiff.abs() < 0.000001) {
+      if (currentPosition != _targetPosition) {
+        setState(() {
+          currentPosition = _targetPosition;
+        });
+      }
+      return false;
+    }
+
+    final nextPosition = LatLng(
+      latitude: currentPosition!.latitude + (latDiff * 0.28),
+      longitude: currentPosition!.longitude + (lngDiff * 0.28),
+    );
+
+    setState(() {
+      currentPosition = nextPosition;
+    });
+    return true;
+  }
+
+  bool _stepTowardTargetHeading() {
+    if (!_isValidHeading(_targetHeading)) {
+      return false;
+    }
+
+    final delta = _angleDifference(userHeading, _targetHeading!);
+    if (delta.abs() < 0.6) {
+      if (userHeading != _targetHeading) {
+        setState(() {
+          userHeading = _targetHeading!;
+        });
+      }
+      return false;
+    }
+
+    setState(() {
+      userHeading = _normalizeHeading(userHeading + (delta * 0.22));
+    });
+    return true;
+  }
+
+  bool _isValidHeading(double? heading) {
+    return heading != null && heading.isFinite && heading >= 0;
+  }
+
+  double _normalizeHeading(double heading) {
+    final normalized = heading % 360;
+    return normalized < 0 ? normalized + 360 : normalized;
+  }
+
+  double _angleDifference(double from, double to) {
+    return ((to - from + 540) % 360) - 180;
   }
 
   Future<void> _startLiveTracking() async {
@@ -1055,8 +1205,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                 }
                 final message =
                     error.toString().replaceFirst('Exception: ', '');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
+                Fluttertoast.showToast(
+                  msg: message,
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.BOTTOM,
                 );
               });
             },

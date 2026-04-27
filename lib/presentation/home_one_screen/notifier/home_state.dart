@@ -2,10 +2,10 @@ part of 'home_notifier.dart';
 
 // Represents the state of the home screen in the app
 // ignore for file, class must be immutable
-class HomeState extends Equatable{
+class HomeState extends Equatable {
   HomeState({
-    this.isSelectedSwitch = false, 
-    this.homeInitialModelObj, 
+    this.isSelectedSwitch = false,
+    this.homeInitialModelObj,
     this.homeModelObj,
     this.isLive = false,
     this.showLiveNotification = false,
@@ -55,30 +55,30 @@ class HomeState extends Equatable{
 
   @override
   List<Object?> get props => [
-    isSelectedSwitch, 
-    homeModelObj, 
-    homeInitialModelObj,
-    isLive,
-    showLiveNotification,
-    isToggling,
-    highlightRoute,
-    isNavigationActive,
-    routeLocationLat,
-    routeLocationLng,
-    routeDestinationLat,
-    routeDestinationLng,
-    routeDestinationName,
-    pendingTaskType,
-    pendingTaskPhase,
-    pendingTaskData,
-    isLoadingPendingTask,
-    isSearchingNearbyMovers,
-    nearbyMoverSearchType,
-    nearbyMoverSearchData,
-    nearbyMoverSearchEndsAt,
-    nearbyMovers,
-    nearbyMoverLastUpdatedAt,
-  ];
+        isSelectedSwitch,
+        homeModelObj,
+        homeInitialModelObj,
+        isLive,
+        showLiveNotification,
+        isToggling,
+        highlightRoute,
+        isNavigationActive,
+        routeLocationLat,
+        routeLocationLng,
+        routeDestinationLat,
+        routeDestinationLng,
+        routeDestinationName,
+        pendingTaskType,
+        pendingTaskPhase,
+        pendingTaskData,
+        isLoadingPendingTask,
+        isSearchingNearbyMovers,
+        nearbyMoverSearchType,
+        nearbyMoverSearchData,
+        nearbyMoverSearchEndsAt,
+        nearbyMovers,
+        nearbyMoverLastUpdatedAt,
+      ];
 
   HomeState copyWith({
     bool? isSelectedSwitch,
@@ -106,6 +106,7 @@ class HomeState extends Equatable{
     DateTime? nearbyMoverLastUpdatedAt,
     bool clearPendingTask = false,
     bool clearNearbyMoverSearch = false,
+    bool clearRouteHighlight = false,
   }) {
     return HomeState(
       isSelectedSwitch: isSelectedSwitch ?? this.isSelectedSwitch,
@@ -116,14 +117,27 @@ class HomeState extends Equatable{
       isToggling: isToggling ?? this.isToggling,
       highlightRoute: highlightRoute ?? this.highlightRoute,
       isNavigationActive: isNavigationActive ?? this.isNavigationActive,
-      routeLocationLat: routeLocationLat ?? this.routeLocationLat,
-      routeLocationLng: routeLocationLng ?? this.routeLocationLng,
-      routeDestinationLat: routeDestinationLat ?? this.routeDestinationLat,
-      routeDestinationLng: routeDestinationLng ?? this.routeDestinationLng,
-      routeDestinationName: routeDestinationName ?? this.routeDestinationName,
-      pendingTaskType: clearPendingTask ? null : (pendingTaskType ?? this.pendingTaskType),
-      pendingTaskPhase: clearPendingTask ? null : (pendingTaskPhase ?? this.pendingTaskPhase),
-      pendingTaskData: clearPendingTask ? null : (pendingTaskData ?? this.pendingTaskData),
+      routeLocationLat: clearRouteHighlight
+          ? null
+          : (routeLocationLat ?? this.routeLocationLat),
+      routeLocationLng: clearRouteHighlight
+          ? null
+          : (routeLocationLng ?? this.routeLocationLng),
+      routeDestinationLat: clearRouteHighlight
+          ? null
+          : (routeDestinationLat ?? this.routeDestinationLat),
+      routeDestinationLng: clearRouteHighlight
+          ? null
+          : (routeDestinationLng ?? this.routeDestinationLng),
+      routeDestinationName: clearRouteHighlight
+          ? null
+          : (routeDestinationName ?? this.routeDestinationName),
+      pendingTaskType:
+          clearPendingTask ? null : (pendingTaskType ?? this.pendingTaskType),
+      pendingTaskPhase:
+          clearPendingTask ? null : (pendingTaskPhase ?? this.pendingTaskPhase),
+      pendingTaskData:
+          clearPendingTask ? null : (pendingTaskData ?? this.pendingTaskData),
       isLoadingPendingTask: isLoadingPendingTask ?? this.isLoadingPendingTask,
       isSearchingNearbyMovers:
           isSearchingNearbyMovers ?? this.isSearchingNearbyMovers,

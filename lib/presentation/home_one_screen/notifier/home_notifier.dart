@@ -12,19 +12,17 @@ part 'home_state.dart';
 
 final homeNotifier = StateNotifierProvider.autoDispose<HomeNotifier, HomeState>(
   (ref) => HomeNotifier(HomeState(
-    isSelectedSwitch: false,
-    homeInitialModelObj: HomeInitialModel()
-  )),
+      isSelectedSwitch: false, homeInitialModelObj: HomeInitialModel())),
 );
 
 // A notifier that manages the state of the home screen according to the event that is dispatched to it
-class HomeNotifier extends StateNotifier<HomeState>{
+class HomeNotifier extends StateNotifier<HomeState> {
   late final UserApiService _userApiService;
   late final MobilityApiService _mobilityApiService;
   Timer? _nearbyMoverSearchTimer;
   Timer? _pendingTaskPollingTimer;
   StreamSubscription<TaskStateSyncEvent>? _taskSyncSubscription;
-  
+
   HomeNotifier(HomeState state) : super(state) {
     _userApiService = UserApiService();
     _mobilityApiService = MobilityApiService();
@@ -81,8 +79,10 @@ class HomeNotifier extends StateNotifier<HomeState>{
         _mobilityApiService.getDiscoverRideRequests(),
       ]);
       final matches = List<Map<String, dynamic>>.from(responses[0] as List);
-      final discoverDelivery = List<Map<String, dynamic>>.from(responses[1] as List);
-      final discoverRide = List<Map<String, dynamic>>.from(responses[2] as List);
+      final discoverDelivery =
+          List<Map<String, dynamic>>.from(responses[1] as List);
+      final discoverRide =
+          List<Map<String, dynamic>>.from(responses[2] as List);
 
       Map<String, dynamic>? pendingTask;
       String? pendingTaskType;
@@ -101,7 +101,9 @@ class HomeNotifier extends StateNotifier<HomeState>{
             : 'accepted';
       }
 
-      if (pendingTask == null && planType == 'ride' && discoverRide.isNotEmpty) {
+      if (pendingTask == null &&
+          planType == 'ride' &&
+          discoverRide.isNotEmpty) {
         pendingTask = discoverRide.first;
         pendingTaskType = 'ride';
         pendingTaskPhase = 'open';
@@ -127,6 +129,8 @@ class HomeNotifier extends StateNotifier<HomeState>{
         pendingTaskPhase: pendingTaskPhase,
         isLoadingPendingTask: false,
         clearPendingTask: pendingTask == null,
+        clearRouteHighlight:
+            pendingTask == null && !state.isSearchingNearbyMovers,
       );
     } catch (_) {
       state = state.copyWith(
@@ -151,9 +155,8 @@ class HomeNotifier extends StateNotifier<HomeState>{
       return matchPlanId == latestPlanId &&
           (status == 'accepted' || status == 'active');
     }).toList()
-      ..sort((left, right) =>
-          _matchPriority(right['status']?.toString())
-              .compareTo(_matchPriority(left['status']?.toString())));
+      ..sort((left, right) => _matchPriority(right['status']?.toString())
+          .compareTo(_matchPriority(left['status']?.toString())));
 
     if (relevantMatches.isEmpty) {
       return null;
@@ -191,13 +194,13 @@ class HomeNotifier extends StateNotifier<HomeState>{
   /// Toggle isLive status and call backend API
   Future<void> toggleIsLive(bool value, {String? routeId}) async {
     state = state.copyWith(isToggling: true);
-    
+
     try {
       await _userApiService.toggleLiveStatus(
         routeId: routeId ?? '',
         isLive: value,
       );
-      
+
       state = state.copyWith(
         isLive: value,
         showLiveNotification: true,
@@ -206,7 +209,7 @@ class HomeNotifier extends StateNotifier<HomeState>{
       _syncPendingTaskPolling(value);
 
       await loadPendingTask();
-      
+
       await Future.delayed(const Duration(seconds: 3));
       state = state.copyWith(showLiveNotification: false);
     } catch (e) {
@@ -252,11 +255,7 @@ class HomeNotifier extends StateNotifier<HomeState>{
   void clearRouteHighlight() {
     state = state.copyWith(
       highlightRoute: false,
-      routeLocationLat: null,
-      routeLocationLng: null,
-      routeDestinationLat: null,
-      routeDestinationLng: null,
-      routeDestinationName: null,
+      clearRouteHighlight: true,
     );
   }
 
@@ -342,10 +341,7 @@ class HomeNotifier extends StateNotifier<HomeState>{
     state = state.copyWith(
       isNavigationActive: false,
       highlightRoute: false,
-      routeLocationLat: null,
-      routeLocationLng: null,
-      routeDestinationLat: null,
-      routeDestinationLng: null,
+      clearRouteHighlight: true,
     );
   }
 

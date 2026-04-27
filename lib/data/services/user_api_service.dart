@@ -58,11 +58,11 @@ class UserApiService {
   }
 
   /// Toggle user's live status (location sharing)
-  /// 
+  ///
   /// Parameters:
   /// - routeId: String (the route ID to toggle)
   /// - isLive: bool (true to enable, false to disable)
-  /// 
+  ///
   /// Response:
   /// - status: bool (true if successful)
   /// - message: string (notification message)
@@ -74,10 +74,18 @@ class UserApiService {
     try {
       var resolvedRouteId = routeId;
       if (resolvedRouteId.isEmpty) {
-        final latestTravelPlan = await _mobilityApiService.getLatestTravelPlan();
+        final latestTravelPlan =
+            await _mobilityApiService.getLatestTravelPlan();
         resolvedRouteId = latestTravelPlan?['id']?.toString() ?? '';
       }
       if (resolvedRouteId.isEmpty) {
+        if (!isLive) {
+          return {
+            'status': true,
+            'message': 'Live mode turned off.',
+            'is_live': false,
+          };
+        }
         throw Exception('Create a route first before going live.');
       }
 
@@ -103,7 +111,7 @@ class UserApiService {
   }
 
   /// Get user's current live status
-  /// 
+  ///
   /// Response:
   /// - status: bool (true if request successful)
   /// - is_live: bool (current live status)

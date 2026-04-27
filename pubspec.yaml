@@ -51,6 +51,7 @@ dependencies:
   country_pickers: ^3.0.1
   google_maps_flutter: ^2.12.3
   google_navigation_flutter: ^0.8.2
+  flutter_compass: ^0.8.1
   qr_flutter: ^4.1.0
   flutter_svg_provider: ^1.0.7
   connectivity_plus: ^6.1.0
