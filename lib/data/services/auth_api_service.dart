@@ -60,8 +60,39 @@ class AuthApiService {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
+  Future<Map<String, dynamic>> requestPasswordReset({
+    required String email,
+  }) async {
+    final response = await _dio.post(
+      '/api/auth/password/forgot/',
+      data: {
+        'email': email.trim(),
+      },
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> confirmPasswordReset({
+    required String uid,
+    required String token,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final response = await _dio.post(
+      '/api/auth/password/reset/',
+      data: {
+        'uid': uid,
+        'token': token,
+        'new_password': newPassword,
+        'confirm_password': confirmPassword,
+      },
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
   Future<void> persistSession(Map<String, dynamic> authPayload) async {
-    final tokens = (authPayload['tokens'] as Map?)?.cast<String, dynamic>() ?? {};
+    final tokens =
+        (authPayload['tokens'] as Map?)?.cast<String, dynamic>() ?? {};
     final user = (authPayload['user'] as Map?)?.cast<String, dynamic>() ?? {};
 
     final accessToken = tokens['access']?.toString();

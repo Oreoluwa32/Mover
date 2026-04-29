@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../widgets/custom_radio_button.dart';
@@ -43,6 +45,7 @@ class _PlacesAutocompleteFieldState
   late FocusNode _focusNode;
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -53,6 +56,7 @@ class _PlacesAutocompleteFieldState
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
     _overlayEntry?.remove();
@@ -90,7 +94,6 @@ class _PlacesAutocompleteFieldState
               child: Consumer(
                 builder: (context, ref, _) {
                   final state = ref.watch(placesAutocompleteProvider);
-                  print('Places Overlay - Showing: ${state.showSuggestions}, Predictions: ${state.predictions.length}, Error: ${state.error}');
                   if (!state.showSuggestions || state.predictions.isEmpty) {
                     return const SizedBox.shrink();
                   }
@@ -115,7 +118,8 @@ class _PlacesAutocompleteFieldState
                           ),
                           subtitle: Text(
                             prediction.secondaryText,
-                            style: CustomTextStyles.bodySmallGray80001?.copyWith(
+                            style:
+                                CustomTextStyles.bodySmallGray80001?.copyWith(
                               color: appTheme.gray600,
                             ),
                             maxLines: 1,
@@ -126,17 +130,21 @@ class _PlacesAutocompleteFieldState
                             await ref
                                 .read(placesAutocompleteProvider.notifier)
                                 .selectPlace(selectedPrediction);
-                            
-                            final details = ref.read(placesAutocompleteProvider).selectedPlaceDetails;
-                            if (details != null && widget.onPlaceSelected != null) {
+
+                            final details = ref
+                                .read(placesAutocompleteProvider)
+                                .selectedPlaceDetails;
+                            if (details != null &&
+                                widget.onPlaceSelected != null) {
                               widget.onPlaceSelected!(
                                 selectedPrediction.description,
                                 details.latitude,
                                 details.longitude,
                               );
                             }
-                            
-                            widget.controller?.text = selectedPrediction.description;
+
+                            widget.controller?.text =
+                                selectedPrediction.description;
                             _focusNode.unfocus();
                           },
                         );
@@ -165,11 +173,13 @@ class _PlacesAutocompleteFieldState
           if (widget.onChanged != null) {
             widget.onChanged!(value);
           }
-          try {
+          _searchDebounce?.cancel();
+          _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+            if (!mounted) {
+              return;
+            }
             ref.read(placesAutocompleteProvider.notifier).searchPlaces(value);
-          } catch (e) {
-            print('Error in searchPlaces: $e');
-          }
+          });
         },
         onTap: () {
           widget.onRadioChange();
@@ -195,7 +205,8 @@ class _PlacesAutocompleteFieldState
               width: 1,
             ),
           ),
-          contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
+          contentPadding:
+              EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.h),
           prefixIcon: Padding(
             padding: EdgeInsets.only(left: 8.h, right: 8.h),
             child: CustomRadioButton(
@@ -207,7 +218,8 @@ class _PlacesAutocompleteFieldState
               iconSize: 18.h,
             ),
           ),
-          prefixIconConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
+          prefixIconConstraints:
+              BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
           suffixIcon: widget.suffixIcon ??
               (widget.showCloseButton
                   ? Padding(
@@ -220,9 +232,10 @@ class _PlacesAutocompleteFieldState
                       ),
                     )
                   : null),
-          suffixIconConstraints: (widget.suffixIcon != null || widget.showCloseButton)
-              ? BoxConstraints(maxHeight: 44.h)
-              : null,
+          suffixIconConstraints:
+              (widget.suffixIcon != null || widget.showCloseButton)
+                  ? BoxConstraints(maxHeight: 44.h)
+                  : null,
           filled: true,
           fillColor: theme.colorScheme.onPrimary,
           isDense: true,

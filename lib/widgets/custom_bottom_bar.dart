@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import '../core/app_export.dart';
 import '../presentation/profile_screen/notifier/profile_screen_notifier.dart';
 import 'user_avatar.dart';
 
-enum BottomBarEnum {Home, Route, Move, Activity, Profile}
+enum BottomBarEnum { Home, Route, Move, Activity, Profile }
 
 // Ignore for file: must be immutable
 class CustomBottomBar extends ConsumerStatefulWidget {
-  CustomBottomBar({this.onChanged});
+  const CustomBottomBar({
+    super.key,
+    this.currentIndex = 0,
+    this.onChanged,
+  });
 
-  Function(BottomBarEnum)? onChanged;
+  final int currentIndex;
+  final Function(BottomBarEnum)? onChanged;
 
   @override
   CustomBottomBarState createState() => CustomBottomBarState();
@@ -18,8 +22,7 @@ class CustomBottomBar extends ConsumerStatefulWidget {
 
 // Ignore for file: must be immutable
 class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
-  int selectedIndex = 0;
-  late Future<void> _refreshProfileImageFuture;
+  late int selectedIndex;
 
   List<BottomMenuMode1> bottomMenuList = [
     BottomMenuMode1(
@@ -54,6 +57,21 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
       isProfileImage: true,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIndex = widget.currentIndex;
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomBottomBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentIndex != widget.currentIndex &&
+        selectedIndex != widget.currentIndex) {
+      selectedIndex = widget.currentIndex;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -182,8 +200,8 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomImageView(
-              imagePath: isSelected 
-                  ? bottomMenuList[index].activeIcon 
+              imagePath: isSelected
+                  ? bottomMenuList[index].activeIcon
                   : bottomMenuList[index].icon,
               height: 20.h,
               width: 20.h,
@@ -228,17 +246,15 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
 }
 
 // Ignore for file, must be immutable
-class BottomMenuMode1{
-  BottomMenuMode1(
-    {
-      required this.icon,
-      required this.activeIcon,
-      this.title,
-      required this.type,
-      this.isCircle = false,
-      this.isProfileImage = false,
-    }
-  );
+class BottomMenuMode1 {
+  BottomMenuMode1({
+    required this.icon,
+    required this.activeIcon,
+    this.title,
+    required this.type,
+    this.isCircle = false,
+    this.isProfileImage = false,
+  });
 
   String icon;
   String activeIcon;
@@ -248,7 +264,7 @@ class BottomMenuMode1{
   bool isProfileImage;
 }
 
-class DefaultWidget extends StatelessWidget{
+class DefaultWidget extends StatelessWidget {
   const DefaultWidget({super.key});
 
 //   final Widget child;
@@ -265,9 +281,8 @@ class DefaultWidget extends StatelessWidget{
 //   }
 // }
 
-
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Container(
       color: Color(0XFFFFFFFF),
       padding: EdgeInsets.all(0),
@@ -343,7 +358,7 @@ class BottomBarPainter extends CustomPainter {
         Radius.circular(cornerRadius),
       ),
     );
-    
+
     return path;
   }
 

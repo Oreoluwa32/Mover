@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/custom_bottom_bar.dart';
-import '../home_one_screen/home_one_initial_page.dart';
-import '../profile_screen/profile_screen.dart';
-import '../my_route_page/my_route_page.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_trailing_image.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../activity_scheduled_screen/activity_scheduled_screen.dart';
 import '../activity_completed_screen/activity_completed_screen.dart';
 import 'activity_progress_tab.dart';
-import 'notifier/activity_progress_notifier.dart';
 
-class ActivityInProgressPage extends ConsumerStatefulWidget{
+class ActivityInProgressPage extends ConsumerStatefulWidget {
   const ActivityInProgressPage({Key? key}) : super(key: key);
 
   @override
@@ -20,15 +15,20 @@ class ActivityInProgressPage extends ConsumerStatefulWidget{
 }
 
 // ignore for file, class must be immutable
-class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> with TickerProviderStateMixin{
+class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage>
+    with TickerProviderStateMixin {
   late TabController tabviewController;
-
-  int tabIndex = 0;
 
   @override
   void initState() {
     super.initState();
     tabviewController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    tabviewController.dispose();
+    super.dispose();
   }
 
   @override
@@ -86,7 +86,9 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
               )
             ],
           ),
-          SizedBox(height: 14.h,),
+          SizedBox(
+            height: 14.h,
+          ),
           Container(
             width: double.maxFinite,
             margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -97,7 +99,7 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                   child: TabBar(
                     controller: tabviewController,
                     labelPadding: EdgeInsets.zero,
-                    // labelColor: appTheme.gray80001,
+                    labelColor: theme.colorScheme.primary,
                     labelStyle: TextStyle(
                       fontSize: 14.fSize,
                       fontFamily: 'Mulish',
@@ -109,7 +111,16 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                       fontFamily: 'Mulish',
                       fontWeight: FontWeight.w500,
                     ),
-                    dividerColor: Colors.transparent,
+                    dividerColor: appTheme.blueGray10001,
+                    dividerHeight: 1.h,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: UnderlineTabIndicator(
+                      borderSide: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 2.h,
+                      ),
+                      insets: EdgeInsets.symmetric(horizontal: 6.h),
+                    ),
                     tabs: [
                       Tab(
                         height: 48,
@@ -117,17 +128,6 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                           alignment: Alignment.center,
                           width: double.maxFinite,
                           margin: EdgeInsets.only(right: 6.h),
-                          decoration: tabIndex == 0 ? BoxDecoration(
-                            color: theme.colorScheme.onPrimary.withOpacity(1),
-                            border: Border(
-                              bottom: BorderSide(
-                                color: theme.colorScheme.primary,
-                                width: 2.h
-                              ),
-                            )
-                          ) : BoxDecoration(
-                            color: theme.colorScheme.onPrimary.withOpacity(1)
-                          ),
                           child: Text(
                             "Active",
                           ),
@@ -139,17 +139,6 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                           alignment: Alignment.center,
                           width: double.maxFinite,
                           margin: EdgeInsets.symmetric(horizontal: 6.h),
-                          decoration: tabIndex == 1 ? BoxDecoration(
-                            color: theme.colorScheme.onPrimary.withOpacity(1),
-                            border: Border(
-                              bottom: BorderSide(
-                                color: theme.colorScheme.primary,
-                                width: 2.h
-                              ),
-                            )
-                          ) : BoxDecoration(
-                            color: theme.colorScheme.onPrimary.withOpacity(1)
-                          ),
                           child: Text(
                             "Scheduled",
                           ),
@@ -161,28 +150,12 @@ class ActivityInProgressPageState extends ConsumerState<ActivityInProgressPage> 
                           alignment: Alignment.center,
                           width: double.maxFinite,
                           margin: EdgeInsets.only(left: 6.h),
-                          decoration: tabIndex == 2 ? BoxDecoration(
-                            color: theme.colorScheme.onPrimary.withOpacity(1),
-                            border: Border(
-                              bottom: BorderSide(
-                                color: theme.colorScheme.primary,
-                                width: 2.h
-                              ),
-                            )
-                          ) : BoxDecoration(
-                            color: theme.colorScheme.onPrimary.withOpacity(1)
-                          ),
                           child: Text(
                             "Completed",
                           ),
                         ),
                       )
                     ],
-                    indicatorColor: Colors.transparent,
-                    onTap: (index) {
-                      tabIndex = index;
-                      setState(() {});
-                    },
                   ),
                 )
               ],

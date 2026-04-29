@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    ForgotPasswordView,
     KycRecordView,
     LiveStatusView,
     LoginView,
@@ -9,6 +10,7 @@ from .views import (
     MovrTokenRefreshView,
     ProfileView,
     RegisterView,
+    ResetPasswordConfirmView,
     VehicleViewSet,
 )
 
@@ -18,6 +20,8 @@ router.register("vehicles", VehicleViewSet, basename="vehicle")
 urlpatterns = [
     path("register/", RegisterView.as_view()),
     path("login/", LoginView.as_view()),
+    path("password/forgot/", ForgotPasswordView.as_view()),
+    path("password/reset/", ResetPasswordConfirmView.as_view()),
     path("refresh/", MovrTokenRefreshView.as_view()),
     path("me/", MeView.as_view()),
     path("profile/", ProfileView.as_view()),

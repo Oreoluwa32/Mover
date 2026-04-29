@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../core/app_export.dart';
 import '../../../widgets/custom_radio_button.dart';
@@ -36,6 +38,7 @@ class _PlacesAutocompleteFieldState
   late FocusNode _focusNode;
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _PlacesAutocompleteFieldState
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
     _overlayEntry?.remove();
@@ -83,7 +87,6 @@ class _PlacesAutocompleteFieldState
               child: Consumer(
                 builder: (context, ref, _) {
                   final state = ref.watch(placesAutocompleteProvider);
-                  print('Places Overlay - Showing: ${state.showSuggestions}, Predictions: ${state.predictions.length}, Error: ${state.error}');
                   if (!state.showSuggestions || state.predictions.isEmpty) {
                     return const SizedBox.shrink();
                   }
@@ -108,7 +111,8 @@ class _PlacesAutocompleteFieldState
                           ),
                           subtitle: Text(
                             prediction.secondaryText,
-                            style: CustomTextStyles.bodySmallGray80001?.copyWith(
+                            style:
+                                CustomTextStyles.bodySmallGray80001?.copyWith(
                               color: appTheme.gray600,
                             ),
                             maxLines: 1,
@@ -147,13 +151,15 @@ class _PlacesAutocompleteFieldState
             controller: widget.controller,
             focusNode: _focusNode,
             onChanged: (value) {
-              try {
-                ref
-                    .read(placesAutocompleteProvider.notifier)
-                    .searchPlaces(value);
-              } catch (e) {
-                print('Error in searchPlaces: $e');
-              }
+              _searchDebounce?.cancel();
+              _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+                if (!mounted) {
+                  return;
+                }
+                ref.read(placesAutocompleteProvider.notifier).searchPlaces(
+                      value,
+                    );
+              });
             },
             onTap: () {
               widget.onRadioChange();
@@ -192,7 +198,8 @@ class _PlacesAutocompleteFieldState
                   iconSize: 18.h,
                 ),
               ),
-              prefixIconConstraints: BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
+              prefixIconConstraints:
+                  BoxConstraints(maxHeight: 44.h, maxWidth: 50.h),
               suffixIcon: widget.showCloseButton
                   ? Padding(
                       padding: EdgeInsets.only(right: 8.h),

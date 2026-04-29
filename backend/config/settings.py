@@ -23,6 +23,16 @@ def _split_env(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
+def _int_env(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw.strip())
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"{name} must be an integer.") from exc
+
+
 DEV_SECRET_KEY = "movr-dev-secret-key"
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEV_SECRET_KEY)
 DEBUG = _bool_env("DJANGO_DEBUG", default=False)
@@ -125,6 +135,10 @@ ASGI_APPLICATION = "config.asgi.application"
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 DATABASE_SSL_REQUIRE = IS_PRODUCTION_LIKE and bool(DATABASE_URL)
+DATABASE_CONN_MAX_AGE = _int_env(
+    "DATABASE_CONN_MAX_AGE",
+    0 if IS_PRODUCTION_LIKE else 600,
+)
 
 if IS_PRODUCTION_LIKE and not DATABASE_URL:
     raise ImproperlyConfigured("DATABASE_URL is required outside local development.")
@@ -141,10 +155,11 @@ if DATABASE_URL:
 DATABASES = {
     "default": dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
+        conn_max_age=DATABASE_CONN_MAX_AGE,
         ssl_require=DATABASE_SSL_REQUIRE,
     )
 }
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = DATABASE_CONN_MAX_AGE > 0
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -208,3 +223,9 @@ X_FRAME_OPTIONS = "DENY"
 
 MOVR_FRONTEND_BASE_URL = os.getenv("MOVR_FRONTEND_BASE_URL", "https://movr.app")
 MOVR_DEFAULT_CURRENCY = os.getenv("MOVR_DEFAULT_CURRENCY", "NGN")
+MOVR_PASSWORD_RESET_DEEP_LINK_BASE = os.getenv(
+    "MOVR_PASSWORD_RESET_DEEP_LINK_BASE",
+    "movr://reset-password",
+)
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "")

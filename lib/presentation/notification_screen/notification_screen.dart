@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../routes/auth_route_guard.dart';
 import '../completed_bottomsheet/completed_bottomsheet.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -84,7 +85,8 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
             );
           }
 
-          final items = state.notificationModelObj?.listItemList ?? const <ListItemModel>[];
+          final items = state.notificationModelObj?.listItemList ??
+              const <ListItemModel>[];
           if (items.isEmpty) {
             return Center(
               child: Text(
@@ -96,21 +98,22 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
           }
 
           return ListView.separated(
-            padding: EdgeInsets.only(bottom: 24.h),
-            physics: BouncingScrollPhysics(),
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              ListItemModel model = items[index];
-              return ListItemWidget(
-                model,
-                onTap: () => _openNotification(context, model),
-              );
-            }, 
-            separatorBuilder: (context, index) {
-              return SizedBox(height: 18.h,);
-            }, 
-            itemCount: items.length
-          );
+              padding: EdgeInsets.only(bottom: 24.h),
+              physics: BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                ListItemModel model = items[index];
+                return ListItemWidget(
+                  model,
+                  onTap: () => _openNotification(context, model),
+                );
+              },
+              separatorBuilder: (context, index) {
+                return SizedBox(
+                  height: 18.h,
+                );
+              },
+              itemCount: items.length);
         },
       ),
     );
@@ -157,7 +160,8 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(24.h, 10.h, 24.h, 24.h + bottomInset),
+                padding:
+                    EdgeInsets.fromLTRB(24.h, 10.h, 24.h, 24.h + bottomInset),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -279,7 +283,10 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
       case 'completed_task':
         Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute(
-            builder: (_) => const CompletedBottomsheet(),
+            builder: (_) => const AuthRouteGuard(
+              redirectRoute: AppRoutes.signInScreen,
+              child: CompletedBottomsheet(),
+            ),
             settings: RouteSettings(arguments: args),
           ),
         );
@@ -290,7 +297,7 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
   }
 
   // Navigate back to the previous screen
-  onTapBack(BuildContext context){
+  onTapBack(BuildContext context) {
     NavigatorService.goBack();
   }
 }

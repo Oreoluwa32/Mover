@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../routes/auth_route_guard.dart';
 import '../completed_bottomsheet/completed_bottomsheet.dart';
 import 'models/completed_item_model.dart';
 import 'notifier/activity_completed_notifier.dart';
 import 'widgets/completed_item_widget.dart'; // ignore for file, class must be immutable
 
-class ActivityCompletedScreen extends ConsumerStatefulWidget{
+class ActivityCompletedScreen extends ConsumerStatefulWidget {
   const ActivityCompletedScreen({Key? key}) : super(key: key);
 
   @override
   ActivityCompletedScreenState createState() => ActivityCompletedScreenState();
 }
 
-class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen> with AutomaticKeepAliveClientMixin<ActivityCompletedScreen>{
+class ActivityCompletedScreenState
+    extends ConsumerState<ActivityCompletedScreen>
+    with AutomaticKeepAliveClientMixin<ActivityCompletedScreen> {
   @override
   void initState() {
     super.initState();
@@ -46,7 +49,7 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
     );
   }
 
-  // Section Widget 
+  // Section Widget
   Widget _buildSchedules(BuildContext context) {
     return Expanded(
       child: Consumer(
@@ -69,7 +72,8 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
             );
           }
 
-          final items = state.activityCompletedModelObj?.completedItemList ?? [];
+          final items =
+              state.activityCompletedModelObj?.completedItemList ?? [];
           if (items.isEmpty) {
             return Center(
               child: Text(
@@ -91,12 +95,12 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
                 onTap: () => _handleCompletedTap(context, model),
                 child: CompletedItemWidget(model),
               );
-            }, 
+            },
             separatorBuilder: (context, index) {
               return SizedBox(
                 height: 16.h,
               );
-            }, 
+            },
             itemCount: items.length,
           );
         },
@@ -107,7 +111,10 @@ class ActivityCompletedScreenState extends ConsumerState<ActivityCompletedScreen
   void _handleCompletedTap(BuildContext context, CompletedItemModel model) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (_) => const CompletedBottomsheet(),
+        builder: (_) => const AuthRouteGuard(
+          redirectRoute: AppRoutes.signInScreen,
+          child: CompletedBottomsheet(),
+        ),
         settings: RouteSettings(
           arguments: {
             'requestType': model.requestType,

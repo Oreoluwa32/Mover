@@ -14,26 +14,39 @@ import 'home_one_initial_page.dart';
 import 'notifier/home_notifier.dart';
 
 // ignore for file, must be immutable
-class HomeOneScreen extends ConsumerStatefulWidget{
+class HomeOneScreen extends ConsumerStatefulWidget {
   const HomeOneScreen({Key? key})
-    : super(
-      key: key,
-    );
+      : super(
+          key: key,
+        );
 
   @override
   HomeOneScreenState createState() => HomeOneScreenState();
 }
 
 // ignore for file, must be immutable
-class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
-  GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+class HomeOneScreenState extends ConsumerState<HomeOneScreen> {
   bool _hideBottomBar = false;
   bool _dialogShown = false;
   bool _searchSheetShown = false;
+  int _selectedTabIndex = 0;
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
+    _pages = [
+      const HomeOneInitialPage(),
+      MyRoutePage(
+        onOverlayChanged: _setBottomBarVisibility,
+      ),
+      UserMoveScreen(
+        onOverlayChanged: _setBottomBarVisibility,
+      ),
+      const ActivityInProgressPage(),
+      const ProfileScreen(),
+    ];
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final hasActiveSession = await DeviceMemoryService().syncSessionState();
       if (!mounted) {
@@ -44,7 +57,8 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
         return;
       }
 
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null) {
         if (args['highlightRoute'] == true &&
             args['locationLat'] != null &&
@@ -52,12 +66,12 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
             args['destinationLat'] != null &&
             args['destinationLng'] != null) {
           ref.read(homeNotifier.notifier).setRouteCoordinates(
-            locationLat: args['locationLat'] as double,
-            locationLng: args['locationLng'] as double,
-            destinationLat: args['destinationLat'] as double,
-            destinationLng: args['destinationLng'] as double,
-            destinationName: args['destinationName'] as String?,
-          );
+                locationLat: args['locationLat'] as double,
+                locationLng: args['locationLng'] as double,
+                destinationLat: args['destinationLat'] as double,
+                destinationLng: args['destinationLng'] as double,
+                destinationName: args['destinationName'] as String?,
+              );
         }
         if (args['showDialog'] == true && !_dialogShown) {
           _dialogShown = true;
@@ -119,91 +133,49 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen>{
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      body: Navigator(
-        key: navigatorKey,
-        initialRoute: AppRoutes.homeOneInitialPage,
-        onGenerateRoute: (routeSetting) => PageRouteBuilder(
-          pageBuilder: (ctx, ani, ani1) => getCurrentPage(context, routeSetting.name!),
-          transitionDuration: const Duration(milliseconds: 260),
-          reverseTransitionDuration: const Duration(milliseconds: 220),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              ),
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.03, 0),
-                  end: Offset.zero,
-                ).chain(
-                  CurveTween(curve: Curves.easeOutCubic),
-                ).animate(animation),
-                child: child,
-              ),
-            );
-          },
-        ),
+      body: IndexedStack(
+        index: _selectedTabIndex,
+        children: _pages,
       ),
-      bottomNavigationBar: _hideBottomBar ? null : Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        child: Container(
-          width: double.maxFinite,
-          child: _buildBottombar(context),
-        ),
-      ),
+      bottomNavigationBar: _hideBottomBar
+          ? null
+          : Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom,
+              ),
+              child: Container(
+                width: double.maxFinite,
+                child: _buildBottombar(context),
+              ),
+            ),
     );
   }
 
-  // Section Widget 
-  Widget _buildBottombar(BuildContext context){
+  void _onBottomBarChanged(BottomBarEnum type) {
+    final newIndex = switch (type) {
+      BottomBarEnum.Home => 0,
+      BottomBarEnum.Route => 1,
+      BottomBarEnum.Move => 2,
+      BottomBarEnum.Activity => 3,
+      BottomBarEnum.Profile => 4,
+    };
+
+    if (_selectedTabIndex == newIndex) {
+      return;
+    }
+
+    setState(() {
+      _selectedTabIndex = newIndex;
+    });
+  }
+
+  Widget _buildBottombar(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: CustomBottomBar(
-        onChanged: (BottomBarEnum type) {
-          Navigator.pushNamed(
-            navigatorKey.currentContext!, getCurrentRoute(type)
-          );
-        },
+        currentIndex: _selectedTabIndex,
+        onChanged: _onBottomBarChanged,
       ),
     );
-  }
-
-  // Handling the route based on bottom click actions
-  String getCurrentRoute(BottomBarEnum type){
-    switch(type){
-      case BottomBarEnum.Home:
-        return AppRoutes.homeOneInitialPage;
-      case BottomBarEnum.Route:
-        return AppRoutes.myRoutePage;
-      case BottomBarEnum.Move:
-        return AppRoutes.userMoveScreen;
-      case BottomBarEnum.Activity:
-        return AppRoutes.activityInProgressPage;
-      case BottomBarEnum.Profile:
-        return AppRoutes.profileScreen;
-      }
-  }
-
-  // Handling the page based on the routes
-  Widget getCurrentPage(BuildContext context, String currentRoute){
-    switch(currentRoute){
-      case AppRoutes.homeOneInitialPage:
-        return HomeOneInitialPage();
-      case AppRoutes.myRoutePage:
-        return MyRoutePage(
-          onOverlayChanged: _setBottomBarVisibility,
-        );
-      case AppRoutes.userMoveScreen:
-        return UserMoveScreen(
-          onOverlayChanged: _setBottomBarVisibility,
-        );
-      case AppRoutes.activityInProgressPage:
-        return ActivityInProgressPage();
-      case AppRoutes.profileScreen:
-        return ProfileScreen();
-      default:
-        return DefaultWidget();
-    }
   }
 }

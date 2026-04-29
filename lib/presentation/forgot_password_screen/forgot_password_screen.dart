@@ -1,20 +1,18 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
-import '../../core/utils/keys.dart';
+import '../../data/services/auth_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../../widgets/loading_dialog.dart';
 import 'notifier/forgot_password_notifier.dart';
 
 // Class must be immutable
-class ForgotPasswordScreen extends ConsumerStatefulWidget{
-  const ForgotPasswordScreen({Key? key})
-    : super(key: key,);
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
   ForgotPasswordScreenState createState() => ForgotPasswordScreenState();
@@ -23,154 +21,176 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget{
 // ignore for file, class must be immutable
 class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _prefilledInitialEmail = false;
+  bool _isFormValid = false;
+  TextEditingController? _emailController;
 
   // API call function to reset password
-  Future<void> resetPassword(BuildContext context, ForgotPasswordNotifier forgotPasswordNotifier) async {
-    final email = forgotPasswordNotifier.state.emailController?.text.trim() ?? '';
+  Future<void> resetPassword(BuildContext context, String email) async {
+    final authApiService = AuthApiService();
 
     if (email.isEmpty) {
       Fluttertoast.showToast(msg: "Please enter your email address.");
       return;
     }
 
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/forgot-password/');
-    print('Sending forgot password request to: $url');
-    
+    LoadingDialog.show(context, message: 'Sending reset instructions...');
     try {
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"email": email}),
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw Exception('Request timeout - server not responding');
-        },
+      final response = await authApiService.requestPasswordReset(email: email);
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      Fluttertoast.showToast(
+        msg: response['detail']?.toString() ??
+            "Reset instructions sent to your email.",
+        backgroundColor: appTheme.green50,
+        textColor: Colors.white,
       );
-
-      if (response.statusCode == 200) {
-        print('Reset password request successful');
-        Fluttertoast.showToast(
-          msg: "Reset instructions sent to your email.",
-          backgroundColor: appTheme.green50,
-          textColor: Colors.white,
-        );
+      if (context.mounted) {
         Navigator.pushNamed(
           context,
           AppRoutes.passwordCheckMailScreen,
           arguments: {'email': email},
         );
-      } else {
-        print('Error status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        try {
-          final errorData = json.decode(response.body);
-          final errorMessage = errorData['error'] ?? errorData['message'] ?? "Failed to send reset instructions.";
-          Fluttertoast.showToast(msg: errorMessage);
-        } catch (e) {
-          Fluttertoast.showToast(msg: "Error (${response.statusCode}): ${response.body}");
-        }
       }
     } catch (e) {
-      print('Error during password reset: $e');
-      Fluttertoast.showToast(msg: "An error occurred: ${e.toString()}");
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      Fluttertoast.showToast(msg: authApiService.extractErrorMessage(e));
     }
   }
 
   @override
-  Widget build(BuildContext context){
-    bool _isFormValid = false;
-
-    void _validateForm() {
-      setState(() {
-        final email = ref.watch(forgotPasswordNotifier).emailController?.text ?? '';
-        _isFormValid = isValidEmail(email, isRequired: true);
-      });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final controller = ref.read(forgotPasswordNotifier).emailController;
+    if (_emailController != controller) {
+      _emailController?.removeListener(_updateFormValidity);
+      _emailController = controller;
+      _emailController?.addListener(_updateFormValidity);
     }
-
-    final forgotNotifier = ref.watch(forgotPasswordNotifier.notifier);
-    forgotNotifier.state.emailController?.addListener(_validateForm);
-    _validateForm(); // Initial validation
-
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Form(
-          key: _formKey,
-          child: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              children: [
-                Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.only(
-                    left: 16.h,
-                    top: 48.h,
-                    right: 16.h,
-                  ),
-                  child: Column(
-                    children: [
-                      CustomIconButton(
-                        height: 56.h,
-                        width: 56.h,
-                        padding: EdgeInsets.all(14.h),
-                        decoration: IconButtonStyleHelper.outlineGray,
-                        child: CustomImageView(
-                          imagePath: ImageConstant.imgKey,
-                          width: 20.h,
-                          height: 20.h
-                        ),
-                      ),
-                      SizedBox(height: 24.h),
-                      Text(
-                        "Forgot password?",
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      Text(
-                        "No worries, we'll send you reset instructions.",
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                      SizedBox(height: 24.h),
-                      _buildColumnemailaddr(context),
-                      SizedBox(height: 24.h),
-                      CustomElevatedButton(
-                        text: "Reset password",
-                        buttonStyle: _isFormValid ? CustomButtonStyles.fillPrimaryTL41 : CustomButtonStyles.fillBlueGray,
-                        buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                        onPressed: _isFormValid ? () => resetPassword(context, forgotNotifier) : null,
-                      ),
-                      SizedBox(height: 32.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgLeftArrow,
-                            height: 20.h,
-                            width: 20.h,
-                          ),
-                          SizedBox(width: 8.h),
-                          GestureDetector(
-                            onTap: () {onTapBack(context);},
-                            child: Text(
-                              "Back to log in",
-                              style: CustomTextStyles.bodyMediumGray600,
-                            ),
-                          )
-                        ],
-                      ),
-                      SizedBox(height: 4.h)
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      );
+    if (_prefilledInitialEmail) {
+      _updateFormValidity();
+      return;
+    }
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final email = args?['email']?.toString().trim() ?? '';
+    if (email.isNotEmpty) {
+      controller?.text = email;
+    }
+    _prefilledInitialEmail = true;
+    _updateFormValidity();
   }
 
-  // Section Widget 
-  Widget _buildColumnemailaddr(BuildContext context){
+  @override
+  void dispose() {
+    _emailController?.removeListener(_updateFormValidity);
+    super.dispose();
+  }
+
+  void _updateFormValidity() {
+    final email = _emailController?.text ?? '';
+    final isValid = isValidEmail(email, isRequired: true);
+    if (_isFormValid != isValid && mounted) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final forgotState = ref.watch(forgotPasswordNotifier);
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: Form(
+        key: _formKey,
+        child: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            children: [
+              Container(
+                width: double.maxFinite,
+                padding: EdgeInsets.only(
+                  left: 16.h,
+                  top: 48.h,
+                  right: 16.h,
+                ),
+                child: Column(
+                  children: [
+                    CustomIconButton(
+                      height: 56.h,
+                      width: 56.h,
+                      padding: EdgeInsets.all(14.h),
+                      decoration: IconButtonStyleHelper.outlineGray,
+                      child: CustomImageView(
+                          imagePath: ImageConstant.imgKey,
+                          width: 20.h,
+                          height: 20.h),
+                    ),
+                    SizedBox(height: 24.h),
+                    Text(
+                      "Forgot password?",
+                      style: theme.textTheme.headlineSmall,
+                    ),
+                    Text(
+                      "No worries, we'll send you reset instructions.",
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    SizedBox(height: 24.h),
+                    _buildColumnemailaddr(context),
+                    SizedBox(height: 24.h),
+                    CustomElevatedButton(
+                      text: "Reset password",
+                      buttonStyle: _isFormValid
+                          ? CustomButtonStyles.fillPrimaryTL41
+                          : CustomButtonStyles.fillBlueGray,
+                      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+                      onPressed: _isFormValid
+                          ? () => resetPassword(
+                                context,
+                                forgotState.emailController?.text.trim() ?? '',
+                              )
+                          : null,
+                    ),
+                    SizedBox(height: 32.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomImageView(
+                          imagePath: ImageConstant.imgLeftArrow,
+                          height: 20.h,
+                          width: 20.h,
+                        ),
+                        SizedBox(width: 8.h),
+                        GestureDetector(
+                          onTap: () {
+                            onTapBack(context);
+                          },
+                          child: Text(
+                            "Back to log in",
+                            style: CustomTextStyles.bodyMediumGray600,
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 4.h)
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Section Widget
+  Widget _buildColumnemailaddr(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -181,35 +201,33 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             style: CustomTextStyles.titleSmallGray600,
           ),
           SizedBox(height: 6.h),
-          Consumer(
-            builder: (context, ref, _) {
-              return CustomTextFormField(
-                controller: ref.watch(forgotPasswordNotifier).emailController,
-                hintText: "Enter your email address",
-                textInputAction: TextInputAction.done,
-                textInputType: TextInputType.emailAddress,
-                contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-                validator: (value) {
-                  if(value == null || (!isValidEmail(value, isRequired: true))) {
-                    return "Please enter a valid email";
-                  }
-                  return null;
-                },
-              );
-            }
-          )
+          Consumer(builder: (context, ref, _) {
+            return CustomTextFormField(
+              controller: ref.watch(forgotPasswordNotifier).emailController,
+              hintText: "Enter your email address",
+              textInputAction: TextInputAction.done,
+              textInputType: TextInputType.emailAddress,
+              contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+              validator: (value) {
+                if (value == null || (!isValidEmail(value, isRequired: true))) {
+                  return "Please enter a valid email";
+                }
+                return null;
+              },
+            );
+          })
         ],
       ),
     );
   }
 
   // Navigates back to the sign in screen when the action is triggered
-  onTapBack(BuildContext context){
+  onTapBack(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.signInScreen);
   }
 
   // Navigates to the password check mail screen when the action is triggered
-  onTapResetPassword(BuildContext context){
+  onTapResetPassword(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.passwordCheckMailScreen);
   }
 }

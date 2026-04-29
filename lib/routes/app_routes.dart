@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'auth_route_guard.dart';
 import '../presentation/save_your_route_dialog/save_your_route_dialog.dart';
 import '../presentation/splash_screen_two/splash_screen_two.dart';
 import '../presentation/splash_screen_three/splash_screen_three.dart';
@@ -74,6 +75,13 @@ import '../presentation/task_chat_screen/task_chat_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
+  static Widget _protected(Widget child) {
+    return AuthRouteGuard(
+      redirectRoute: signInScreen,
+      child: child,
+    );
+  }
+
   static const String splashScreenOne = '/splash_screen_one';
 
   static const String splashScreenTwo = '/splash_screen_two';
@@ -94,7 +102,8 @@ class AppRoutes {
 
   static const String homeScreenDialog = '/home_screen_dialog';
 
-  static const String scheduleMoveBottomsheetOne = '/schedule_move_bottomsheet_one';
+  static const String scheduleMoveBottomsheetOne =
+      '/schedule_move_bottomsheet_one';
 
   static const String verificationScreen = '/verification_screen';
 
@@ -137,8 +146,7 @@ class AppRoutes {
 
   static const String setDateBottomsheetTwo = '/set_date_bottomsheet_two';
 
-  static const String rideSharingDetailsScreen =
-      '/ride_sharing_details_screen';
+  static const String rideSharingDetailsScreen = '/ride_sharing_details_screen';
 
   static const String homeDeliveryRequestScreen =
       '/home_delivery_request_screen';
@@ -239,7 +247,8 @@ class AppRoutes {
     splashScreenFour: (context) => SplashScreenFour(),
 
     checkMailScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final email = args?['email'] as String? ?? '';
       return CheckMailScreen(email: email);
     },
@@ -248,192 +257,227 @@ class AppRoutes {
 
     emailVerifiedScreen: (context) => EmailVerifiedScreen(),
 
-    forgotPasswordScreen: (context) => ForgotPasswordScreen(),
+    forgotPasswordScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final email = args?['email'] as String?;
+      return ForgotPasswordScreen(
+        key: ValueKey(email ?? 'forgot-password'),
+      );
+    },
 
     passwordCheckMailScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final email = args?['email'] as String?;
       return PasswordCheckMailScreen(email: email);
     },
 
-    homeOneScreen: (context) => HomeOneScreen(),
+    homeOneScreen: (context) => _protected(HomeOneScreen()),
 
     passwordSuccessScreen: (context) => PasswordSuccessScreen(),
 
     resetPasswordScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final resetToken = args?['resetToken'] as String?;
-      return ResetPasswordScreen(resetToken: resetToken);
+      final resetUid = args?['resetUid'] as String?;
+      return ResetPasswordScreen(resetUid: resetUid, resetToken: resetToken);
     },
 
     signInScreen: (context) => SignInScreen(),
 
-    homeScreenDialog: (context) => HomeScreenDialog(),
+    homeScreenDialog: (context) => _protected(HomeScreenDialog()),
 
-    verificationScreen: (context) => VerificationScreen(),
+    verificationScreen: (context) => _protected(VerificationScreen()),
 
-    verificationScreenOne: (context) => VerificationScreenOne(),
+    verificationScreenOne: (context) => _protected(VerificationScreenOne()),
 
-    personalInformationScreen: (context) => PersonalInformationScreen(),
+    personalInformationScreen: (context) =>
+        _protected(PersonalInformationScreen()),
 
-    vehicleInformationScreen: (context) => VehicleInformationScreen(),
+    vehicleInformationScreen: (context) =>
+        _protected(VehicleInformationScreen()),
 
-    identificationScreen: (context) => IdentificationScreen(),
+    identificationScreen: (context) => _protected(IdentificationScreen()),
 
-    rideSharingDetailsScreen: (context) => RideSharingDetailsScreen(),
+    rideSharingDetailsScreen: (context) =>
+        _protected(RideSharingDetailsScreen()),
 
-    underReviewScreen: (context) => UnderReviewScreen(),
+    underReviewScreen: (context) => _protected(UnderReviewScreen()),
 
-    selectPlanScreen: (context) => SelectPlanScreen(),
+    selectPlanScreen: (context) => _protected(SelectPlanScreen()),
 
-    scheduleMoveBottomsheetOne: (context) => ScheduleMoveBottomsheetOne(),
+    scheduleMoveBottomsheetOne: (context) =>
+        _protected(ScheduleMoveBottomsheetOne()),
 
     // myRoutePlusPage: (context) => MyRoutePlusPage(),
 
-    myRoutePage: (context) => MyRoutePage(),
+    myRoutePage: (context) => _protected(MyRoutePage()),
 
-    addRouteScreen: (context) => AddRouteScreen(),
+    addRouteScreen: (context) => _protected(AddRouteScreen()),
 
-    addRouteScreenOne: (context) => AddRouteScreenOne(),
+    addRouteScreenOne: (context) => _protected(AddRouteScreenOne()),
 
-    addRouteScreenTwo: (context) => AddRouteScreenTwo(),
+    addRouteScreenTwo: (context) => _protected(AddRouteScreenTwo()),
 
-    addRouteScreenThree: (context) => AddRouteScreenThree(),
+    addRouteScreenThree: (context) => _protected(AddRouteScreenThree()),
 
-    addRouteThreeBottomsheet: (context) => AddRouteThreeBottomsheet(),
+    addRouteThreeBottomsheet: (context) =>
+        _protected(AddRouteThreeBottomsheet()),
 
-    setDateBottomsheet: (context) => SetDateBottomsheet(),
+    setDateBottomsheet: (context) => _protected(SetDateBottomsheet()),
 
-    setDateBottomsheetTwo: (context) => SetDateBottomsheetTwo(),
+    setDateBottomsheetTwo: (context) => _protected(SetDateBottomsheetTwo()),
 
-    homeDeliveryRequestScreen: (context) => HomeDeliveryRequestScreen(),
+    homeDeliveryRequestScreen: (context) =>
+        _protected(HomeDeliveryRequestScreen()),
 
-    deliveryTaskOneBottomsheet: (context) => DeliveryTaskOneBottomsheet(),
+    deliveryTaskOneBottomsheet: (context) =>
+        _protected(DeliveryTaskOneBottomsheet()),
 
-    rideSharingTaskBottomsheetOne: (context) => RideSharingTaskBottomsheetOne(),
+    rideSharingTaskBottomsheetOne: (context) =>
+        _protected(RideSharingTaskBottomsheetOne()),
 
-    deliveryRatingScreenOne: (context) => DeliveryRatingScreenOne(),
+    deliveryRatingScreenOne: (context) => _protected(DeliveryRatingScreenOne()),
 
-    deliveryRatingScreenTwo: (context) => DeliveryRatingScreenTwo(),
+    deliveryRatingScreenTwo: (context) => _protected(DeliveryRatingScreenTwo()),
 
-    rideCancelScreenOne: (context) => RideCancelScreenOne(),
+    rideCancelScreenOne: (context) => _protected(RideCancelScreenOne()),
 
-    hireMoverScreen: (context) => HireMoverScreen(),
+    hireMoverScreen: (context) => _protected(HireMoverScreen()),
 
-    hireMoverScreenOne: (context) => HireMoverScreenOne(),
+    hireMoverScreenOne: (context) => _protected(HireMoverScreenOne()),
 
-    noMoverScreen: (context) => NoMoverScreen(),
+    noMoverScreen: (context) => _protected(NoMoverScreen()),
 
-    paymentBottomsheet: (context) => PaymentBottomsheet(),
+    paymentBottomsheet: (context) => _protected(PaymentBottomsheet()),
 
-    searchMoverBottomsheet: (context) => SearchMoverBottomsheet(),
+    searchMoverBottomsheet: (context) => _protected(SearchMoverBottomsheet()),
 
-    rideSharingPickupOne: (context) => RideSharingPickupOne(),
+    rideSharingPickupOne: (context) => _protected(RideSharingPickupOne()),
 
-    rideSharingPickupTwo: (context) => RideSharingPickupTwo(),
+    rideSharingPickupTwo: (context) => _protected(RideSharingPickupTwo()),
 
-    deliveryDetailsScreen: (context) => DeliveryDetailsScreen(),
+    deliveryDetailsScreen: (context) => _protected(DeliveryDetailsScreen()),
 
-    deliveryPickupScreenOne: (context) => DeliveryPickupScreenOne(),
+    deliveryPickupScreenOne: (context) => _protected(DeliveryPickupScreenOne()),
 
-    userMoveScreen: (context) => UserMoveScreen(),
+    userMoveScreen: (context) => _protected(UserMoveScreen()),
 
-    userDeliveryBottomsheetOne: (context) => UserDeliveryBottomsheetOne(),
+    userDeliveryBottomsheetOne: (context) =>
+        _protected(UserDeliveryBottomsheetOne()),
 
-    userDeliveryBottomsheetTwo: (context) => UserDeliveryBottomsheetTwo(),
+    userDeliveryBottomsheetTwo: (context) =>
+        _protected(UserDeliveryBottomsheetTwo()),
 
-    deliveryScreen: (context) => DeliveryScreen(),
+    deliveryScreen: (context) => _protected(DeliveryScreen()),
 
-    shareRideScreen: (context) => ShareRideScreen(),
+    shareRideScreen: (context) => _protected(ShareRideScreen()),
 
-    shareRideScreenOne: (context) => ShareRideScreenOne(),
+    shareRideScreenOne: (context) => _protected(ShareRideScreenOne()),
 
-    shareRidePayment: (context) => ShareRidePayment(),
+    shareRidePayment: (context) => _protected(ShareRidePayment()),
 
-    depositScreen: (context) => DepositScreen(),
+    depositScreen: (context) => _protected(DepositScreen()),
 
-    depositBottomsheet: (context) => DepositBottomsheet(),
+    depositBottomsheet: (context) => _protected(DepositBottomsheet()),
 
-    depositScreenTwo: (context) => DepositScreenTwo(
-      amount: '',
-      email: '',
-      reference: '',
-      onSuccessfulTransaction: (Object? result) {},
-      onFailedTransaction: (Object? error) {},
-    ),
+    depositScreenTwo: (context) => _protected(
+          DepositScreenTwo(
+            amount: '',
+            email: '',
+            reference: '',
+            onSuccessfulTransaction: (Object? result) {},
+            onFailedTransaction: (Object? error) {},
+          ),
+        ),
 
-    profileScreen: (context) => ProfileScreen(),
+    profileScreen: (context) => _protected(ProfileScreen()),
 
-    transactionHistoryScreen: (context) => TransactionHistoryScreen(),
+    transactionHistoryScreen: (context) =>
+        _protected(TransactionHistoryScreen()),
 
-    accountFundedScreen: (context) => AccountFundedScreen(),
+    accountFundedScreen: (context) => _protected(AccountFundedScreen()),
 
-    activityInProgressPage: (context) => ActivityInProgressPage(),
+    activityInProgressPage: (context) => _protected(ActivityInProgressPage()),
 
-    scheduleTripBottomsheet: (context) => ScheduleTripBottomsheet(),
+    scheduleTripBottomsheet: (context) => _protected(ScheduleTripBottomsheet()),
 
-    referFriendsScren: (context) => ReferFriendsScreen(),
+    referFriendsScren: (context) => _protected(ReferFriendsScreen()),
 
-    saveYourRouteDialog: (context) => SaveYourRouteDialog(),
+    saveYourRouteDialog: (context) => _protected(SaveYourRouteDialog()),
 
-    scanScreen: (context) => ScanScreen(),
+    scanScreen: (context) => _protected(ScanScreen()),
 
-    deliveryPickupScreenTwo: (context) => DeliveryPickupScreenTwo(),
+    deliveryPickupScreenTwo: (context) => _protected(DeliveryPickupScreenTwo()),
 
-    scanScreenOne: (context) => ScanScreenOne(),
+    scanScreenOne: (context) => _protected(ScanScreenOne()),
 
-    notificationScreen: (context) => NotificationScreen(),
+    notificationScreen: (context) => _protected(NotificationScreen()),
 
-    scheduleMoveBottomsheet: (context) => ScheduleMoveBottomsheet(),
+    scheduleMoveBottomsheet: (context) => _protected(ScheduleMoveBottomsheet()),
 
-    taskChatScreen: (context) => const TaskChatScreen(),
+    taskChatScreen: (context) => _protected(const TaskChatScreen()),
   };
 
   /// Handle routes with parameters
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     final args = settings.arguments as Map<String, dynamic>?;
-    
+
     switch (settings.name) {
       case paystackPaymentScreen:
         return MaterialPageRoute(
-          builder: (context) => PaystackPaymentScreen(
-            amount: args?['amount'] ?? '',
-            email: args?['email'] ?? '',
-            reference: args?['reference'] ?? '',
+          builder: (context) => _protected(
+            PaystackPaymentScreen(
+              amount: args?['amount'] ?? '',
+              email: args?['email'] ?? '',
+              reference: args?['reference'] ?? '',
+            ),
           ),
         );
       case monnifyPaymentScreen:
         return MaterialPageRoute(
-          builder: (context) => MonnifyPaymentScreen(
-            amount: args?['amount'] ?? '',
-            email: args?['email'] ?? '',
-            reference: args?['reference'] ?? '',
+          builder: (context) => _protected(
+            MonnifyPaymentScreen(
+              amount: args?['amount'] ?? '',
+              email: args?['email'] ?? '',
+              reference: args?['reference'] ?? '',
+            ),
           ),
         );
       case resetPasswordScreen:
         final resetToken = args?['resetToken'] as String?;
+        final resetUid = args?['resetUid'] as String?;
         return MaterialPageRoute(
-          builder: (context) => ResetPasswordScreen(resetToken: resetToken),
+          builder: (context) => ResetPasswordScreen(
+            resetUid: resetUid,
+            resetToken: resetToken,
+          ),
         );
       default:
         return null;
     }
   }
 
-  /// Handle deep links (e.g., movr://reset-password?token=xyz)
+  /// Handle deep links (e.g., movr://reset-password?uid=abc&token=xyz)
   static Route<dynamic>? onDeepLinkRoute(String? deepLink) {
     if (deepLink == null || deepLink.isEmpty) {
       return null;
     }
 
     final uri = Uri.parse(deepLink);
-    
-    // Handle password reset deep link: movr://reset-password?token=xyz
+
+    // Handle password reset deep link: movr://reset-password?uid=abc&token=xyz
     if (uri.scheme == 'movr' && uri.host == 'reset-password') {
       final token = uri.queryParameters['token'];
-      if (token != null && token.isNotEmpty) {
+      final uid = uri.queryParameters['uid'];
+      if (token != null && token.isNotEmpty && uid != null && uid.isNotEmpty) {
         return MaterialPageRoute(
-          builder: (context) => ResetPasswordScreen(resetToken: token),
+          builder: (context) => ResetPasswordScreen(
+            resetUid: uid,
+            resetToken: token,
+          ),
         );
       }
     }

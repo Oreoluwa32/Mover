@@ -22,7 +22,6 @@ import '../notification_screen/notifier/notification_notifier.dart';
 import '../search_mover_bottomsheet/search_mover_bottomsheet.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/custom_icon_button.dart';
-import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/custom_switch.dart';
 import 'notifier/home_notifier.dart';
 
@@ -54,6 +53,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
   late Completer<GoogleNavigationViewController> googleMapController;
   late Completer<GoogleNavigationViewController> googleMapController1;
+  GoogleNavigationViewController? _navigationViewController;
 
   static const googleMapsApiKey = Constants.googleMapsApiKey;
 
@@ -176,9 +176,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         bitmap: data,
         width: 40, // Set logical width for custom marker
       );
-      setState(() {
-        customMarkerIcon = icon;
-      });
+      customMarkerIcon = icon;
     } catch (e) {
       // Error loading custom marker from asset
     }
@@ -193,12 +191,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
           width:
               60, // Set logical width for beam marker (larger to accommodate the cone)
         );
-        setState(() {
-          customMarkerIcon = icon;
-        });
+        customMarkerIcon = icon;
 
         // Update markers immediately if map is ready
-        if (googleMapController.isCompleted) {
+        if (_navigationViewController != null) {
+          _updateMarkers(_navigationViewController!);
+        } else if (googleMapController.isCompleted) {
           final controller = await googleMapController.future;
           _updateMarkers(controller);
         }
@@ -258,7 +256,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   Widget build(BuildContext context) {
     ref.listen(themeNotifier.select((state) => state.themeType),
         (previous, next) {
-      if (googleMapController.isCompleted) {
+      final controller = _navigationViewController;
+      if (controller != null) {
+        _applyNavigationMapTheme(controller, next);
+      } else if (googleMapController.isCompleted) {
         googleMapController.future.then((controller) {
           _applyNavigationMapTheme(controller, next);
         });
@@ -463,7 +464,18 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       builder: (context, ref, _) {
         final themeType =
             ref.watch(themeNotifier.select((state) => state.themeType));
-        final homeState = ref.watch(homeNotifier);
+        final highlightRoute =
+            ref.watch(homeNotifier.select((state) => state.highlightRoute));
+        final routeLocationLat =
+            ref.watch(homeNotifier.select((state) => state.routeLocationLat));
+        final routeLocationLng =
+            ref.watch(homeNotifier.select((state) => state.routeLocationLng));
+        final routeDestinationLat = ref.watch(
+          homeNotifier.select((state) => state.routeDestinationLat),
+        );
+        final routeDestinationLng = ref.watch(
+          homeNotifier.select((state) => state.routeDestinationLng),
+        );
 
         return GoogleMapsNavigationView(
           initialMapColorScheme: ThemeHelper.isDarkThemeType(themeType)
@@ -478,24 +490,24 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
             zoom: 18.0,
           ),
           onViewCreated: (GoogleNavigationViewController controller) {
+            _navigationViewController = controller;
             if (!googleMapController.isCompleted) {
               googleMapController.complete(controller);
             }
             _applyNavigationMapTheme(controller, themeType);
             _updateMarkers(controller);
 
-            if (homeState.highlightRoute &&
-                homeState.routeLocationLat != null &&
-                homeState.routeLocationLng != null &&
-                homeState.routeDestinationLat != null &&
-                homeState.routeDestinationLng != null) {
+            if (highlightRoute &&
+                routeLocationLat != null &&
+                routeLocationLng != null &&
+                routeDestinationLat != null &&
+                routeDestinationLng != null) {
               _loadAndDisplayRoute(
+                LatLng(latitude: routeLocationLat, longitude: routeLocationLng),
                 LatLng(
-                    latitude: homeState.routeLocationLat!,
-                    longitude: homeState.routeLocationLng!),
-                LatLng(
-                    latitude: homeState.routeDestinationLat!,
-                    longitude: homeState.routeDestinationLng!),
+                  latitude: routeDestinationLat,
+                  longitude: routeDestinationLng,
+                ),
                 controller,
               );
             }
@@ -513,16 +525,14 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         destination: destination,
       );
 
-      setState(() {
-        polylineCoordinates = coordinates;
-        polylines = [
-          PolylineOptions(
-            points: coordinates,
-            strokeColor: theme.colorScheme.primary,
-            strokeWidth: 5,
-          )
-        ];
-      });
+      polylineCoordinates = coordinates;
+      polylines = [
+        PolylineOptions(
+          points: coordinates,
+          strokeColor: theme.colorScheme.primary,
+          strokeWidth: 5,
+        )
+      ];
 
       controller.addPolylines(polylines);
       _updateMarkers(controller);
@@ -561,7 +571,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
   Future<void> cameraToPosition(LatLng position) async {
     final GoogleNavigationViewController controller =
-        await googleMapController.future;
+        _navigationViewController ?? await googleMapController.future;
     final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
 
     controller.animateCamera(
@@ -663,7 +673,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                 _targetHeading = _normalizeHeading(newHeading);
               });
 
-              if (googleMapController.isCompleted) {
+              final controller = _navigationViewController;
+              if (controller != null) {
+                _updateMarkers(controller);
+              } else if (googleMapController.isCompleted) {
                 googleMapController.future.then((controller) {
                   _updateMarkers(controller);
                 });
@@ -742,10 +755,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
       _motionTickCount++;
 
-      if (googleMapController.isCompleted) {
-        googleMapController.future.then((controller) {
-          _updateMarkers(controller);
-        });
+      final controller = _navigationViewController;
+      if (controller != null) {
+        _updateMarkers(controller);
       }
 
       final shouldFollowMap = ref.read(homeNotifier).isNavigationActive;
@@ -767,9 +779,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
     if (latDiff.abs() < 0.000001 && lngDiff.abs() < 0.000001) {
       if (currentPosition != _targetPosition) {
-        setState(() {
-          currentPosition = _targetPosition;
-        });
+        currentPosition = _targetPosition;
       }
       return false;
     }
@@ -779,9 +789,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       longitude: currentPosition!.longitude + (lngDiff * 0.28),
     );
 
-    setState(() {
-      currentPosition = nextPosition;
-    });
+    currentPosition = nextPosition;
     return true;
   }
 
@@ -793,16 +801,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     final delta = _angleDifference(userHeading, _targetHeading!);
     if (delta.abs() < 0.6) {
       if (userHeading != _targetHeading) {
-        setState(() {
-          userHeading = _targetHeading!;
-        });
+        userHeading = _targetHeading!;
       }
       return false;
     }
 
-    setState(() {
-      userHeading = _normalizeHeading(userHeading + (delta * 0.22));
-    });
+    userHeading = _normalizeHeading(userHeading + (delta * 0.22));
     return true;
   }
 
@@ -960,24 +964,28 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
     // If we found a point and it's not the first one, trim the polyline
     if (closestIndex != -1 && closestIndex > 0) {
-      setState(() {
-        // Keep points from closestIndex onwards
-        polylineCoordinates = polylineCoordinates.sublist(closestIndex);
+      // Keep points from closestIndex onwards
+      polylineCoordinates = polylineCoordinates.sublist(closestIndex);
 
-        // Update the polyline on the map
-        polylines = [
-          PolylineOptions(
-            points: polylineCoordinates,
-            strokeColor: theme.colorScheme.primary,
-            strokeWidth: 5,
-          )
-        ];
-      });
+      // Update the polyline on the map
+      polylines = [
+        PolylineOptions(
+          points: polylineCoordinates,
+          strokeColor: theme.colorScheme.primary,
+          strokeWidth: 5,
+        )
+      ];
 
-      googleMapController.future.then((controller) {
+      final controller = _navigationViewController;
+      if (controller != null) {
         controller.clearPolylines();
         controller.addPolylines(polylines);
-      });
+      } else {
+        googleMapController.future.then((controller) {
+          controller.clearPolylines();
+          controller.addPolylines(polylines);
+        });
+      }
     }
   }
 
@@ -1514,37 +1522,6 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
           color: theme.colorScheme.primary.withValues(alpha: safeOpacity),
           width: 2.h,
         ),
-      ),
-    );
-  }
-
-  // Bottom navigation bar using CustomBottomBar
-  Widget _buildBottomNavigation(BuildContext context) {
-    return Positioned(
-      bottom: 20.h,
-      left: 0,
-      right: 0,
-      child: CustomBottomBar(
-        onChanged: (BottomBarEnum type) {
-          // Handle navigation changes here
-          switch (type) {
-            case BottomBarEnum.Home:
-              // Already on home page
-              break;
-            case BottomBarEnum.Route:
-              // Navigate to route page
-              break;
-            case BottomBarEnum.Move:
-              // Handle move action
-              break;
-            case BottomBarEnum.Activity:
-              // Navigate to activity page
-              break;
-            case BottomBarEnum.Profile:
-              // Navigate to profile page
-              break;
-          }
-        },
       ),
     );
   }
@@ -2336,7 +2313,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     if (cancelled == true && mounted) {
       ref.read(homeNotifier.notifier).clearRouteHighlight();
       await ref.read(homeNotifier.notifier).loadPendingTask();
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
