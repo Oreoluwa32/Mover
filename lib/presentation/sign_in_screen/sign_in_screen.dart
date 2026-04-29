@@ -12,7 +12,6 @@ import '../../widgets/custom_outlined_button.dart';
 import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/loading_dialog.dart';
 import '../../services/device_memory_service.dart';
-import '../profile_screen/notifier/profile_screen_notifier.dart';
 import 'notifier/sign_in_notifier.dart';
 
 // Secure storage instance
@@ -72,6 +71,21 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
   } catch (e) {
     if (context.mounted) {
       LoadingDialog.hide(context);
+    }
+    if (authApiService.isEmailVerificationRequiredError(e)) {
+      Fluttertoast.showToast(
+        msg: authApiService.extractErrorMessage(e),
+      );
+      if (context.mounted) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.checkMailScreen,
+          arguments: {
+            'email': authApiService.extractVerificationEmail(e) ?? email.trim(),
+          },
+        );
+      }
+      return;
     }
     Fluttertoast.showToast(
       msg: authApiService.extractErrorMessage(e),

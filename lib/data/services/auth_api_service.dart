@@ -60,6 +60,32 @@ class AuthApiService {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
+  Future<Map<String, dynamic>> requestEmailVerification({
+    required String email,
+  }) async {
+    final response = await _dio.post(
+      '/api/auth/email-verification/request/',
+      data: {
+        'email': email.trim(),
+      },
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Map<String, dynamic>> confirmEmailVerification({
+    required String email,
+    required String code,
+  }) async {
+    final response = await _dio.post(
+      '/api/auth/email-verification/confirm/',
+      data: {
+        'email': email.trim(),
+        'code': code.trim(),
+      },
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
   Future<Map<String, dynamic>> requestPasswordReset({
     required String email,
   }) async {
@@ -120,8 +146,8 @@ class AuthApiService {
 
   String extractErrorMessage(Object error) {
     if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
+      final data = extractErrorData(error);
+      if (data != null) {
         final detail = data['detail']?.toString();
         if (detail != null && detail.isNotEmpty) {
           return detail;
@@ -143,5 +169,30 @@ class AuthApiService {
       return error.message ?? 'Request failed.';
     }
     return error.toString();
+  }
+
+  Map<String, dynamic>? extractErrorData(Object error) {
+    if (error is DioException && error.response?.data is Map) {
+      return Map<String, dynamic>.from(error.response!.data as Map);
+    }
+    return null;
+  }
+
+  bool isEmailVerificationRequiredError(Object error) {
+    final data = extractErrorData(error);
+    if (data == null) {
+      return false;
+    }
+    return data['code'] == 'email_verification_required' ||
+        data['email_verification_required'] == true;
+  }
+
+  String? extractVerificationEmail(Object error) {
+    final data = extractErrorData(error);
+    final email = data?['email']?.toString();
+    if (email == null || email.isEmpty) {
+      return null;
+    }
+    return email;
   }
 }

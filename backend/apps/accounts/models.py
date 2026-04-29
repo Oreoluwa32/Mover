@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -119,3 +120,29 @@ class KycRecord(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.email} - {self.status}"
+
+
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="email_verification_codes",
+    )
+    code = models.CharField(max_length=6)
+    expires_at = models.DateTimeField()
+    consumed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() >= self.expires_at
+
+    @property
+    def is_active(self) -> bool:
+        return self.consumed_at is None and not self.is_expired
+
+    def __str__(self) -> str:
+        return f"{self.user.email} verification code"

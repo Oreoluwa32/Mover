@@ -66,13 +66,35 @@ Future<void> registerUser(
       password: password,
     );
 
-    await authApiService.persistSession(response);
-    await accountApiService.hydrateSessionFromMe();
-
     // Hide loading dialog
     if (context.mounted) {
       LoadingDialog.hide(context);
     }
+
+    final requiresVerification =
+        response['email_verification_required'] == true;
+    final verificationEmail =
+        response['email']?.toString().trim().isNotEmpty == true
+            ? response['email'].toString().trim()
+            : email.trim();
+
+    if (requiresVerification) {
+      Fluttertoast.showToast(
+        msg: response['detail']?.toString() ??
+            "We sent a verification code to your email.",
+      );
+      if (context.mounted) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.checkMailScreen,
+          arguments: {'email': verificationEmail},
+        );
+      }
+      return;
+    }
+
+    await authApiService.persistSession(response);
+    await accountApiService.hydrateSessionFromMe();
 
     final deviceMemory = DeviceMemoryService();
     await deviceMemory.rememberDevice(userEmail: email);
@@ -88,6 +110,18 @@ Future<void> registerUser(
     }
     final errorMessage = authApiService.extractErrorMessage(e);
     Fluttertoast.showToast(msg: errorMessage);
+    if (authApiService.isEmailVerificationRequiredError(e)) {
+      if (context.mounted) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.checkMailScreen,
+          arguments: {
+            'email': authApiService.extractVerificationEmail(e) ?? email.trim(),
+          },
+        );
+      }
+      return;
+    }
     if (errorMessage.toLowerCase().contains('already')) {
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(

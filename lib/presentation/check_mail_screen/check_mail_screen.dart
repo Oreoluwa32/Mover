@@ -1,18 +1,17 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/presentation/check_mail_screen/notifier/check_mail_notifier.dart';
-import 'package:movr/theme/custom_button_style.dart';
+import '../../data/services/auth_api_service.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_pin_code_text_field.dart';
+import '../../widgets/loading_dialog.dart';
 
   // Function to verify OTP with backend
   Future<void> verifyOtp(BuildContext context, CheckMailNotifier checkMailNotifier, String email) async {
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/verify-otp/'); // API endpoint
     final otpCode = checkMailNotifier.state.otpController?.text.trim();
+    final authApiService = AuthApiService();
 
     if (otpCode == null || otpCode.isEmpty) {
       Fluttertoast.showToast(msg: "Please enter the OTP code");
@@ -20,50 +19,30 @@ import '../../widgets/custom_pin_code_text_field.dart';
     }
 
     try {
-      // Send POST request with email and OTP
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "email": email.trim(),
-          "code": otpCode,
-        }),
+      LoadingDialog.show(context, message: 'Verifying email...');
+      final response = await authApiService.confirmEmailVerification(
+        email: email.trim(),
+        code: otpCode,
       );
-
-      // Handle response
-      if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-          msg: "Email verified successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: appTheme.green50,
-          textColor: Colors.white,
-        );
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      Fluttertoast.showToast(
+        msg: response['detail']?.toString() ?? "Email verified successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: appTheme.green50,
+        textColor: Colors.white,
+      );
+      if (context.mounted) {
         Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
-      } else {
-        try {
-          final errorData = json.decode(response.body);
-          final errorMessage = errorData['error'] ?? errorData['detail'] ?? errorData['message'] ?? 'OTP verification failed';
-          Fluttertoast.showToast(
-            msg: errorMessage,
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: appTheme.red50,
-            textColor: Colors.white,
-          );
-        } catch (e) {
-          Fluttertoast.showToast(
-            msg: "OTP verification failed: ${response.body}",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: appTheme.red50,
-            textColor: Colors.white,
-          );
-        }
       }
     } catch (e) {
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
       Fluttertoast.showToast(
-        msg: "An error occurred. Please try again.",
+        msg: authApiService.extractErrorMessage(e),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.red50,
@@ -74,51 +53,26 @@ import '../../widgets/custom_pin_code_text_field.dart';
 
   // Function to resend OTP
   Future<void> resendOtp(BuildContext context, String email, {bool showLoadingToast = true}) async {
-    final url = Uri.parse('https://demosystem.pythonanywhere.com/resend-otp/'); // Resend OTP endpoint
+    final authApiService = AuthApiService();
 
     try {
       if (showLoadingToast) {
         Fluttertoast.showToast(msg: "Sending OTP to your email...");
       }
 
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"email": email.trim()}),
+      final response = await authApiService.requestEmailVerification(
+        email: email.trim(),
       );
-
-      if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-          msg: "OTP sent to your email",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: appTheme.green50,
-          textColor: Colors.white,
-        );
-      } else {
-        try {
-          final errorData = json.decode(response.body);
-          final errorMessage = errorData['error'] ?? errorData['detail'] ?? errorData['message'] ?? 'Failed to resend OTP';
-          Fluttertoast.showToast(
-            msg: errorMessage,
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: appTheme.red50,
-            textColor: Colors.white,
-          );
-        } catch (e) {
-          Fluttertoast.showToast(
-            msg: "Failed to resend OTP: ${response.statusCode}",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: appTheme.red50,
-            textColor: Colors.white,
-          );
-        }
-      }
+      Fluttertoast.showToast(
+        msg: response['detail']?.toString() ?? "Verification code sent to your email",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: appTheme.green50,
+        textColor: Colors.white,
+      );
     } catch (e) {
       Fluttertoast.showToast(
-        msg: "Error sending OTP. Check your connection.",
+        msg: authApiService.extractErrorMessage(e),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.red50,

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db import transaction
+from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import permissions, response, status, viewsets
@@ -9,14 +14,19 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .emailing import (
+    EmailVerificationError,
     PasswordResetEmailError,
     build_password_reset_url,
+    generate_email_verification_code,
+    send_email_verification_email,
     send_password_reset_email,
 )
-from .models import KycRecord, UserProfile, Vehicle
+from .models import EmailVerificationCode, KycRecord, UserProfile, Vehicle
 from .serializers import (
     AccountProfileSerializer,
     AccountOverviewSerializer,
+    EmailVerificationConfirmSerializer,
+    EmailVerificationRequestSerializer,
     ForgotPasswordSerializer,
     KycRecordSerializer,
     LoginSerializer,
@@ -30,22 +40,85 @@ from .serializers import (
 User = get_user_model()
 
 
+def _email_verification_required_response(email: str) -> response.Response:
+    return response.Response(
+        {
+            "detail": "Verify your email to continue.",
+            "code": "email_verification_required",
+            "email_verification_required": True,
+            "email": email,
+        },
+        status=status.HTTP_403_FORBIDDEN,
+    )
+
+
+def _dispatch_email_verification(user: User) -> None:
+    ttl_minutes = max(
+        1,
+        int(getattr(settings, "MOVR_EMAIL_VERIFICATION_CODE_TTL_MINUTES", 15)),
+    )
+    verification_code = generate_email_verification_code()
+    with transaction.atomic():
+        user.email_verification_codes.filter(consumed_at__isnull=True).delete()
+        EmailVerificationCode.objects.create(
+            user=user,
+            code=verification_code,
+            expires_at=timezone.now() + timedelta(minutes=ttl_minutes),
+        )
+
+    recipient_name = user.get_full_name() or user.email
+    send_email_verification_email(
+        to_email=user.email,
+        recipient_name=recipient_name,
+        verification_code=verification_code,
+    )
+
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        email = (request.data.get("email") or "").strip()
+        existing_user = User.objects.filter(email__iexact=email).first() if email else None
+        if existing_user:
+            if existing_user.is_email_verified:
+                return response.Response(
+                    {"detail": "An account with this email already exists."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                _dispatch_email_verification(existing_user)
+            except EmailVerificationError as exc:
+                return response.Response(
+                    {"detail": str(exc)},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            return response.Response(
+                {
+                    "detail": "Your email is not verified yet. We sent a new verification code.",
+                    "email_verification_required": True,
+                    "email": existing_user.email,
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
+
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         UserProfile.objects.get_or_create(user=user)
-        login_data = LoginSerializer(
-            data={"email": user.email, "password": request.data.get("password")}
-        )
-        login_data.is_valid(raise_exception=True)
+        try:
+            _dispatch_email_verification(user)
+        except EmailVerificationError as exc:
+            user.delete()
+            return response.Response(
+                {"detail": str(exc)},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         return response.Response(
             {
-                "user": UserSerializer(user).data,
-                "tokens": login_data.validated_data["tokens"],
+                "detail": "Account created. Verify your email to continue.",
+                "email_verification_required": True,
+                "email": user.email,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -55,6 +128,19 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        email = (request.data.get("email") or "").strip()
+        password = request.data.get("password") or ""
+        user = User.objects.filter(email__iexact=email).first() if email else None
+        if user and user.check_password(password) and user.is_active and not user.is_email_verified:
+            try:
+                _dispatch_email_verification(user)
+            except EmailVerificationError as exc:
+                return response.Response(
+                    {"detail": str(exc)},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            return _email_verification_required_response(user.email)
+
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return response.Response(
@@ -98,6 +184,66 @@ class ForgotPasswordView(APIView):
                 )
             }
         )
+
+
+class EmailVerificationRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = EmailVerificationRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+
+        if user and not user.is_email_verified:
+            try:
+                _dispatch_email_verification(user)
+            except EmailVerificationError as exc:
+                return response.Response(
+                    {"detail": str(exc)},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+
+        return response.Response(
+            {
+                "detail": (
+                    "If an account exists and still needs verification, a code has been sent."
+                )
+            }
+        )
+
+
+class EmailVerificationConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = EmailVerificationConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"].strip()
+
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if not user:
+            return response.Response(
+                {"detail": "Invalid or expired verification code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if user.is_email_verified:
+            return response.Response({"detail": "Email already verified."})
+
+        verification = user.email_verification_codes.filter(consumed_at__isnull=True).first()
+        if not verification or verification.is_expired or verification.code != code:
+            return response.Response(
+                {"detail": "Invalid or expired verification code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        verification.consumed_at = timezone.now()
+        verification.save(update_fields=["consumed_at"])
+        user.is_email_verified = True
+        user.save(update_fields=["is_email_verified", "updated_at"])
+        return response.Response({"detail": "Email verified successfully."})
 
 
 class ResetPasswordConfirmView(APIView):

@@ -9,7 +9,8 @@ User = get_user_model()
 
 
 class AuthenticationTests(APITestCase):
-    def test_register_and_login(self):
+    @patch("apps.accounts.views.send_email_verification_email")
+    def test_register_requires_email_verification_before_login(self, mock_send_email_verification_email):
         register_response = self.client.post(
             "/api/auth/register/",
             {
@@ -22,7 +23,41 @@ class AuthenticationTests(APITestCase):
             format="json",
         )
         self.assertEqual(register_response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("tokens", register_response.data)
+        self.assertTrue(register_response.data["email_verification_required"])
+        mock_send_email_verification_email.assert_called_once()
+
+        login_response = self.client.post(
+            "/api/auth/login/",
+            {
+                "email": "tester@movr.app",
+                "password": "StrongPass123",
+            },
+            format="json",
+        )
+        self.assertEqual(login_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(login_response.data["code"], "email_verification_required")
+
+    @patch("apps.accounts.views.send_email_verification_email")
+    def test_verify_email_then_login(self, mock_send_email_verification_email):
+        user = User.objects.create_user(
+            email="tester@movr.app",
+            password="StrongPass123",
+        )
+        verification_request = self.client.post(
+            "/api/auth/email-verification/request/",
+            {"email": user.email},
+            format="json",
+        )
+        self.assertEqual(verification_request.status_code, status.HTTP_200_OK)
+        verification = user.email_verification_codes.first()
+        self.assertIsNotNone(verification)
+
+        verify_response = self.client.post(
+            "/api/auth/email-verification/confirm/",
+            {"email": user.email, "code": verification.code},
+            format="json",
+        )
+        self.assertEqual(verify_response.status_code, status.HTTP_200_OK)
 
         login_response = self.client.post(
             "/api/auth/login/",
