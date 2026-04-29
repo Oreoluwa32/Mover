@@ -8,6 +8,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql=(
+                "UPDATE accounts_emailverificationcode "
+                "SET code = RIGHT(code, 4) "
+                "WHERE LENGTH(code) > 4;"
+            ),
+            reverse_sql=migrations.RunSQL.noop,
+        ),
         migrations.AlterField(
             model_name="emailverificationcode",
             name="code",
