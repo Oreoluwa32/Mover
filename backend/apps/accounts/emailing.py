@@ -71,6 +71,7 @@ def _send_resend_email(
         headers={
             "Authorization": f"Bearer {settings.RESEND_API_KEY}",
             "Content-Type": "application/json",
+            "User-Agent": "movr-backend/1.0",
         },
         method="POST",
     )
