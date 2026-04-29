@@ -9,6 +9,7 @@ class CustomPinCodeTextField extends StatelessWidget{
     {Key? key,
     required this.context,
     required this.onChanged,
+    this.length = 4,
     this.alignment,
     this.controller,
     this.textStyle,
@@ -21,6 +22,7 @@ class CustomPinCodeTextField extends StatelessWidget{
   final TextEditingController? controller;
   final TextStyle? textStyle;
   final TextStyle? hintStyle;
+  final int length;
 
   Function(String) onChanged;
 
@@ -38,7 +40,7 @@ class CustomPinCodeTextField extends StatelessWidget{
   Widget get pinCodeTextFieldWidget => PinCodeTextField(
     appContext: context,
     controller: controller,
-    length: 4,
+    length: length,
     keyboardType: TextInputType.number,
     textStyle: textStyle ?? theme.textTheme.displayMedium,
     hintStyle: hintStyle ?? theme.textTheme.displayMedium,
@@ -46,7 +48,7 @@ class CustomPinCodeTextField extends StatelessWidget{
     enableActiveFill: true,
     pinTheme: PinTheme(
       fieldHeight: 64.h,
-      fieldWidth: 64.h,
+      fieldWidth: length > 4 ? 48.h : 64.h,
       shape: PinCodeFieldShape.box,
       borderRadius: BorderRadius.circular(8.h),
       inactiveColor: appTheme.gray400,

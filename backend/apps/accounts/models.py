@@ -128,7 +128,7 @@ class EmailVerificationCode(models.Model):
         on_delete=models.CASCADE,
         related_name="email_verification_codes",
     )
-    code = models.CharField(max_length=6)
+    code = models.CharField(max_length=4)
     expires_at = models.DateTimeField()
     consumed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
