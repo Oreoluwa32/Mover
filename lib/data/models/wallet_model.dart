@@ -106,6 +106,11 @@ class WalletTransaction {
   final String? type;
   final String? amount;
   final String? status;
+  final String? reference;
+  final String? description;
+  final String? relatedType;
+  final String? gateway;
+  final String? createdAt;
   final String? date;
   final String? time;
 
@@ -114,20 +119,32 @@ class WalletTransaction {
     this.type,
     this.amount,
     this.status,
+    this.reference,
+    this.description,
+    this.relatedType,
+    this.gateway,
+    this.createdAt,
     this.date,
     this.time,
   });
 
   factory WalletTransaction.fromJson(Map<String, dynamic> json) {
-    // Basic mapping, might need adjustment based on actual API response format
+    final createdAt = json['created_at']?.toString();
     return WalletTransaction(
       id: json['id']?.toString(),
       type: json['transaction_type'] ?? json['type'] ?? 'Transaction',
       amount: json['amount']?.toString(),
       status: json['status'],
-      date: json['date'] ?? json['created_at']?.toString().split('T').first,
+      reference: json['reference']?.toString(),
+      description: json['description']?.toString(),
+      relatedType: json['related_type']?.toString(),
+      gateway: json['gateway']?.toString(),
+      createdAt: createdAt,
+      date: json['date'] ?? createdAt?.split('T').first,
       time: json['time'] ??
-          json['created_at']?.toString().split('T').last.substring(0, 5),
+          (createdAt != null && createdAt.contains('T')
+              ? createdAt.split('T').last.substring(0, 5)
+              : null),
     );
   }
 }

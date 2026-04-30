@@ -135,3 +135,20 @@ def get_reserved_account(account_reference: str) -> dict[str, Any]:
         f"api/v2/bank-transfer/reserved-accounts/{account_reference}",
         token=token,
     )
+
+
+def get_reserved_account_transactions(
+    account_reference: str,
+    *,
+    page: int = 0,
+    size: int = 20,
+) -> dict[str, Any]:
+    token = get_access_token()
+    return _monnify_request(
+        "GET",
+        (
+            "api/v1/bank-transfer/reserved-accounts/transactions"
+            f"?accountReference={account_reference}&page={page}&size={size}"
+        ),
+        token=token,
+    )

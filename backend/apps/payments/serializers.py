@@ -21,6 +21,7 @@ class WalletTransactionSerializer(serializers.ModelSerializer):
             "reference",
             "description",
             "related_type",
+            "gateway",
             "created_at",
             "date",
             "time",

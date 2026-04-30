@@ -17,7 +17,12 @@ from rest_framework.views import APIView
 from apps.accounts.models import KycRecord
 
 from .models import MonnifyReservedAccount, SavedBankAccount, Wallet, WalletTransaction
-from .monnify import get_reserved_account, reserve_account
+from .monnify import (
+    MonnifyServiceError,
+    get_reserved_account,
+    get_reserved_account_transactions,
+    reserve_account,
+)
 from .serializers import (
     MonnifyReservedAccountSerializer,
     PaymentInitializeSerializer,
@@ -126,6 +131,97 @@ def _ensure_reserved_account(wallet: Wallet) -> MonnifyReservedAccount:
     return _upsert_reserved_account(wallet, response_body)
 
 
+def _record_reserved_account_credit(
+    funding_account: MonnifyReservedAccount,
+    payload: dict,
+) -> tuple[WalletTransaction | None, bool]:
+    product = payload.get("product") or {}
+    account_reference = (
+        payload.get("accountReference")
+        or product.get("reference")
+        or funding_account.account_reference
+    )
+    if account_reference != funding_account.account_reference:
+        return None, False
+
+    payment_status = str(
+        payload.get("paymentStatus") or payload.get("status") or ""
+    ).upper()
+    if payment_status not in {"PAID", "SUCCESS", "SUCCESSFUL"}:
+        return None, False
+
+    transaction_reference = (
+        payload.get("transactionReference")
+        or payload.get("paymentReference")
+        or payload.get("reference")
+    )
+    if not transaction_reference:
+        return None, False
+
+    amount = Decimal(
+        str(
+            payload.get("amountPaid")
+            or payload.get("amount")
+            or payload.get("totalPayable")
+            or "0"
+        )
+    )
+    if amount <= 0:
+        return None, False
+
+    transaction, created = WalletTransaction.objects.get_or_create(
+        reference=transaction_reference,
+        defaults={
+            "wallet": funding_account.wallet,
+            "transaction_type": WalletTransaction.Type.DEPOSIT,
+            "status": WalletTransaction.Status.PENDING,
+            "amount": amount,
+            "description": "Wallet funding via Monnify transfer",
+            "related_type": "wallet_top_up",
+            "gateway": "monnify_reserved_account",
+            "gateway_response": payload,
+            "customer_email": funding_account.customer_email,
+        },
+    )
+    if not created:
+        transaction.gateway_response = payload
+        transaction.save(update_fields=["gateway_response", "updated_at"])
+
+    became_successful = transaction.status != WalletTransaction.Status.SUCCESS
+    if became_successful:
+        transaction.mark_successful()
+
+    return transaction, became_successful
+
+
+def _sync_reserved_account_transactions(
+    funding_account: MonnifyReservedAccount,
+    *,
+    page: int = 0,
+    size: int = 20,
+) -> int:
+    try:
+        payload = get_reserved_account_transactions(
+            funding_account.account_reference,
+            page=page,
+            size=size,
+        )
+    except (MonnifyServiceError, ValidationError):
+        return 0
+
+    response_body = payload.get("responseBody") or {}
+    transactions = response_body.get("content") or []
+    processed = 0
+    for transaction_payload in transactions:
+        _, became_successful = _record_reserved_account_credit(
+            funding_account,
+            transaction_payload,
+        )
+        if became_successful:
+            processed += 1
+    return processed
+
+
 def _build_mock_checkout_url(request, reference: str) -> str:
     return request.build_absolute_uri(reverse("payment-checkout", kwargs={"reference": reference}))
 
@@ -154,6 +250,9 @@ def _legacy_verify_payload(transaction: WalletTransaction) -> dict:
 class WalletView(APIView):
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        funding_account = getattr(wallet, "monnify_account", None)
+        if funding_account and funding_account.account_reference:
+            _sync_reserved_account_transactions(funding_account)
         wallet_data = WalletSerializer(wallet).data
         wallet_data["transactions"] = WalletTransactionSerializer(wallet.transactions.order_by("-created_at")[:50], many=True).data
         return response.Response(wallet_data)
@@ -184,6 +283,8 @@ class FundingAccountView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+        if funding_account.account_reference:
+            _sync_reserved_account_transactions(funding_account)
         return response.Response(
             {
                 "status": True,
@@ -415,27 +516,7 @@ class MonnifyWebhookView(APIView):
         if not transaction_reference:
             return response.Response({"status": False, "message": "Transaction reference missing."}, status=status.HTTP_400_BAD_REQUEST)
 
-        amount = Decimal(str(event_data.get("amountPaid") or event_data.get("totalPayable") or "0"))
-        transaction, created = WalletTransaction.objects.get_or_create(
-            reference=transaction_reference,
-            defaults={
-                "wallet": funding_account.wallet,
-                "transaction_type": WalletTransaction.Type.DEPOSIT,
-                "status": WalletTransaction.Status.PENDING,
-                "amount": amount,
-                "description": "Wallet funding via Monnify transfer",
-                "related_type": "wallet_top_up",
-                "gateway": "monnify_reserved_account",
-                "gateway_response": payload,
-                "customer_email": funding_account.customer_email,
-            },
-        )
-        if not created:
-            transaction.gateway_response = payload
-            transaction.save(update_fields=["gateway_response", "updated_at"])
-
-        if transaction.status != WalletTransaction.Status.SUCCESS:
-            transaction.mark_successful()
+        _record_reserved_account_credit(funding_account, event_data)
 
         return response.Response({"status": True, "message": "Webhook processed."})
 

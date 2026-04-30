@@ -217,7 +217,7 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
                         child: TextButton(
                           onPressed: () => Navigator.of(sheetContext).pop(true),
                           child: Text(
-                            'Open task',
+                            _actionButtonLabel(model.actionType),
                             style: TextStyle(
                               fontSize: 16.fSize,
                               fontWeight: FontWeight.w600,
@@ -243,6 +243,12 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
     );
 
     switch (actionType) {
+      case 'wallet_history':
+        NavigatorService.pushNamed(
+          AppRoutes.transactionHistoryScreen,
+          arguments: args,
+        );
+        return;
       case 'hire_mover':
         NavigatorService.pushNamed(
           AppRoutes.hireMoverScreen,
@@ -294,6 +300,13 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
       default:
         return;
     }
+  }
+
+  String _actionButtonLabel(String? actionType) {
+    if ((actionType?.trim() ?? '') == 'wallet_history') {
+      return 'Open wallet';
+    }
+    return 'Open task';
   }
 
   // Navigate back to the previous screen

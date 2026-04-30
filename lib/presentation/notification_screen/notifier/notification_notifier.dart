@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 import '../../../core/app_export.dart';
-import '../../../core/utils/pref_utils.dart';
 import '../../../core/utils/task_state_sync.dart';
 import '../../../data/services/account_api_service.dart';
 import '../../../data/services/mobility_api_service.dart';
+import '../../../data/services/wallet_api_service.dart';
 import '../models/list_item_model.dart';
 import '../models/notification_model.dart';
 part 'notification_state.dart';
 
-final notificationNotifier = StateNotifierProvider.autoDispose<NotificationNotifier, NotificationState>(
+final notificationNotifier =
+    StateNotifierProvider.autoDispose<NotificationNotifier, NotificationState>(
   (ref) => NotificationNotifier(
     NotificationState(
       notificationModelObj: NotificationModel(),
@@ -19,7 +19,7 @@ final notificationNotifier = StateNotifierProvider.autoDispose<NotificationNotif
   ),
 );
 
-class NotificationNotifier extends StateNotifier<NotificationState>{
+class NotificationNotifier extends StateNotifier<NotificationState> {
   NotificationNotifier(NotificationState state) : super(state) {
     unawaited(refreshNotifications());
     _pollingTimer = Timer.periodic(
@@ -33,6 +33,7 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
 
   final MobilityApiService _mobilityApiService = MobilityApiService();
   final AccountApiService _accountApiService = AccountApiService();
+  final WalletApiService _walletApiService = WalletApiService();
   final PrefUtils _prefUtils = PrefUtils();
   Timer? _pollingTimer;
   StreamSubscription<TaskStateSyncEvent>? _taskSyncSubscription;
@@ -56,12 +57,21 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
       }
 
       final matches = await _mobilityApiService.getMatches();
-      final notifications = matches
+      final walletData = await _walletApiService.fetchWalletData();
+      final taskNotifications = matches
           .map((match) => _mapMatchToNotification(match, currentUserId))
           .whereType<ListItemModel>()
-          .toList()
-        ..sort(
-          (left, right) => _parseDate(right.createdAt).compareTo(_parseDate(left.createdAt)),
+          .toList();
+      final walletNotifications = (walletData.transactions ?? const [])
+          .map(_mapWalletTransactionToNotification)
+          .whereType<ListItemModel>()
+          .toList();
+      final notifications = <ListItemModel>[
+        ...taskNotifications,
+        ...walletNotifications,
+      ]..sort(
+          (left, right) =>
+              _parseDate(right.createdAt).compareTo(_parseDate(left.createdAt)),
         );
 
       final lastSeenAt = await _prefUtils.getNotificationLastSeenAt();
@@ -69,7 +79,8 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
           .map(
             (item) => item.copyWith(
               isRead: lastSeenAt != null &&
-                  _parseDate(item.createdAt).isBefore(lastSeenAt.add(const Duration(seconds: 1))),
+                  _parseDate(item.createdAt)
+                      .isBefore(lastSeenAt.add(const Duration(seconds: 1))),
             ),
           )
           .toList();
@@ -90,14 +101,15 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
 
   Future<void> markAllAsRead() async {
     await _prefUtils.init();
-    await _prefUtils.setNotificationLastSeenAt(DateTime.now().toIso8601String());
-    final currentItems = state.notificationModelObj?.listItemList ?? const <ListItemModel>[];
+    await _prefUtils
+        .setNotificationLastSeenAt(DateTime.now().toIso8601String());
+    final currentItems =
+        state.notificationModelObj?.listItemList ?? const <ListItemModel>[];
     state = state.copyWith(
       unreadCount: 0,
       notificationModelObj: NotificationModel(
-        listItemList: currentItems
-            .map((item) => item.copyWith(isRead: true))
-            .toList(),
+        listItemList:
+            currentItems.map((item) => item.copyWith(isRead: true)).toList(),
       ),
     );
   }
@@ -156,7 +168,8 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
       return null;
     }
 
-    final createdAt = _resolveEventDate(match: match, request: request, status: status);
+    final createdAt =
+        _resolveEventDate(match: match, request: request, status: status);
 
     return ListItemModel(
       id: '${match['id'] ?? ''}:$status',
@@ -175,6 +188,41 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
         matchType: matchType,
         isMover: isMover,
       ),
+    );
+  }
+
+  ListItemModel? _mapWalletTransactionToNotification(transaction) {
+    final type = (transaction.type ?? '').toLowerCase();
+    final status = (transaction.status ?? '').toLowerCase();
+    if (type != 'deposit' || status != 'success') {
+      return null;
+    }
+
+    final relatedType = (transaction.relatedType ?? '').toLowerCase();
+    final description = (transaction.description ?? '').trim();
+    final isWalletTopUp = relatedType == 'wallet_top_up' ||
+        description.toLowerCase().contains('wallet funding');
+    if (!isWalletTopUp) {
+      return null;
+    }
+
+    final createdAt = transaction.createdAt ?? transaction.date ?? '';
+    final createdAtValue = _parseDate(createdAt);
+    final amountValue = double.tryParse(transaction.amount ?? '0') ?? 0;
+    final amountLabel = amountValue.toStringAsFixed(2);
+
+    return ListItemModel(
+      id: 'wallet:${transaction.reference ?? transaction.id ?? createdAt}',
+      createdAt: createdAtValue.toIso8601String(),
+      time: _formatTime(createdAtValue),
+      title: 'Wallet funded',
+      message:
+          'Your wallet has been credited with NGN $amountLabel successfully.',
+      actionType: 'wallet_history',
+      actionArguments: <String, dynamic>{
+        'reference': transaction.reference,
+        'amount': amountValue,
+      },
     );
   }
 
@@ -259,7 +307,8 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
       'matchId': match['id']?.toString() ?? '',
       'matchStatus': match['status']?.toString() ?? '',
       'requestData': enrichedRequest,
-      'taskPhase': match['status']?.toString() == 'active' ? 'active' : 'accepted',
+      'taskPhase':
+          match['status']?.toString() == 'active' ? 'active' : 'accepted',
       'pickupLatitude': _safeDouble(
         matchType == 'ride'
             ? request['origin_latitude']
@@ -294,9 +343,11 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
     required String cancellationReason,
   }) {
     final taskLabel = matchType == 'ride' ? 'ride' : 'delivery';
-    final moverDisplay = (moverName?.trim().isNotEmpty == true) ? moverName!.trim() : 'A mover';
-    final requesterDisplay =
-        (requesterName?.trim().isNotEmpty == true) ? requesterName!.trim() : 'A customer';
+    final moverDisplay =
+        (moverName?.trim().isNotEmpty == true) ? moverName!.trim() : 'A mover';
+    final requesterDisplay = (requesterName?.trim().isNotEmpty == true)
+        ? requesterName!.trim()
+        : 'A customer';
 
     switch (status) {
       case 'proposed':
@@ -339,11 +390,15 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
       case 'completed':
         return isMover
             ? (
-                matchType == 'delivery' ? 'Delivery completed' : 'Ride completed',
+                matchType == 'delivery'
+                    ? 'Delivery completed'
+                    : 'Ride completed',
                 'Your $taskLabel task on $routeLabel has been completed.',
               )
             : (
-                matchType == 'delivery' ? 'Delivery completed' : 'Ride completed',
+                matchType == 'delivery'
+                    ? 'Delivery completed'
+                    : 'Ride completed',
                 'Your $taskLabel task with $moverDisplay on $routeLabel has been completed.',
               );
       case 'cancelled':
@@ -371,7 +426,8 @@ class NotificationNotifier extends StateNotifier<NotificationState>{
   }) {
     if (matchType == 'ride') {
       final origin = request['origin_name']?.toString() ?? 'pickup';
-      final destination = request['destination_name']?.toString() ?? 'destination';
+      final destination =
+          request['destination_name']?.toString() ?? 'destination';
       return '$origin to $destination';
     }
     final pickup = request['pickup_name']?.toString() ?? 'pickup';

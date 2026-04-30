@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../data/models/wallet_model.dart';
 import '../../data/services/wallet_api_service.dart';
+import '../notification_screen/notifier/notification_notifier.dart';
+import '../transaction_history_screen/notifier/trans_history_notifier.dart';
+import '../wallet/notifier/wallet_notifier.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -26,15 +31,43 @@ class MonnifyPaymentScreen extends ConsumerStatefulWidget {
   MonnifyPaymentScreenState createState() => MonnifyPaymentScreenState();
 }
 
-class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen> {
+class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen>
+    with WidgetsBindingObserver {
   WalletFundingAccount? _fundingAccount;
   bool _isLoading = true;
   String? _error;
+  Timer? _pollingTimer;
+  final DateTime _monitoringStartedAt = DateTime.now();
+  String? _lastDetectedFundingReference;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadFundingAccount();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshFundingStatus(silent: true));
+    }
+  }
+
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => unawaited(_refreshFundingStatus(silent: true)),
+    );
   }
 
   Future<void> _loadFundingAccount({bool autoProvision = true}) async {
@@ -52,6 +85,7 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen> {
           _fundingAccount = existingAccount;
           _isLoading = false;
         });
+        await _refreshFundingStatus(silent: true);
         return;
       }
 
@@ -69,6 +103,7 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen> {
         _fundingAccount = createdAccount;
         _isLoading = false;
       });
+      await _refreshFundingStatus(silent: true);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -76,6 +111,77 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen> {
         _error = error.toString().replaceFirst('Exception: ', '');
       });
     }
+  }
+
+  Future<void> _refreshFundingStatus({bool silent = false}) async {
+    try {
+      final walletData =
+          await ref.read(walletApiServiceProvider).fetchWalletData();
+      final transactions =
+          walletData.transactions ?? const <WalletTransaction>[];
+      final recentFunding = transactions
+          .where(_isSuccessfulWalletFunding)
+          .where(
+              (transaction) => _wasCreatedAfterMonitoringStarted(transaction))
+          .toList()
+        ..sort((left, right) {
+          final leftDate = DateTime.tryParse(left.createdAt ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0);
+          final rightDate = DateTime.tryParse(right.createdAt ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0);
+          return rightDate.compareTo(leftDate);
+        });
+
+      if (recentFunding.isEmpty) {
+        return;
+      }
+
+      final latestFunding = recentFunding.first;
+      final currentReference = latestFunding.reference ?? latestFunding.id;
+      if (currentReference == null ||
+          currentReference == _lastDetectedFundingReference) {
+        return;
+      }
+
+      _lastDetectedFundingReference = currentReference;
+      ref.invalidate(walletBalanceProvider);
+      ref.invalidate(walletNotifierProvider);
+      ref.invalidate(transHistoryNotifier);
+      unawaited(ref
+          .read(notificationNotifier.notifier)
+          .refreshNotifications(silent: true));
+
+      if (!mounted || silent) {
+        return;
+      }
+
+      final amount = double.tryParse(latestFunding.amount ?? '0') ?? 0;
+      Fluttertoast.showToast(
+        msg: 'Wallet funded successfully with NGN ${amount.toStringAsFixed(2)}',
+        gravity: ToastGravity.BOTTOM,
+      );
+    } catch (_) {
+      // Best-effort polling only; avoid disrupting the funding screen.
+    }
+  }
+
+  bool _isSuccessfulWalletFunding(WalletTransaction transaction) {
+    final type = (transaction.type ?? '').toLowerCase();
+    final status = (transaction.status ?? '').toLowerCase();
+    final relatedType = (transaction.relatedType ?? '').toLowerCase();
+    final description = (transaction.description ?? '').toLowerCase();
+    return type == 'deposit' &&
+        status == 'success' &&
+        (relatedType == 'wallet_top_up' ||
+            description.contains('wallet funding'));
+  }
+
+  bool _wasCreatedAfterMonitoringStarted(WalletTransaction transaction) {
+    final createdAt = DateTime.tryParse(transaction.createdAt ?? '');
+    if (createdAt == null) {
+      return false;
+    }
+    return !createdAt.isBefore(_monitoringStartedAt);
   }
 
   @override
@@ -215,9 +321,9 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen> {
           title: "How it works",
           children: [
             _buildInstruction(
-                "1. Transfer any amount from your bank app into this account."),
+                "1. In sandbox, complete the transfer with Monnify's Payment Simulator."),
             _buildInstruction(
-                "2. Keep the transfer narration simple so the bank completes it cleanly."),
+                "2. In live mode, transfer any amount from your bank app into this account."),
             _buildInstruction(
                 "3. Movr watches the Monnify callback and updates your wallet automatically."),
           ],
@@ -246,6 +352,7 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen> {
                 buttonTextStyle: CustomTextStyles.titleSmallInterPrimary,
                 onPressed: () {
                   _loadFundingAccount(autoProvision: false);
+                  unawaited(_refreshFundingStatus());
                 },
               ),
             ),
