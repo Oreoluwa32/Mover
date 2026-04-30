@@ -1,32 +1,76 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/presentation/check_mail_screen/notifier/check_mail_notifier.dart';
-import '../../data/services/auth_api_service.dart';
+
 import '../../core/app_export.dart';
+import '../../data/services/auth_api_service.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_pin_code_text_field.dart';
 import '../../widgets/loading_dialog.dart';
 
-  // Function to verify OTP with backend
-  Future<void> verifyOtp(BuildContext context, CheckMailNotifier checkMailNotifier, String email) async {
-    final otpCode = checkMailNotifier.state.otpController?.text.trim();
-    final authApiService = AuthApiService();
+class CheckMailScreen extends ConsumerStatefulWidget {
+  final String email;
 
-    if (otpCode == null || otpCode.isEmpty) {
-      Fluttertoast.showToast(msg: "Please enter the OTP code");
+  const CheckMailScreen({super.key, required this.email});
+
+  @override
+  CheckMailScreenState createState() => CheckMailScreenState();
+}
+
+class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
+  static const int _resendCountdownSeconds = 30;
+
+  Timer? _resendTimer;
+  bool _isSubmitting = false;
+  int _secondsUntilResend = _resendCountdownSeconds;
+
+  TextEditingController? get _otpController =>
+      ref.read(checkMailNotifier).otpController;
+
+  @override
+  void initState() {
+    super.initState();
+    _startResendCountdown();
+  }
+
+  @override
+  void dispose() {
+    _resendTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _verifyOtp() async {
+    final otpCode = _otpController?.text.trim() ?? '';
+    if (_isSubmitting) {
       return;
     }
+    if (otpCode.isEmpty) {
+      Fluttertoast.showToast(msg: "Please enter the verification code");
+      return;
+    }
+    if (otpCode.length != 4) {
+      Fluttertoast.showToast(msg: "Please enter the 4-digit verification code");
+      return;
+    }
+
+    final authApiService = AuthApiService();
+    setState(() {
+      _isSubmitting = true;
+    });
 
     try {
       LoadingDialog.show(context, message: 'Verifying email...');
       final response = await authApiService.confirmEmailVerification(
-        email: email.trim(),
+        email: widget.email.trim(),
         code: otpCode,
       );
-      if (context.mounted) {
-        LoadingDialog.hide(context);
+      if (!mounted) {
+        return;
       }
+      LoadingDialog.hide(context);
       Fluttertoast.showToast(
         msg: response['detail']?.toString() ?? "Email verified successfully",
         toastLength: Toast.LENGTH_SHORT,
@@ -34,204 +78,239 @@ import '../../widgets/loading_dialog.dart';
         backgroundColor: appTheme.green50,
         textColor: Colors.white,
       );
-      if (context.mounted) {
-        Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
-      }
-    } catch (e) {
-      if (context.mounted) {
+      Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
+    } catch (error) {
+      if (mounted) {
         LoadingDialog.hide(context);
       }
       Fluttertoast.showToast(
-        msg: authApiService.extractErrorMessage(e),
+        msg: authApiService.extractErrorMessage(error),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.red50,
         textColor: Colors.white,
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
-  // Function to resend OTP
-  Future<void> resendOtp(BuildContext context, String email, {bool showLoadingToast = true}) async {
+  Future<void> _resendOtp() async {
+    if (_secondsUntilResend > 0 || _isSubmitting) {
+      return;
+    }
+
     final authApiService = AuthApiService();
+    setState(() {
+      _isSubmitting = true;
+    });
 
     try {
-      if (showLoadingToast) {
-        Fluttertoast.showToast(msg: "Sending OTP to your email...");
-      }
-
+      Fluttertoast.showToast(msg: "Sending a new code to your email...");
       final response = await authApiService.requestEmailVerification(
-        email: email.trim(),
+        email: widget.email.trim(),
       );
+      _otpController?.clear();
+      if (!mounted) {
+        return;
+      }
       Fluttertoast.showToast(
-        msg: response['detail']?.toString() ?? "Verification code sent to your email",
+        msg: response['detail']?.toString() ??
+            "A new verification code has been sent.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.green50,
         textColor: Colors.white,
       );
-    } catch (e) {
+      _startResendCountdown();
+    } catch (error) {
       Fluttertoast.showToast(
-        msg: authApiService.extractErrorMessage(e),
+        msg: authApiService.extractErrorMessage(error),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: appTheme.red50,
         textColor: Colors.white,
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
-class CheckMailScreen extends ConsumerStatefulWidget{
-  final String email;
-  const CheckMailScreen({Key? key, required this.email}) : super(key: key);
+  void _startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() {
+      _secondsUntilResend = _resendCountdownSeconds;
+    });
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_secondsUntilResend <= 1) {
+        timer.cancel();
+        setState(() {
+          _secondsUntilResend = 0;
+        });
+        return;
+      }
+      setState(() {
+        _secondsUntilResend -= 1;
+      });
+    });
+  }
 
-  @override
-  CheckMailScreenState createState() => CheckMailScreenState();
-}
-
-class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
-  @override
-  void initState() {
-    super.initState();
+  String get _resendLabel {
+    if (_secondsUntilResend > 0) {
+      return "Resend code in ${_secondsUntilResend}s";
+    }
+    return "Click to resend";
   }
 
   @override
   Widget build(BuildContext context) {
+    final otpController = ref.watch(checkMailNotifier).otpController;
+
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SizedBox(
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: SizedBox(
           width: double.maxFinite,
           child: Column(
             children: [
-              Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.only(
-                  left: 16.h,
-                  top: 48.h,
-                  right: 16.h,
-                ),
-                child: Column(
-                  children: [
-                    CustomIconButton(
-                      height: 56.h,
-                      width: 56.h,
-                      padding: EdgeInsets.all(14.h),
-                      decoration: IconButtonStyleHelper.outlineGray,
-                      child: CustomImageView(
-                        imagePath: ImageConstant.imgMail,
-                      ),
-                    ),
-                    SizedBox(height: 24.h),
-                    Text(
-                      "Check your email",
-                      style: theme.textTheme.headlineSmall,
-                    ),
-                    SizedBox(
-                      width: 218.h,
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "We sent a verification code to ",
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                            TextSpan(
-                              text: widget.email,
-                              style: CustomTextStyles.titleMediumGray600_1,
-                            )
-                          ],
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    left: 16.h,
+                    top: 24.h,
+                    right: 16.h,
+                    bottom: 24.h,
+                  ),
+                  child: Column(
+                    children: [
+                      CustomIconButton(
+                        height: 56.h,
+                        width: 56.h,
+                        padding: EdgeInsets.all(14.h),
+                        decoration: IconButtonStyleHelper.outlineGray,
+                        child: CustomImageView(
+                          imagePath: ImageConstant.imgMail,
                         ),
+                      ),
+                      SizedBox(height: 24.h),
+                      Text(
+                        "Check your email",
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        "Enter the 4-digit verification code we sent to",
                         textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyLarge,
                       ),
-                    ),
-                    SizedBox(height: 30.h),
-                    Container(
-                      width: double.maxFinite,
-                      margin: EdgeInsets.symmetric(horizontal: 30.h),
-                      child: Consumer(
-                        builder: (context, ref, _) {
-                          final notifier = ref.watch(checkMailNotifier).otpController;
-                          return CustomPinCodeTextField(
-                            context: context,
-                            controller: notifier, 
-                            onChanged: (value) {
-                              notifier?.text = value;
-                            },
-                          );
-                        },
+                      SizedBox(height: 4.h),
+                      Text(
+                        widget.email,
+                        textAlign: TextAlign.center,
+                        style: CustomTextStyles.titleMediumGray600_1,
                       ),
-                    ),
-                    SizedBox(height: 32.h),
-                    CustomElevatedButton(
-                      text: "Verify email",
-                      buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-                      onPressed: () {
-                        verifyOtp(context, ref.read(checkMailNotifier.notifier), widget.email);
-                      }, // Call verifyOtp
-                    ),
-                    SizedBox(height: 30.h),
-                    GestureDetector(
-                      onTap: () => resendOtp(context, widget.email),
-                      child: Container(
+                      SizedBox(height: 30.h),
+                      Container(
                         width: double.maxFinite,
-                        margin: EdgeInsets.only(
-                          left: 38.h,
-                          right: 42.h,
+                        margin: EdgeInsets.symmetric(horizontal: 30.h),
+                        child: CustomPinCodeTextField(
+                          context: context,
+                          controller: otpController,
+                          length: 4,
+                          onChanged: (value) {
+                            otpController?.text = value;
+                          },
+                          onCompleted: (value) {
+                            if (value.trim().length == 4) {
+                              _verifyOtp();
+                            }
+                          },
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Didn't receive the email?",
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        "The code expires soon, so it’s best to verify right away.",
+                        textAlign: TextAlign.center,
+                        style: CustomTextStyles.bodyMediumGray600,
+                      ),
+                      SizedBox(height: 28.h),
+                      CustomElevatedButton(
+                        text: _isSubmitting ? "Please wait..." : "Verify email",
+                        buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+                        onPressed: _isSubmitting ? null : _verifyOtp,
+                      ),
+                      SizedBox(height: 24.h),
+                      GestureDetector(
+                        onTap: (_secondsUntilResend == 0 && !_isSubmitting)
+                            ? _resendOtp
+                            : null,
+                        child: Container(
+                          width: double.maxFinite,
+                          margin: EdgeInsets.only(
+                            left: 24.h,
+                            right: 24.h,
+                          ),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              Text(
+                                "Didn't receive the email? ",
+                                style: CustomTextStyles.bodyMediumGray600,
+                              ),
+                              Text(
+                                _resendLabel,
+                                style:
+                                    (_secondsUntilResend == 0 && !_isSubmitting)
+                                        ? CustomTextStyles.titleSmallPrimary_1
+                                        : CustomTextStyles.bodyMediumGray600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 30.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomImageView(
+                            imagePath: ImageConstant.imgLeftArrow,
+                            height: 20.h,
+                            width: 20.h,
+                          ),
+                          SizedBox(width: 8.h),
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.signInScreen,
+                            ),
+                            child: Text(
+                              "Back to log in",
                               style: CustomTextStyles.bodyMediumGray600,
                             ),
-                            Text(
-                              "Click to resend",
-                              style: CustomTextStyles.titleSmallPrimary_1,
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 30.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomImageView(
-                          imagePath: ImageConstant.imgLeftArrow,
-                          height: 20.h,
-                          width: 20.h,
-                        ),
-                        SizedBox(width: 8.h),
-                        GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.signInScreen),
-                          child: Text(
-                            "Back to log in",
-                            style: CustomTextStyles.bodyMediumGray600,
                           ),
-                        )
-                      ],
-                    ),
-                    SizedBox(height: 4.h)
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),
-      );
-  }
-
-  // Navigates to the password success screen when the action is triggered
-  // onTapVerifyEmail(BuildContext context){
-  //   Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
-  // }
-
-  // Navigates back to the sign in screen when the action is triggered
-  onTapBack(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.signInScreen);
+      ),
+    );
   }
 }

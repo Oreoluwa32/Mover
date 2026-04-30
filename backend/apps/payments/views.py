@@ -1,16 +1,31 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import uuid
 from decimal import Decimal
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from rest_framework import permissions, response, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
-from .models import SavedBankAccount, Wallet, WalletTransaction
-from .serializers import PaymentInitializeSerializer, SavedBankAccountSerializer, WalletSerializer, WalletTransactionSerializer, WithdrawalInitializeSerializer
+from apps.accounts.models import KycRecord
+
+from .models import MonnifyReservedAccount, SavedBankAccount, Wallet, WalletTransaction
+from .monnify import get_reserved_account, reserve_account
+from .serializers import (
+    MonnifyReservedAccountSerializer,
+    PaymentInitializeSerializer,
+    SavedBankAccountSerializer,
+    WalletSerializer,
+    WalletTransactionSerializer,
+    WithdrawalInitializeSerializer,
+)
 
 SUPPORTED_BANKS = [
     {"name": "Access Bank", "code": "044"},
@@ -19,6 +34,96 @@ SUPPORTED_BANKS = [
     {"name": "UBA", "code": "033"},
     {"name": "Zenith Bank", "code": "057"},
 ]
+
+
+def _stable_monnify_account_reference(wallet: Wallet) -> str:
+    return f"movr-wallet-{wallet.id}"
+
+
+def _display_name_for_user(user) -> str:
+    full_name = f"{user.first_name} {user.last_name}".strip()
+    if full_name:
+        return full_name
+    local_part = user.email.split("@", 1)[0].replace(".", " ").replace("_", " ").strip()
+    return local_part.title() or "Movr User"
+
+
+def _extract_missing_kyc_fields(user) -> list[str]:
+    try:
+        kyc_record = user.kyc_record
+    except KycRecord.DoesNotExist:
+        return ["bvn_or_nin"]
+    if kyc_record.bvn or kyc_record.nin:
+        return []
+    return ["bvn_or_nin"]
+
+
+def _build_reserved_account_payload(wallet: Wallet) -> dict:
+    missing = _extract_missing_kyc_fields(wallet.user)
+    if missing:
+        raise ValidationError(
+            {
+                "detail": "Complete your KYC with at least your BVN or NIN before creating a funding account.",
+                "code": "kyc_required",
+                "missing_requirements": missing,
+            }
+        )
+
+    kyc_record = wallet.user.kyc_record
+    payload = {
+        "accountReference": _stable_monnify_account_reference(wallet),
+        "accountName": f"Movr {wallet.user.first_name or _display_name_for_user(wallet.user)} Wallet".strip(),
+        "currencyCode": wallet.currency,
+        "contractCode": settings.MONNIFY_CONTRACT_CODE,
+        "customerEmail": wallet.user.email,
+        "customerName": _display_name_for_user(wallet.user),
+        "getAllAvailableBanks": True,
+    }
+    if kyc_record.bvn:
+        payload["bvn"] = kyc_record.bvn
+    if kyc_record.nin:
+        payload["nin"] = kyc_record.nin
+    return payload
+
+
+def _upsert_reserved_account(wallet: Wallet, response_body: dict) -> MonnifyReservedAccount:
+    reserved_account, _ = MonnifyReservedAccount.objects.get_or_create(
+        wallet=wallet,
+        defaults={
+            "account_reference": response_body.get("accountReference", _stable_monnify_account_reference(wallet)),
+            "account_name": response_body.get("accountName", f"Movr {wallet.user.email}"),
+            "customer_email": response_body.get("customerEmail", wallet.user.email),
+            "customer_name": response_body.get("customerName", _display_name_for_user(wallet.user)),
+            "currency_code": response_body.get("currencyCode", wallet.currency),
+        },
+    )
+    if not reserved_account.account_reference:
+        reserved_account.account_reference = response_body.get("accountReference", _stable_monnify_account_reference(wallet))
+    reserved_account.sync_from_response(response_body)
+    reserved_account.save()
+    return reserved_account
+
+
+def _ensure_reserved_account(wallet: Wallet) -> MonnifyReservedAccount:
+    existing_account = getattr(wallet, "monnify_account", None)
+    if existing_account and existing_account.account_number:
+        return existing_account
+
+    account_reference = _stable_monnify_account_reference(wallet)
+    payload = _build_reserved_account_payload(wallet)
+    try:
+        monnify_payload = reserve_account(payload)
+        response_body = monnify_payload.get("responseBody") or {}
+    except ValidationError as exc:
+        error_text = str(exc.detail)
+        if "same reference" not in error_text.lower() and "existing active reserved account" not in error_text.lower():
+            raise
+        response_body = (get_reserved_account(account_reference) or {}).get("responseBody") or {}
+
+    if not response_body:
+        raise ValidationError("Monnify did not return reserved account details.")
+
+    return _upsert_reserved_account(wallet, response_body)
 
 
 def _build_mock_checkout_url(request, reference: str) -> str:
@@ -56,6 +161,48 @@ class WalletView(APIView):
 
 class LegacyWalletView(WalletView):
     pass
+
+
+class FundingAccountView(APIView):
+    def get(self, request):
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        funding_account = getattr(wallet, "monnify_account", None)
+        if not funding_account:
+            missing = _extract_missing_kyc_fields(request.user)
+            return response.Response(
+                {
+                    "status": False,
+                    "message": "No dedicated funding account yet.",
+                    "detail": (
+                        "Complete your KYC with at least your BVN or NIN before creating a funding account."
+                        if missing
+                        else "Create your Monnify funding account to top up your wallet by bank transfer."
+                    ),
+                    "missing_requirements": missing,
+                    "data": None,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        return response.Response(
+            {
+                "status": True,
+                "message": "Funding account retrieved.",
+                "data": MonnifyReservedAccountSerializer(funding_account).data,
+            }
+        )
+
+    def post(self, request):
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        funding_account = _ensure_reserved_account(wallet)
+        return response.Response(
+            {
+                "status": True,
+                "message": "Funding account ready.",
+                "data": MonnifyReservedAccountSerializer(funding_account).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class WalletBalanceView(APIView):
@@ -223,6 +370,74 @@ class LegacyMonnifyVerifyView(APIView):
     def get(self, _request, reference):
         transaction = get_object_or_404(WalletTransaction, reference=reference)
         return response.Response({"status": transaction.status == WalletTransaction.Status.SUCCESS})
+
+
+class MonnifyWebhookView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        raw_body = request.body or b""
+        provided_signature = request.headers.get("monnify-signature", "")
+        expected_signature = hmac.new(
+            settings.MONNIFY_SECRET_KEY.encode("utf-8"),
+            raw_body,
+            hashlib.sha512,
+        ).hexdigest()
+
+        if not provided_signature or not hmac.compare_digest(provided_signature.lower(), expected_signature.lower()):
+            return response.Response({"status": False, "message": "Invalid webhook signature."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = json.loads(raw_body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return response.Response({"status": False, "message": "Invalid JSON payload."}, status=status.HTTP_400_BAD_REQUEST)
+
+        event_type = payload.get("eventType")
+        event_data = payload.get("eventData") or {}
+        product = event_data.get("product") or {}
+        if event_type != "SUCCESSFUL_TRANSACTION":
+            return response.Response({"status": True, "message": "Webhook ignored."})
+        if product.get("type") != "RESERVED_ACCOUNT":
+            return response.Response({"status": True, "message": "Webhook ignored."})
+        if str(event_data.get("paymentStatus", "")).upper() != "PAID":
+            return response.Response({"status": True, "message": "Webhook ignored."})
+
+        account_reference = product.get("reference")
+        if not account_reference:
+            return response.Response({"status": False, "message": "Reserved account reference missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+        funding_account = MonnifyReservedAccount.objects.filter(account_reference=account_reference).select_related("wallet").first()
+        if funding_account is None:
+            return response.Response({"status": True, "message": "Funding account not found locally."})
+
+        transaction_reference = event_data.get("transactionReference") or event_data.get("paymentReference")
+        if not transaction_reference:
+            return response.Response({"status": False, "message": "Transaction reference missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+        amount = Decimal(str(event_data.get("amountPaid") or event_data.get("totalPayable") or "0"))
+        transaction, created = WalletTransaction.objects.get_or_create(
+            reference=transaction_reference,
+            defaults={
+                "wallet": funding_account.wallet,
+                "transaction_type": WalletTransaction.Type.DEPOSIT,
+                "status": WalletTransaction.Status.PENDING,
+                "amount": amount,
+                "description": "Wallet funding via Monnify transfer",
+                "related_type": "wallet_top_up",
+                "gateway": "monnify_reserved_account",
+                "gateway_response": payload,
+                "customer_email": funding_account.customer_email,
+            },
+        )
+        if not created:
+            transaction.gateway_response = payload
+            transaction.save(update_fields=["gateway_response", "updated_at"])
+
+        if transaction.status != WalletTransaction.Status.SUCCESS:
+            transaction.mark_successful()
+
+        return response.Response({"status": True, "message": "Webhook processed."})
 
 
 class BanksView(APIView):

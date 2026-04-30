@@ -3,10 +3,12 @@ from django.urls import path
 from .views import (
     BankAccountListView,
     BanksView,
+    FundingAccountView,
     LegacyMonnifyInitializeView,
     LegacyMonnifyVerifyView,
     LegacyPaystackInitializeView,
     LegacyPaystackVerifyView,
+    MonnifyWebhookView,
     PaymentCheckoutView,
     PaymentInitializeView,
     PaymentVerifyView,
@@ -19,6 +21,7 @@ from .views import (
 
 urlpatterns = [
     path("wallet/", WalletView.as_view()),
+    path("wallet/funding-account", FundingAccountView.as_view()),
     path("wallet/balance", WalletBalanceView.as_view()),
     path("transactions", TransactionHistoryView.as_view()),
     path("initialize", PaymentInitializeView.as_view()),
@@ -32,4 +35,5 @@ urlpatterns = [
     path("paystack/verify-transaction/<str:reference>", LegacyPaystackVerifyView.as_view()),
     path("v1/merchant/transactions/init-transaction", LegacyMonnifyInitializeView.as_view()),
     path("v1/merchant/transactions/verify/<str:reference>", LegacyMonnifyVerifyView.as_view()),
+    path("monnify/webhook", MonnifyWebhookView.as_view()),
 ]

@@ -1,5 +1,5 @@
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -7,7 +7,6 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import 'models/deposit_item_model.dart';
 import 'notifier/deposit_notifier.dart';
 import 'widgets/deposit_item_widget.dart';
-import '../deposit_bottomsheet/deposit_bottomsheet.dart';
 
 class DepositScreen extends ConsumerStatefulWidget {
   const DepositScreen({Key? key}) : super(key: key);
@@ -24,38 +23,38 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
       extendBodyBehindAppBar: false,
       appBar: _buildAppbar(context),
       body: Padding(
-          padding: EdgeInsets.only(top: 20.h),
-          child: Consumer(
-            builder: (context, ref, _) {
-              return ListView.separated(
-                  padding: EdgeInsets.zero,
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    DepositItemModel model = ref
-                            .watch(depositNotifier)
-                            .depositModelObj
-                            ?.depositItemList[index] ??
-                        DepositItemModel();
-                    return DepositItemWidget(model, onTapCard: () {
-                      onTapCard(context);
-                    });
-                  },
-                  separatorBuilder: (context, index) {
-                    return SizedBox(
-                      height: 15.h,
-                    );
-                  },
-                  itemCount: ref
+        padding: EdgeInsets.only(top: 20.h),
+        child: Consumer(
+          builder: (context, ref, _) {
+            return ListView.separated(
+                padding: EdgeInsets.zero,
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  DepositItemModel model = ref
                           .watch(depositNotifier)
                           .depositModelObj
-                          ?.depositItemList
-                          .length ??
-                      0);
-            },
-          ),
+                          ?.depositItemList[index] ??
+                      DepositItemModel();
+                  return DepositItemWidget(model, onTapCard: () {
+                    onTapCard(context, index);
+                  });
+                },
+                separatorBuilder: (context, index) {
+                  return SizedBox(
+                    height: 15.h,
+                  );
+                },
+                itemCount: ref
+                        .watch(depositNotifier)
+                        .depositModelObj
+                        ?.depositItemList
+                        .length ??
+                    0);
+          },
         ),
-      );
+      ),
+    );
   }
 
   // Section Widget
@@ -87,14 +86,22 @@ class DepositScreenState extends ConsumerState<DepositScreen> {
 
   // onTapCard(BuildContext context) {
   //   showModalBottomSheet(
-  //                       context: context, 
+  //                       context: context,
   //                       builder: (_) => DepositBottomsheet(),
   //                       isScrollControlled: true,
   //                       isDismissible: true
   //                     );
   // }
 
-  onTapCard(BuildContext context) {
-    NavigatorService.pushNamed(AppRoutes.depositScreenTwo);
+  onTapCard(BuildContext context, int index) {
+    if (index == 1 || index == 2) {
+      NavigatorService.pushNamed(AppRoutes.monnifyPaymentScreen);
+      return;
+    }
+
+    Fluttertoast.showToast(
+      msg: "Card funding is not ready yet. Use bank transfer for now.",
+      toastLength: Toast.LENGTH_SHORT,
+    );
   }
 }

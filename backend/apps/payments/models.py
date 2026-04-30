@@ -27,6 +27,42 @@ class Wallet(models.Model):
         self.save(update_fields=["balance", "available_balance", "updated_at"])
 
 
+class MonnifyReservedAccount(models.Model):
+    wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE, related_name="monnify_account")
+    account_reference = models.CharField(max_length=64, unique=True)
+    reservation_reference = models.CharField(max_length=64, blank=True)
+    account_name = models.CharField(max_length=120)
+    account_number = models.CharField(max_length=20, blank=True)
+    bank_name = models.CharField(max_length=120, blank=True)
+    bank_code = models.CharField(max_length=16, blank=True)
+    currency_code = models.CharField(max_length=8, default="NGN")
+    customer_email = models.EmailField()
+    customer_name = models.CharField(max_length=120)
+    status = models.CharField(max_length=24, blank=True)
+    accounts = models.JSONField(default=list, blank=True)
+    raw_response = models.JSONField(default=dict, blank=True)
+    provider = models.CharField(max_length=32, default="monnify")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def sync_from_response(self, response_body: dict):
+        primary_account = (response_body.get("accounts") or [{}])[0]
+        self.reservation_reference = response_body.get("reservationReference", "")
+        self.account_name = response_body.get("accountName", self.account_name)
+        self.account_number = primary_account.get("accountNumber", "")
+        self.bank_name = primary_account.get("bankName", "")
+        self.bank_code = primary_account.get("bankCode", "")
+        self.currency_code = response_body.get("currencyCode", self.currency_code)
+        self.customer_email = response_body.get("customerEmail", self.customer_email)
+        self.customer_name = response_body.get("customerName", self.customer_name)
+        self.status = response_body.get("status", self.status)
+        self.accounts = response_body.get("accounts") or []
+        self.raw_response = response_body
+
+    def __str__(self):
+        return f"{self.wallet.user.email} monnify account"
+
+
 class WalletTransaction(models.Model):
     class Type(models.TextChoices):
         DEPOSIT = "deposit", "Deposit"

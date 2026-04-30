@@ -233,3 +233,10 @@ MOVR_EMAIL_VERIFICATION_CODE_TTL_MINUTES = _int_env(
 )
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "")
+MONNIFY_API_KEY = os.getenv("MONNIFY_API_KEY", "")
+MONNIFY_SECRET_KEY = os.getenv("MONNIFY_SECRET_KEY", "")
+MONNIFY_CONTRACT_CODE = os.getenv("MONNIFY_CONTRACT_CODE", "")
+MONNIFY_BASE_URL = os.getenv(
+    "MONNIFY_BASE_URL",
+    "https://api.monnify.com" if IS_PRODUCTION_LIKE else "https://sandbox.monnify.com",
+)

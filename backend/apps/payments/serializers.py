@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from .models import SavedBankAccount, Wallet, WalletTransaction
+from .models import MonnifyReservedAccount, SavedBankAccount, Wallet, WalletTransaction
 
 
 class WalletTransactionSerializer(serializers.ModelSerializer):
@@ -34,11 +34,18 @@ class WalletTransactionSerializer(serializers.ModelSerializer):
 
 
 class WalletSerializer(serializers.ModelSerializer):
+    funding_account = serializers.SerializerMethodField()
     transactions = WalletTransactionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Wallet
-        fields = ["balance", "available_balance", "currency", "transactions"]
+        fields = ["balance", "available_balance", "currency", "funding_account", "transactions"]
+
+    def get_funding_account(self, obj):
+        funding_account = getattr(obj, "monnify_account", None)
+        if not funding_account:
+            return None
+        return MonnifyReservedAccountSerializer(funding_account).data
 
 
 class PaymentInitializeSerializer(serializers.Serializer):
@@ -62,3 +69,22 @@ class SavedBankAccountSerializer(serializers.ModelSerializer):
         model = SavedBankAccount
         fields = "__all__"
         read_only_fields = ["wallet", "created_at"]
+
+
+class MonnifyReservedAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MonnifyReservedAccount
+        fields = [
+            "account_reference",
+            "reservation_reference",
+            "account_name",
+            "account_number",
+            "bank_name",
+            "bank_code",
+            "currency_code",
+            "customer_email",
+            "customer_name",
+            "status",
+            "accounts",
+            "provider",
+        ]
