@@ -177,8 +177,9 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
   /// Uploads the profile image to the backend
   /// Returns the URL of the uploaded image if successful, null otherwise
   Future<String?> _uploadProfileImageToBackend(String imagePath) async {
+    final accountApiService = AccountApiService();
     try {
-      final response = await AccountApiService().updateProfile(
+      final response = await accountApiService.updateProfile(
         avatarFilePath: imagePath,
       );
       final avatarUrl = response['avatar_url']?.toString();
@@ -192,7 +193,9 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
       return avatarUrl;
     } catch (e) {
       debugPrint('Error uploading profile image: $e');
-      state = state.copyWith(profileImageError: 'An error occurred: $e');
+      state = state.copyWith(
+        profileImageError: accountApiService.extractErrorMessage(e),
+      );
       return null;
     }
   }

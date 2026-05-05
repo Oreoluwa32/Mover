@@ -92,13 +92,6 @@ class AccountApiService {
               ),
             })
           : payload,
-      options: hasAvatarFile
-          ? Options(
-              headers: const {
-                'Content-Type': 'multipart/form-data',
-              },
-            )
-          : null,
     );
     return Map<String, dynamic>.from(response.data as Map);
   }

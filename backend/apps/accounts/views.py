@@ -49,6 +49,10 @@ MAX_AVATAR_UPLOAD_SIZE = 5 * 1024 * 1024
 ALLOWED_AVATAR_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 
 
+class AvatarUploadConfigurationError(Exception):
+    pass
+
+
 def _email_verification_required_response(email: str) -> response.Response:
     return response.Response(
         {
@@ -85,7 +89,9 @@ def _dispatch_email_verification(user: User) -> None:
 
 def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
     if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
-        raise ValueError("Supabase avatar storage is not configured.")
+        raise AvatarUploadConfigurationError(
+            "Supabase avatar storage is not configured."
+        )
 
     extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
     if extension not in ALLOWED_AVATAR_EXTENSIONS:
@@ -400,6 +406,11 @@ class ProfileView(APIView):
         if avatar_file is not None:
             try:
                 _store_avatar_upload(request, profile, avatar_file)
+            except AvatarUploadConfigurationError as exc:
+                return response.Response(
+                    {"detail": str(exc)},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             except ValueError as exc:
                 return response.Response(
                     {"detail": str(exc)},
