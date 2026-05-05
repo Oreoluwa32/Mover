@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 from datetime import timedelta
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -101,7 +102,11 @@ def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
         raise ValueError("Profile image must be 5MB or less.")
 
     content_type = (uploaded_file.content_type or "").lower()
-    if content_type and not content_type.startswith("image/"):
+    if not content_type or content_type == "application/octet-stream":
+        guessed_content_type, _ = mimetypes.guess_type(uploaded_file.name or "")
+        content_type = (guessed_content_type or content_type).lower()
+
+    if content_type and content_type != "application/octet-stream" and not content_type.startswith("image/"):
         raise ValueError("Selected file is not a valid image.")
 
     object_path = (
