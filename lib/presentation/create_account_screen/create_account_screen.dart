@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/domain/googleauth/google_auth_helper.dart';
 import '../../services/device_memory_service.dart';
@@ -16,13 +15,16 @@ import '../../widgets/loading_dialog.dart';
 import 'notifier/create_account_notifier.dart';
 import '../profile_screen/notifier/profile_screen_notifier.dart';
 
-class CreateAccountScreen extends ConsumerStatefulWidget{
+class CreateAccountScreen extends ConsumerStatefulWidget {
   const CreateAccountScreen({Key? key})
-    : super(key: key,);
+      : super(
+          key: key,
+        );
 
   @override
   CreateAccountScreenState createState() => CreateAccountScreenState();
 }
+
 // ignore for file, must be immutable
 class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -41,106 +43,106 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   }
 
   // Function to register user
-Future<void> registerUser(
-  BuildContext context,
-  CreateAccountNotifier createAccountNotifier,
-) async {
-  final email = createAccountNotifier.state.emailController?.text ?? '';
-  final password = createAccountNotifier.state.passwordController?.text ?? '';
-  final authApiService = AuthApiService();
-  final accountApiService = AccountApiService();
+  Future<void> registerUser(
+    BuildContext context,
+    CreateAccountNotifier createAccountNotifier,
+  ) async {
+    final email = createAccountNotifier.state.emailController?.text ?? '';
+    final password = createAccountNotifier.state.passwordController?.text ?? '';
+    final authApiService = AuthApiService();
+    final accountApiService = AccountApiService();
 
-  // Check if the fields are not empty
-  if (email.isEmpty || password.isEmpty) {
-    Fluttertoast.showToast(msg: "Email and password are required");
-    return;
-  }
-
-  // Show loading dialog
-  LoadingDialog.show(context, message: 'Creating account...');
-
-  // Prepare the request data
-  try{
-    final response = await authApiService.register(
-      email: email,
-      password: password,
-    );
-
-    // Hide loading dialog
-    if (context.mounted) {
-      LoadingDialog.hide(context);
+    // Check if the fields are not empty
+    if (email.isEmpty || password.isEmpty) {
+      Fluttertoast.showToast(msg: "Email and password are required");
+      return;
     }
 
-    final requiresVerification =
-        response['email_verification_required'] == true;
-    final verificationEmail =
-        response['email']?.toString().trim().isNotEmpty == true
-            ? response['email'].toString().trim()
-            : email.trim();
+    // Show loading dialog
+    LoadingDialog.show(context, message: 'Creating account...');
 
-    if (requiresVerification) {
-      Fluttertoast.showToast(
-        msg: response['detail']?.toString() ??
-            "We sent a verification code to your email.",
+    // Prepare the request data
+    try {
+      final response = await authApiService.register(
+        email: email,
+        password: password,
       );
+
+      // Hide loading dialog
       if (context.mounted) {
-        Navigator.pushNamed(
-          context,
-          AppRoutes.checkMailScreen,
-          arguments: {'email': verificationEmail},
-        );
+        LoadingDialog.hide(context);
       }
-      return;
-    }
 
-    await authApiService.persistSession(response);
-    await accountApiService.hydrateSessionFromMe();
+      final requiresVerification =
+          response['email_verification_required'] == true;
+      final verificationEmail =
+          response['email']?.toString().trim().isNotEmpty == true
+              ? response['email'].toString().trim()
+              : email.trim();
 
-    final deviceMemory = DeviceMemoryService();
-    await deviceMemory.rememberDevice(userEmail: email);
+      if (requiresVerification) {
+        Fluttertoast.showToast(
+          msg: response['detail']?.toString() ??
+              "We sent a verification code to your email.",
+        );
+        if (context.mounted) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.checkMailScreen,
+            arguments: {'email': verificationEmail},
+          );
+        }
+        return;
+      }
 
-    Fluttertoast.showToast(msg: "Registration successful");
-    if (context.mounted) {
-      Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+      await authApiService.persistSession(response);
+      await accountApiService.hydrateSessionFromMe();
+
+      final deviceMemory = DeviceMemoryService();
+      await deviceMemory.rememberDevice(userEmail: email);
+
+      Fluttertoast.showToast(msg: "Registration successful");
+      if (context.mounted) {
+        Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      final errorMessage = authApiService.extractErrorMessage(e);
+      Fluttertoast.showToast(msg: errorMessage);
+      if (authApiService.isEmailVerificationRequiredError(e)) {
+        if (context.mounted) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.checkMailScreen,
+            arguments: {
+              'email':
+                  authApiService.extractVerificationEmail(e) ?? email.trim(),
+            },
+          );
+        }
+        return;
+      }
+      if (errorMessage.toLowerCase().contains('already')) {
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.signInScreen,
+            (route) => route.isFirst,
+          );
+        }
+      }
     }
   }
-  catch (e) {
-    if (context.mounted) {
-      LoadingDialog.hide(context);
-    }
-    final errorMessage = authApiService.extractErrorMessage(e);
-    Fluttertoast.showToast(msg: errorMessage);
-    if (authApiService.isEmailVerificationRequiredError(e)) {
-      if (context.mounted) {
-        Navigator.pushNamed(
-          context,
-          AppRoutes.checkMailScreen,
-          arguments: {
-            'email': authApiService.extractVerificationEmail(e) ?? email.trim(),
-          },
-        );
-      }
-      return;
-    }
-    if (errorMessage.toLowerCase().contains('already')) {
-      if (context.mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.signInScreen,
-          (route) => route.isFirst,
-        );
-      }
-    }
-  }
-}
 
   void _validateForm(CreateAccountNotifier notifier) {
     final email = notifier.state.emailController?.text ?? '';
     final password = notifier.state.passwordController?.text ?? '';
-    
-    final isValid = isValidEmail(email, isRequired: true) && 
-                    isValidPassword(password, isRequired: true);
-    
+
+    final isValid = isValidEmail(email, isRequired: true) &&
+        isValidPassword(password, isRequired: true);
+
     if (_isFormValid != isValid) {
       setState(() {
         _isFormValid = isValid;
@@ -154,92 +156,96 @@ Future<void> registerUser(
       builder: (context, ref, _) {
         final notifier = ref.watch(createAccountNotifier);
         // Listen to changes in the text fields
-        notifier.emailController?.addListener(() => _validateForm(ref.read(createAccountNotifier.notifier)));
-        notifier.passwordController?.addListener(() => _validateForm(ref.read(createAccountNotifier.notifier)));
+        notifier.emailController?.addListener(
+            () => _validateForm(ref.read(createAccountNotifier.notifier)));
+        notifier.passwordController?.addListener(
+            () => _validateForm(ref.read(createAccountNotifier.notifier)));
 
         return Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: Form(
-              key: _formKey,
-              child: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.maxFinite,
-                      padding: EdgeInsets.only(
-                        left: 16.h,
-                        top: 48.h,
-                        right: 16.h,
-                      ),
-                      child: Column(
-                        children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgLogoWithoutText,
-                            height: 32.h,
-                            width: 50.h,
-                            alignment: Alignment.centerLeft,
+          resizeToAvoidBottomInset: false,
+          body: Form(
+            key: _formKey,
+            child: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                children: [
+                  Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.only(
+                      left: 16.h,
+                      top: 48.h,
+                      right: 16.h,
+                    ),
+                    child: Column(
+                      children: [
+                        CustomImageView(
+                          imagePath: ImageConstant.imgLogoWithoutText,
+                          height: 32.h,
+                          width: 50.h,
+                          alignment: Alignment.centerLeft,
+                        ),
+                        SizedBox(height: 20.h),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Let's get you started",
+                            style: theme.textTheme.headlineSmall,
                           ),
-                          SizedBox(height: 20.h),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Let's get you started",
-                              style: theme.textTheme.headlineSmall,
-                            ),
+                        ),
+                        Text(
+                          "Unlock the power of interconnected mobility",
+                          style: CustomTextStyles.titleMediumGray600,
+                        ),
+                        SizedBox(height: 26.h),
+                        _buildColumnemailaddr(context),
+                        SizedBox(height: 22.h),
+                        _buildColumnpassword(context),
+                        SizedBox(height: 22.h),
+                        _buildGetstarted(context),
+                        SizedBox(height: 16.h),
+                        _buildSignupwith(context),
+                        SizedBox(height: 32.h),
+                        Container(
+                          width: double.maxFinite,
+                          margin: EdgeInsets.only(
+                            left: 58.h,
+                            right: 62.h,
                           ),
-                          Text(
-                            "Unlock the power of interconnected mobility",
-                            style: CustomTextStyles.titleMediumGray600,
-                          ),
-                          SizedBox(height: 26.h),
-                          _buildColumnemailaddr(context),
-                          SizedBox(height: 22.h),
-                          _buildColumnpassword(context),
-                          SizedBox(height: 22.h),
-                          _buildGetstarted(context),
-                          SizedBox(height: 16.h),
-                          _buildSignupwith(context),
-                          SizedBox(height: 32.h),
-                          Container(
-                            width: double.maxFinite,
-                            margin: EdgeInsets.only(
-                              left: 58.h,
-                              right: 62.h,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Already have an account?",
-                                  style: CustomTextStyles.bodyMediumGray600,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Already have an account?",
+                                style: CustomTextStyles.bodyMediumGray600,
+                              ),
+                              SizedBox(width: 4.h),
+                              GestureDetector(
+                                onTap: () {
+                                  onTapSignIn(context);
+                                },
+                                child: Text(
+                                  "Sign in",
+                                  style: CustomTextStyles.titleSmallPrimary_1,
                                 ),
-                                SizedBox(width: 4.h),
-                                GestureDetector(
-                                  onTap: () {onTapSignIn(context);},
-                                  child: Text(
-                                    "Sign in",
-                                    style: CustomTextStyles.titleSmallPrimary_1,
-                                  ),
-                                )
-                              ],
-                            ),
+                              )
+                            ],
                           ),
-                          SizedBox(height: 4.h)
-                        ],
-                      ),
-                    )
+                        ),
+                        SizedBox(height: 4.h)
+                      ],
+                    ),
+                  )
                 ],
-                ),
               ),
             ),
-          );
+          ),
+        );
       },
     );
   }
 
-  // Section Widget 
-  Widget _buildEmail(BuildContext context){
+  // Section Widget
+  Widget _buildEmail(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
         return CustomTextFormField(
@@ -258,8 +264,8 @@ Future<void> registerUser(
     );
   }
 
-  // Section Widget 
-  Widget _buildColumnemailaddr(BuildContext context){
+  // Section Widget
+  Widget _buildColumnemailaddr(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -276,10 +282,8 @@ Future<void> registerUser(
     );
   }
 
-
-
-  // Section Widget 
-  Widget _buildPassword(BuildContext context){
+  // Section Widget
+  Widget _buildPassword(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
         return CustomTextFormField(
@@ -312,8 +316,8 @@ Future<void> registerUser(
     );
   }
 
-  // Section Widget 
-  Widget _buildColumnpassword(BuildContext context){
+  // Section Widget
+  Widget _buildColumnpassword(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -335,14 +339,15 @@ Future<void> registerUser(
     );
   }
 
-  // Sectiom Widget 
+  // Sectiom Widget
   Widget _buildGetstarted(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
         return CustomElevatedButton(
           text: "Get Started",
           buttonStyle: _isFormValid
-              ? CustomButtonStyles.fillPrimaryTL41 // Use primary color when valid
+              ? CustomButtonStyles
+                  .fillPrimaryTL41 // Use primary color when valid
               : CustomButtonStyles.fillBlueGray, // Default color when not valid
           buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
           onPressed: _isFormValid
@@ -360,8 +365,8 @@ Future<void> registerUser(
     );
   }
 
-  // Sectiomn Widget 
-  Widget _buildSignupwith(BuildContext context){
+  // Sectiomn Widget
+  Widget _buildSignupwith(BuildContext context) {
     return CustomOutlinedButton(
       text: "Sign up with Google",
       leftIcon: Container(
@@ -382,16 +387,17 @@ Future<void> registerUser(
 
   googleSignIn(BuildContext context) async {
     LoadingDialog.show(context, message: 'Signing up with Google...');
-    
+
     await GoogleAuthHelper().googleSignInProcess().then((googleUser) async {
       if (googleUser != null) {
         // Authenticate with backend
-        final authResponse = await GoogleAuthHelper().authenticateWithBackend(googleUser);
-        
+        final authResponse =
+            await GoogleAuthHelper().authenticateWithBackend(googleUser);
+
         if (context.mounted) {
           LoadingDialog.hide(context);
         }
-        
+
         if (authResponse != null) {
           onSuccessGoogleAuthResponse(googleUser, context, authResponse);
         } else {
@@ -412,52 +418,49 @@ Future<void> registerUser(
   }
 
   // Navigates to the check mail screen when the action is triggered and also pass the email
-  void onTapGetStarted(BuildContext context){
+  void onTapGetStarted(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.checkMailScreen);
   }
 
   // Navigates to the select plan screen when the action is triggered
-  onSuccessGoogleAuthResponse(GoogleSignInAccount googleUser, BuildContext context, Map<String, dynamic> authResponse) async {
-    // Store tokens securely
-    final storage = FlutterSecureStorage();
-    final token = authResponse['token']?['key'] ?? authResponse['access_token'];
-    if (token != null) {
-      await storage.write(key: 'auth_token', value: token);
-    }
-    await storage.write(key: 'user_email', value: googleUser.email);
-    if (googleUser.displayName != null && googleUser.displayName!.isNotEmpty) {
-      await storage.write(key: 'user_name', value: googleUser.displayName);
-    }
-    
+  onSuccessGoogleAuthResponse(GoogleSignInAccount googleUser,
+      BuildContext context, Map<String, dynamic> authResponse) async {
+    final authApiService = AuthApiService();
+    final accountApiService = AccountApiService();
+
+    await authApiService.persistSession(authResponse);
+    await accountApiService.hydrateSessionFromMe();
+
     // Sync profile image from Google if available
     if (googleUser.photoUrl != null && googleUser.photoUrl!.isNotEmpty) {
       await PrefUtils().setProfileImagePath(googleUser.photoUrl!);
-      
+
       // Update the global provider for immediate UI update
       try {
-        ref.read(globalProfileImagePathProvider.notifier).updatePath(googleUser.photoUrl);
+        ref
+            .read(globalProfileImagePathProvider.notifier)
+            .updatePath(googleUser.photoUrl);
       } catch (e) {
         debugPrint('Error updating globalProfileImagePathProvider: $e');
       }
     }
-    
+
     // Remember device
     final deviceMemory = DeviceMemoryService();
     await deviceMemory.rememberDevice(userEmail: googleUser.email);
-    
+
     // Mark onboarding as completed
     await PrefUtils().setOnboardingCompleted(true);
-    
+
     Fluttertoast.showToast(msg: "Sign-up successful");
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
   }
 
   // Displays a snackbar with a custom message
   // The [context] parameter should be the context of the widget that is calling this function
-  onErrorGoogleAuthResponse(BuildContext context){
+  onErrorGoogleAuthResponse(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Error signing you in with Google"))
-    );
+        const SnackBar(content: Text("Error signing you in with Google")));
   }
 
   onTapSignIn(BuildContext context) {

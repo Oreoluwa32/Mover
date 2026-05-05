@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.contrib import admin
 from django.http import JsonResponse
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 from apps.accounts.views import LiveStatusView
 from apps.mobility.views import LegacyToggleLiveStatusView
@@ -33,4 +35,9 @@ urlpatterns = [
     path("api/v1/merchant/transactions/verify/<str:reference>", LegacyMonnifyVerifyView.as_view()),
     path("api/", include("config.api_urls")),
     path("api/v1/", include("config.api_urls")),
+    re_path(
+        r"^media/(?P<path>.*)$",
+        serve,
+        {"document_root": settings.MEDIA_ROOT},
+    ),
 ]

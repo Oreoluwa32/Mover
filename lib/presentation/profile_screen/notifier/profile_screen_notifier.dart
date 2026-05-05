@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:equatable/equatable.dart';
@@ -10,7 +9,8 @@ import '../../../data/services/account_api_service.dart';
 import '../models/profile_screen_model.dart';
 part 'profile_screen_state.dart';
 
-final profileScreenNotifier = StateNotifierProvider.autoDispose<ProfileScreenNotifier, ProfileScreenState>(
+final profileScreenNotifier = StateNotifierProvider.autoDispose<
+    ProfileScreenNotifier, ProfileScreenState>(
   (ref) => ProfileScreenNotifier(ref, ProfileScreenState()),
 );
 
@@ -20,12 +20,14 @@ final userNameProvider = FutureProvider.autoDispose<String?>((ref) async {
 });
 
 // Helper provider to read the initial profile image path from SharedPreferences
-final profileImagePathProvider = FutureProvider.autoDispose<String?>((ref) async {
+final profileImagePathProvider =
+    FutureProvider.autoDispose<String?>((ref) async {
   return await PrefUtils().getProfileImagePath();
 });
 
 // A provider to track the profile image path globally and allow immediate UI updates
-final globalProfileImagePathProvider = StateNotifierProvider<GlobalProfileImageNotifier, String?>((ref) {
+final globalProfileImagePathProvider =
+    StateNotifierProvider<GlobalProfileImageNotifier, String?>((ref) {
   return GlobalProfileImageNotifier(ref);
 });
 
@@ -50,7 +52,7 @@ class GlobalProfileImageNotifier extends StateNotifier<String?> {
 }
 
 // A notifier class that is used to manage the state of the profile screen according to the event that is dispatched to it
-class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
+class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
   ProfileScreenNotifier(this.ref, ProfileScreenState state) : super(state);
 
   final Ref ref;
@@ -94,13 +96,13 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
 
       String imagePath = selectedImages.first ?? '';
       debugPrint('Selected image path: $imagePath');
-      
+
       // Update state with local path immediately for UI feedback
       state = state.copyWith(selectedLocalImagePath: imagePath);
       // Also update global provider for bottom bar
       debugPrint('Updating globalProfileImagePathProvider with local path');
       ref.read(globalProfileImagePathProvider.notifier).updatePath(imagePath);
-      
+
       // Validate image
       if (!_validateImage(imagePath)) {
         debugPrint('Image validation failed');
@@ -119,11 +121,13 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
         debugPrint('Upload successful, URL: $uploadedImageUrl');
         // Save image URL locally for syncing purposes
         await PrefUtils().setProfileImagePath(uploadedImageUrl);
-        
+
         // Update global provider with the network URL
         debugPrint('Updating globalProfileImagePathProvider with network URL');
-        ref.read(globalProfileImagePathProvider.notifier).updatePath(uploadedImageUrl);
-        
+        ref
+            .read(globalProfileImagePathProvider.notifier)
+            .updatePath(uploadedImageUrl);
+
         state = state.copyWith(
           isUploadingProfileImage: false,
           profileImageError: null,
@@ -153,7 +157,8 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
         return false;
       }
 
-      final fileExtension = path.extension(imagePath).replaceFirst('.', '').toLowerCase();
+      final fileExtension =
+          path.extension(imagePath).replaceFirst('.', '').toLowerCase();
       if (!allowedExtensions.contains(fileExtension)) {
         return false;
       }
@@ -174,14 +179,15 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
   Future<String?> _uploadProfileImageToBackend(String imagePath) async {
     try {
       final response = await AccountApiService().updateProfile(
-        avatarUrl: imagePath,
+        avatarFilePath: imagePath,
       );
       final avatarUrl = response['avatar_url']?.toString();
       if (avatarUrl == null || avatarUrl.isEmpty) {
         state = state.copyWith(
-          profileImageError: 'Image saved locally, but no profile URL was returned.',
+          profileImageError:
+              'Profile image uploaded, but no avatar URL was returned.',
         );
-        return imagePath;
+        return null;
       }
       return avatarUrl;
     } catch (e) {
@@ -190,5 +196,4 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState>{
       return null;
     }
   }
-
 }

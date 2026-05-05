@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -70,9 +71,14 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   StreamSubscription? _locationSubscription;
   StreamSubscription<CompassEvent>? _compassSubscription;
   Timer? _motionSmoothingTimer;
+  Timer? _markerRefreshTimer;
   LatLng? _targetPosition;
   double? _targetHeading;
   int _motionTickCount = 0;
+  LatLng? _lastRenderedMarkerPosition;
+  double? _lastRenderedMarkerHeading;
+  LatLng? _lastMovementSamplePosition;
+  DateTime? _lastCameraFollowAt;
 
   // Polyline variables
   List<LatLng> polylineCoordinates = [];
@@ -195,10 +201,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
         // Update markers immediately if map is ready
         if (_navigationViewController != null) {
-          _updateMarkers(_navigationViewController!);
+          _requestMarkerRefresh(force: true);
         } else if (googleMapController.isCompleted) {
           final controller = await googleMapController.future;
-          _updateMarkers(controller);
+          _updateMarkers(controller, force: true);
         }
       }
     } catch (e) {
@@ -233,6 +239,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     _locationSubscription?.cancel();
     _compassSubscription?.cancel();
     _motionSmoothingTimer?.cancel();
+    _markerRefreshTimer?.cancel();
     unawaited(_realtimeService.dispose());
     super.dispose();
   }
@@ -269,6 +276,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         (previous, next) {
       if (next == true) {
         _startNavigation();
+        if (currentPosition != null) {
+          _followUserOnMap(currentPosition!, force: true);
+        }
       } else if (next == false && previous == true) {
         _stopNavigation();
       }
@@ -276,6 +286,9 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     ref.listen(homeNotifier.select((s) => s.isLive), (previous, next) {
       if (next == true) {
         _startLiveTracking();
+        if (currentPosition != null) {
+          _followUserOnMap(currentPosition!, force: true);
+        }
       } else if (previous == true && next == false) {
         _stopLiveTracking();
       }
@@ -392,7 +405,14 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     );
   }
 
-  void _updateMarkers(GoogleNavigationViewController controller) {
+  void _updateMarkers(
+    GoogleNavigationViewController controller, {
+    bool force = false,
+  }) {
+    if (!force && !_shouldRefreshUserMarker()) {
+      return;
+    }
+
     final homeState = ref.read(homeNotifier);
     List<MarkerOptions> markerOptions = [];
 
@@ -400,7 +420,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       markerOptions.add(
         MarkerOptions(
           position: currentPosition!,
-          rotation: userHeading,
+          rotation: _markerRotationForCurrentMode(),
           anchor: const MarkerAnchor(u: 0.5, v: 0.5),
           icon: customMarkerIcon,
         ),
@@ -433,6 +453,76 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
     controller.clearMarkers();
     controller.addMarkers(markerOptions);
+
+    if (currentPosition != null) {
+      _lastRenderedMarkerPosition = currentPosition;
+      _lastRenderedMarkerHeading = userHeading;
+    }
+  }
+
+  bool _shouldRefreshUserMarker() {
+    if (currentPosition == null) {
+      return false;
+    }
+
+    if (_lastRenderedMarkerPosition == null ||
+        _lastRenderedMarkerHeading == null) {
+      return true;
+    }
+
+    final latDiff =
+        (currentPosition!.latitude - _lastRenderedMarkerPosition!.latitude)
+            .abs();
+    final lngDiff =
+        (currentPosition!.longitude - _lastRenderedMarkerPosition!.longitude)
+            .abs();
+    final headingDiff =
+        _angleDifference(_lastRenderedMarkerHeading!, userHeading).abs();
+
+    return latDiff > 0.000003 || lngDiff > 0.000003 || headingDiff > 2.0;
+  }
+
+  void _requestMarkerRefresh({bool force = false}) {
+    final controller = _navigationViewController;
+    if (controller == null) {
+      return;
+    }
+
+    if (force) {
+      _markerRefreshTimer?.cancel();
+      _markerRefreshTimer = null;
+      _updateMarkers(controller, force: true);
+      return;
+    }
+
+    if (_markerRefreshTimer != null) {
+      return;
+    }
+
+    _markerRefreshTimer = Timer(const Duration(milliseconds: 120), () {
+      _markerRefreshTimer = null;
+      final activeController = _navigationViewController;
+      if (!mounted || activeController == null) {
+        return;
+      }
+      _updateMarkers(activeController);
+    });
+  }
+
+  bool _isTransitFollowMode() {
+    final homeState = ref.read(homeNotifier);
+    return homeState.isNavigationActive ||
+        homeState.isLive ||
+        homeState.highlightRoute;
+  }
+
+  double _markerRotationForCurrentMode() {
+    if (_isTransitFollowMode()) {
+      // Keep the marker visually pointing forward on screen while the camera
+      // follows the user's travel bearing.
+      return 0.0;
+    }
+    return userHeading;
   }
 
   Future<void> _applyNavigationMapTheme(
@@ -495,7 +585,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
               googleMapController.complete(controller);
             }
             _applyNavigationMapTheme(controller, themeType);
-            _updateMarkers(controller);
+            _updateMarkers(controller, force: true);
 
             if (highlightRoute &&
                 routeLocationLat != null &&
@@ -535,7 +625,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       ];
 
       controller.addPolylines(polylines);
-      _updateMarkers(controller);
+      _updateMarkers(controller, force: true);
 
       if (coordinates.isNotEmpty) {
         await _animateCameraToShowRoute(source, destination, controller);
@@ -572,15 +662,21 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   Future<void> cameraToPosition(LatLng position) async {
     final GoogleNavigationViewController controller =
         _navigationViewController ?? await googleMapController.future;
-    final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
+    final homeState = ref.read(homeNotifier);
+    final bool isNavigating = homeState.isNavigationActive;
+    final bool shouldFollowTransit = _isTransitFollowMode();
 
     controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: position,
-          zoom: isNavigating ? 18.5 : 18.0,
-          bearing: isNavigating ? userHeading : 0,
-          tilt: isNavigating ? 45.0 : 0,
+          zoom: shouldFollowTransit ? 18.5 : 18.0,
+          bearing: shouldFollowTransit ? userHeading : 0,
+          tilt: isNavigating
+              ? 45.0
+              : shouldFollowTransit
+                  ? 32.0
+                  : 0.0,
         ),
       ),
     );
@@ -648,10 +744,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
             longitude: currentLocation.longitude!,
           );
 
-          final double fallbackHeading = currentLocation.heading ?? userHeading;
-          final double newHeading = _isValidHeading(_targetHeading)
-              ? _normalizeHeading(_targetHeading!)
-              : fallbackHeading;
+          final double newHeading =
+              _resolveDisplayHeading(currentLocation, newPosition);
 
           final bool isFirstLocation = currentPosition == null;
           final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
@@ -675,14 +769,18 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
               final controller = _navigationViewController;
               if (controller != null) {
-                _updateMarkers(controller);
+                _requestMarkerRefresh(force: true);
               } else if (googleMapController.isCompleted) {
                 googleMapController.future.then((controller) {
-                  _updateMarkers(controller);
+                  _updateMarkers(controller, force: true);
                 });
               }
 
-              cameraToPosition(newPosition);
+              if (_isTransitFollowMode()) {
+                _followUserOnMap(newPosition, force: true);
+              } else {
+                cameraToPosition(newPosition);
+              }
             } else {
               _targetPosition = newPosition;
               if (_isValidHeading(newHeading)) {
@@ -712,12 +810,14 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     _compassSubscription?.cancel();
     _compassSubscription = FlutterCompass.events?.listen((event) {
       final heading = event.heading;
-      if (!mounted || !_isValidHeading(heading)) {
+      if (!mounted || !_isValidHeading(heading) || _isTransitFollowMode()) {
         return;
       }
 
       final normalizedHeading = _normalizeHeading(heading!);
-      if (_angleDifference(userHeading, normalizedHeading).abs() < 0.5) {
+      final referenceHeading =
+          _isValidHeading(_targetHeading) ? _targetHeading! : userHeading;
+      if (_angleDifference(referenceHeading, normalizedHeading).abs() < 2.0) {
         return;
       }
 
@@ -736,7 +836,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     }
 
     _motionSmoothingTimer ??=
-        Timer.periodic(const Duration(milliseconds: 80), (timer) {
+        Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (!mounted) {
         timer.cancel();
         _motionSmoothingTimer = null;
@@ -757,14 +857,14 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
       final controller = _navigationViewController;
       if (controller != null) {
-        _updateMarkers(controller);
+        _requestMarkerRefresh();
       }
 
-      final shouldFollowMap = ref.read(homeNotifier).isNavigationActive;
+      final shouldFollowMap = _isTransitFollowMode();
       if (shouldFollowMap &&
           currentPosition != null &&
-          (_motionTickCount % 3 == 0 || positionChanged)) {
-        unawaited(cameraToPosition(currentPosition!));
+          (_motionTickCount % 2 == 0 || positionChanged || headingChanged)) {
+        _followUserOnMap(currentPosition!);
       }
     });
   }
@@ -799,7 +899,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     }
 
     final delta = _angleDifference(userHeading, _targetHeading!);
-    if (delta.abs() < 0.6) {
+    if (delta.abs() < 1.0) {
       if (userHeading != _targetHeading) {
         userHeading = _targetHeading!;
       }
@@ -808,6 +908,81 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
     userHeading = _normalizeHeading(userHeading + (delta * 0.22));
     return true;
+  }
+
+  double _resolveDisplayHeading(
+    loc.LocationData currentLocation,
+    LatLng newPosition,
+  ) {
+    if (_isTransitFollowMode()) {
+      final locationHeading = currentLocation.heading;
+      final speed = currentLocation.speed ?? 0;
+
+      if (_isValidHeading(locationHeading) && speed > 1.2) {
+        _lastMovementSamplePosition = newPosition;
+        return _normalizeHeading(locationHeading!);
+      }
+
+      final derivedHeading = _deriveHeadingFromMovement(newPosition);
+      if (_isValidHeading(derivedHeading)) {
+        return _normalizeHeading(derivedHeading!);
+      }
+    }
+
+    if (_isValidHeading(_targetHeading)) {
+      return _normalizeHeading(_targetHeading!);
+    }
+    if (_isValidHeading(currentLocation.heading)) {
+      return _normalizeHeading(currentLocation.heading!);
+    }
+    return _normalizeHeading(userHeading);
+  }
+
+  double? _deriveHeadingFromMovement(LatLng newPosition) {
+    final previousPosition = _lastMovementSamplePosition;
+    _lastMovementSamplePosition = newPosition;
+    if (previousPosition == null) {
+      return null;
+    }
+
+    final travelledDistanceKm = MapUtils.calculateDistance(
+      previousPosition.latitude,
+      previousPosition.longitude,
+      newPosition.latitude,
+      newPosition.longitude,
+    );
+    if (travelledDistanceKm * 1000 < 3) {
+      return null;
+    }
+
+    return _bearingBetween(previousPosition, newPosition);
+  }
+
+  double _bearingBetween(LatLng from, LatLng to) {
+    final fromLat = from.latitude * (3.141592653589793 / 180.0);
+    final fromLng = from.longitude * (3.141592653589793 / 180.0);
+    final toLat = to.latitude * (3.141592653589793 / 180.0);
+    final toLng = to.longitude * (3.141592653589793 / 180.0);
+
+    final deltaLng = toLng - fromLng;
+    final y = math.sin(deltaLng) * math.cos(toLat);
+    final x = math.cos(fromLat) * math.sin(toLat) -
+        math.sin(fromLat) * math.cos(toLat) * math.cos(deltaLng);
+    final bearing = math.atan2(y, x) * (180.0 / 3.141592653589793);
+    return _normalizeHeading(bearing);
+  }
+
+  void _followUserOnMap(LatLng position, {bool force = false}) {
+    final now = DateTime.now();
+    if (!force &&
+        _lastCameraFollowAt != null &&
+        now.difference(_lastCameraFollowAt!) <
+            const Duration(milliseconds: 220)) {
+      return;
+    }
+
+    _lastCameraFollowAt = now;
+    unawaited(cameraToPosition(position));
   }
 
   bool _isValidHeading(double? heading) {

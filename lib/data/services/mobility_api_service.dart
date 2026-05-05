@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/core/config/app_environment.dart';
 import 'package:movr/core/utils/task_state_sync.dart';
+import 'package:movr/data/services/auth_session_service.dart';
 
 class MobilityApiService {
   MobilityApiService({
@@ -9,6 +10,10 @@ class MobilityApiService {
     FlutterSecureStorage? storage,
   })  : _baseUrl = customBaseUrl ?? AppEnvironment.apiBaseUrl,
         _storage = storage ?? const FlutterSecureStorage() {
+    _sessionService = AuthSessionService(
+      customBaseUrl: _baseUrl,
+      storage: _storage,
+    );
     _dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
@@ -30,6 +35,14 @@ class MobilityApiService {
           }
           handler.next(options);
         },
+        onError: (error, handler) async {
+          final retriedResponse =
+              await _sessionService.retryIfUnauthorized(error, _dio);
+          if (retriedResponse != null) {
+            return handler.resolve(retriedResponse);
+          }
+          handler.next(error);
+        },
       ),
     );
   }
@@ -37,6 +50,7 @@ class MobilityApiService {
   final String _baseUrl;
   final FlutterSecureStorage _storage;
   late final Dio _dio;
+  late final AuthSessionService _sessionService;
 
   double _roundCoordinate(double value) {
     return double.parse(value.toStringAsFixed(6));
@@ -44,7 +58,9 @@ class MobilityApiService {
 
   List<Map<String, dynamic>> _extractCollection(dynamic data) {
     if (data is List) {
-      return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      return data
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
     }
     if (data is Map && data['results'] is List) {
       return (data['results'] as List)
@@ -59,7 +75,8 @@ class MobilityApiService {
   }
 
   Future<List<Map<String, dynamic>>> getMyTravelPlans() async {
-    final response = await _dio.get('/api/mobility/travel-plans/', queryParameters: {
+    final response =
+        await _dio.get('/api/mobility/travel-plans/', queryParameters: {
       'mine': 'true',
     });
     return _extractCollection(response.data);
@@ -75,7 +92,8 @@ class MobilityApiService {
       '/api/mobility/travel-plans/',
       queryParameters: {
         if (origin != null && origin.isNotEmpty) 'origin': origin,
-        if (destination != null && destination.isNotEmpty) 'destination': destination,
+        if (destination != null && destination.isNotEmpty)
+          'destination': destination,
         if (planType != null && planType.isNotEmpty && planType != 'hybrid')
           'plan_type': planType,
         if (date != null && date.isNotEmpty) 'date': date,
@@ -127,16 +145,20 @@ class MobilityApiService {
         'title': title,
         'plan_type': planType,
         'origin_name': originName,
-        if (originLatitude != null) 'origin_latitude': _roundCoordinate(originLatitude),
-        if (originLongitude != null) 'origin_longitude': _roundCoordinate(originLongitude),
+        if (originLatitude != null)
+          'origin_latitude': _roundCoordinate(originLatitude),
+        if (originLongitude != null)
+          'origin_longitude': _roundCoordinate(originLongitude),
         'destination_name': destinationName,
         if (destinationLatitude != null)
           'destination_latitude': _roundCoordinate(destinationLatitude),
         if (destinationLongitude != null)
           'destination_longitude': _roundCoordinate(destinationLongitude),
         'departure_time': departureTime.toUtc().toIso8601String(),
-        if (arrivalTime != null) 'arrival_time': arrivalTime.toUtc().toIso8601String(),
-        if (vehicleType != null && vehicleType.isNotEmpty) 'vehicle_type': vehicleType,
+        if (arrivalTime != null)
+          'arrival_time': arrivalTime.toUtc().toIso8601String(),
+        if (vehicleType != null && vehicleType.isNotEmpty)
+          'vehicle_type': vehicleType,
         'seats_available': seatsAvailable ?? 1,
         'price_per_seat': pricePerSeat ?? 0,
         'package_capacity_kg': packageCapacityKg ?? 0,
@@ -184,8 +206,10 @@ class MobilityApiService {
       '/api/mobility/ride-requests/',
       data: {
         'origin_name': originName,
-        if (originLatitude != null) 'origin_latitude': _roundCoordinate(originLatitude),
-        if (originLongitude != null) 'origin_longitude': _roundCoordinate(originLongitude),
+        if (originLatitude != null)
+          'origin_latitude': _roundCoordinate(originLatitude),
+        if (originLongitude != null)
+          'origin_longitude': _roundCoordinate(originLongitude),
         'destination_name': destinationName,
         if (destinationLatitude != null)
           'destination_latitude': _roundCoordinate(destinationLatitude),
@@ -217,11 +241,15 @@ class MobilityApiService {
       '/api/mobility/delivery-requests/',
       data: {
         'pickup_name': pickupName,
-        if (pickupLatitude != null) 'pickup_latitude': _roundCoordinate(pickupLatitude),
-        if (pickupLongitude != null) 'pickup_longitude': _roundCoordinate(pickupLongitude),
+        if (pickupLatitude != null)
+          'pickup_latitude': _roundCoordinate(pickupLatitude),
+        if (pickupLongitude != null)
+          'pickup_longitude': _roundCoordinate(pickupLongitude),
         'dropoff_name': dropoffName,
-        if (dropoffLatitude != null) 'dropoff_latitude': _roundCoordinate(dropoffLatitude),
-        if (dropoffLongitude != null) 'dropoff_longitude': _roundCoordinate(dropoffLongitude),
+        if (dropoffLatitude != null)
+          'dropoff_latitude': _roundCoordinate(dropoffLatitude),
+        if (dropoffLongitude != null)
+          'dropoff_longitude': _roundCoordinate(dropoffLongitude),
         'scheduled_time': scheduledTime.toUtc().toIso8601String(),
         'package_description': packageDescription,
         'weight_kg': weightKg,
@@ -422,7 +450,8 @@ class MobilityApiService {
   Future<Map<String, dynamic>> startRideTrip({
     required String matchId,
   }) async {
-    final response = await _dio.post('/api/mobility/matches/$matchId/start_ride/');
+    final response =
+        await _dio.post('/api/mobility/matches/$matchId/start_ride/');
     _notifyTaskStateChanged('ride_started');
     return Map<String, dynamic>.from(response.data as Map);
   }
@@ -430,7 +459,8 @@ class MobilityApiService {
   Future<Map<String, dynamic>> endRideTrip({
     required String matchId,
   }) async {
-    final response = await _dio.post('/api/mobility/matches/$matchId/end_ride/');
+    final response =
+        await _dio.post('/api/mobility/matches/$matchId/end_ride/');
     _notifyTaskStateChanged('ride_ended');
     return Map<String, dynamic>.from(response.data as Map);
   }
@@ -460,25 +490,6 @@ class MobilityApiService {
   }
 
   String extractErrorMessage(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
-        final detail = data['detail']?.toString();
-        if (detail != null && detail.isNotEmpty) {
-          return detail;
-        }
-        if (data.entries.isNotEmpty) {
-          final value = data.entries.first.value;
-          if (value is List && value.isNotEmpty) {
-            return value.first.toString();
-          }
-          if (value != null) {
-            return value.toString();
-          }
-        }
-      }
-      return error.message ?? 'Request failed.';
-    }
-    return error.toString();
+    return AuthSessionService.extractErrorMessage(error);
   }
 }

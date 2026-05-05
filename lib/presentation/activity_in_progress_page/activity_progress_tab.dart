@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import 'models/activity_in_progress_model.dart';
-import 'models/activity_progress_tab_model.dart';
+import '../../widgets/section_list_placeholder.dart';
 import 'models/progress_item_model.dart';
 import 'notifier/activity_progress_notifier.dart';
 import 'widgets/progress_item_widget.dart';
@@ -44,7 +43,7 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
         builder: (context, ref, _) {
           final state = ref.watch(activityProgressNotifier);
           if (state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const SectionListPlaceholder();
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
@@ -95,7 +94,8 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
   void _openActiveItem(ProgressItemModel model) {
     if (model.isMoverSide == true) {
       if (model.requestType == 'delivery') {
-        final taskPhase = model.matchStatus == 'accepted' ? 'accepted' : 'active';
+        final taskPhase =
+            model.matchStatus == 'accepted' ? 'accepted' : 'active';
         NavigatorService.pushNamed(
           AppRoutes.deliveryPickupScreenOne,
           arguments: {

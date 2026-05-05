@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../widgets/section_list_placeholder.dart';
 import 'models/scheduled_item_model.dart';
 import 'notifier/activity_scheduled_notifier.dart';
 import 'widgets/scheduled_item_widget.dart'; // ignore for file, class must be immutable
 
-class ActivityScheduledScreen extends ConsumerStatefulWidget{
+class ActivityScheduledScreen extends ConsumerStatefulWidget {
   const ActivityScheduledScreen({Key? key}) : super(key: key);
 
   @override
   ActivityScheduledScreenState createState() => ActivityScheduledScreenState();
 }
 
-class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen> with AutomaticKeepAliveClientMixin<ActivityScheduledScreen>{
+class ActivityScheduledScreenState
+    extends ConsumerState<ActivityScheduledScreen>
+    with AutomaticKeepAliveClientMixin<ActivityScheduledScreen> {
   @override
   void initState() {
     super.initState();
@@ -31,29 +34,29 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: Container(
-          width: double.maxFinite,
-          padding: EdgeInsets.symmetric(horizontal: 16.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              SizedBox(
-                height: 32.h,
-              ),
-              _buildSchedules(context)
-            ],
-          ),
+        width: double.maxFinite,
+        padding: EdgeInsets.symmetric(horizontal: 16.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            SizedBox(
+              height: 32.h,
+            ),
+            _buildSchedules(context)
+          ],
         ),
-      );
+      ),
+    );
   }
 
-  // Section Widget 
+  // Section Widget
   Widget _buildSchedules(BuildContext context) {
     return Expanded(
       child: Consumer(
         builder: (context, ref, _) {
           final state = ref.watch(activityScheduledNotifier);
           if (state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const SectionListPlaceholder();
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
@@ -69,7 +72,8 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
             );
           }
 
-          final items = state.activityScheduledModelObj?.scheduledItemList ?? [];
+          final items =
+              state.activityScheduledModelObj?.scheduledItemList ?? [];
           if (items.isEmpty) {
             return Center(
               child: Text(
@@ -87,7 +91,8 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
             itemBuilder: (context, index) {
               ScheduledItemModel model = items[index];
               return Dismissible(
-                key: ValueKey('scheduled-activity-${model.requestType}-${model.requestId}'),
+                key: ValueKey(
+                    'scheduled-activity-${model.requestType}-${model.requestId}'),
                 direction: DismissDirection.endToStart,
                 confirmDismiss: (_) => _confirmDelete(
                   context,
@@ -109,7 +114,8 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
                           : 'Scheduled activity deleted',
                     );
                   } catch (error) {
-                    Fluttertoast.showToast(msg: error.toString().replaceFirst('Exception: ', ''));
+                    Fluttertoast.showToast(
+                        msg: error.toString().replaceFirst('Exception: ', ''));
                   }
                 },
                 background: Container(
@@ -130,12 +136,12 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
                   child: ScheduledItemWidget(model),
                 ),
               );
-            }, 
+            },
             separatorBuilder: (context, index) {
               return SizedBox(
                 height: 16.h,
               );
-            }, 
+            },
             itemCount: items.length,
           );
         },
@@ -151,7 +157,9 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
           context: context,
           builder: (dialogContext) {
             return AlertDialog(
-              title: Text(isMoverSide ? 'Cancel scheduled task?' : 'Delete scheduled activity?'),
+              title: Text(isMoverSide
+                  ? 'Cancel scheduled task?'
+                  : 'Delete scheduled activity?'),
               content: Text(
                 isMoverSide
                     ? 'This will cancel your pending or accepted task from the scheduled list.'
@@ -208,12 +216,14 @@ class ActivityScheduledScreenState extends ConsumerState<ActivityScheduledScreen
       return;
     }
 
-    if ((model.hasPricedOffers ?? false) && !(model.hasAcceptedMover ?? false)) {
+    if ((model.hasPricedOffers ?? false) &&
+        !(model.hasAcceptedMover ?? false)) {
       NavigatorService.pushNamed(
         AppRoutes.hireMoverScreen,
         arguments: {
           'requestType': model.requestType,
-          'requestData': Map<String, dynamic>.from(model.requestData ?? const <String, dynamic>{}),
+          'requestData': Map<String, dynamic>.from(
+              model.requestData ?? const <String, dynamic>{}),
         },
       );
       return;

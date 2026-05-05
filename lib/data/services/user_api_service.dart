@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/core/config/app_environment.dart';
+import 'package:movr/data/services/auth_session_service.dart';
 import 'package:movr/data/services/mobility_api_service.dart';
 
 /// Service for handling user-related API calls to the backend
@@ -9,12 +10,17 @@ class UserApiService {
   final FlutterSecureStorage _storage;
   final String baseUrl;
   final MobilityApiService _mobilityApiService;
+  late final AuthSessionService _sessionService;
 
   UserApiService({
     String? customBaseUrl,
   })  : baseUrl = customBaseUrl ?? AppEnvironment.apiBaseUrl,
         _storage = const FlutterSecureStorage(),
         _mobilityApiService = MobilityApiService(customBaseUrl: customBaseUrl) {
+    _sessionService = AuthSessionService(
+      customBaseUrl: baseUrl,
+      storage: _storage,
+    );
     _initializeDio();
   }
 
@@ -42,7 +48,12 @@ class UserApiService {
           }
           return handler.next(options);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
+          final retriedResponse =
+              await _sessionService.retryIfUnauthorized(error, _dio);
+          if (retriedResponse != null) {
+            return handler.resolve(retriedResponse);
+          }
           return handler.next(error);
         },
         onResponse: (response, handler) {
@@ -104,9 +115,10 @@ class UserApiService {
         );
       }
     } on DioException catch (e) {
-      throw Exception(
-        'Live status toggle error: ${e.response?.data['detail'] ?? e.message}',
-      );
+      throw Exception(AuthSessionService.extractErrorMessage(
+        e,
+        fallback: 'Unable to update live status.',
+      ));
     }
   }
 
@@ -127,9 +139,10 @@ class UserApiService {
         );
       }
     } on DioException catch (e) {
-      throw Exception(
-        'Live status fetch error: ${e.response?.data['detail'] ?? e.message}',
-      );
+      throw Exception(AuthSessionService.extractErrorMessage(
+        e,
+        fallback: 'Unable to fetch live status.',
+      ));
     }
   }
 }

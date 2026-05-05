@@ -30,22 +30,12 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen> {
   bool _dialogShown = false;
   bool _searchSheetShown = false;
   int _selectedTabIndex = 0;
-  late final List<Widget> _pages;
+  final Map<int, Widget> _pageCache = <int, Widget>{};
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      const HomeOneInitialPage(),
-      MyRoutePage(
-        onOverlayChanged: _setBottomBarVisibility,
-      ),
-      UserMoveScreen(
-        onOverlayChanged: _setBottomBarVisibility,
-      ),
-      const ActivityInProgressPage(),
-      const ProfileScreen(),
-    ];
+    _pageCache[0] = _buildPageForIndex(0);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final hasActiveSession = await DeviceMemoryService().syncSessionState();
@@ -135,7 +125,10 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen> {
       extendBodyBehindAppBar: true,
       body: IndexedStack(
         index: _selectedTabIndex,
-        children: _pages,
+        children: List<Widget>.generate(
+          5,
+          (index) => _pageCache[index] ?? const SizedBox.shrink(),
+        ),
       ),
       bottomNavigationBar: _hideBottomBar
           ? null
@@ -143,10 +136,7 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen> {
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).padding.bottom,
               ),
-              child: Container(
-                width: double.maxFinite,
-                child: _buildBottombar(context),
-              ),
+              child: _buildBottombar(context),
             ),
     );
   }
@@ -164,9 +154,26 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen> {
       return;
     }
 
+    _pageCache.putIfAbsent(newIndex, () => _buildPageForIndex(newIndex));
+
     setState(() {
       _selectedTabIndex = newIndex;
     });
+  }
+
+  Widget _buildPageForIndex(int index) {
+    return switch (index) {
+      0 => const HomeOneInitialPage(),
+      1 => MyRoutePage(
+          onOverlayChanged: _setBottomBarVisibility,
+        ),
+      2 => UserMoveScreen(
+          onOverlayChanged: _setBottomBarVisibility,
+        ),
+      3 => const ActivityInProgressPage(),
+      4 => const ProfileScreen(),
+      _ => const SizedBox.shrink(),
+    };
   }
 
   Widget _buildBottombar(BuildContext context) {

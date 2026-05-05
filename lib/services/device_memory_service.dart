@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:movr/data/services/auth_session_service.dart';
 
 /// Service to manage device memory (storing login state and user data)
 class DeviceMemoryService {
@@ -56,8 +57,16 @@ class DeviceMemoryService {
       await _prefs.remove(_deviceRememberedKey);
       await _prefs.remove(_userEmailKey);
       await _prefs.remove(_lastLoginTimeKey);
+      return false;
     }
-    return hasToken;
+
+    final hasValidSession = await AuthSessionService().validateStoredSession();
+    if (!hasValidSession) {
+      await _prefs.remove(_deviceRememberedKey);
+      await _prefs.remove(_userEmailKey);
+      await _prefs.remove(_lastLoginTimeKey);
+    }
+    return hasValidSession;
   }
 
   Future<bool> hasAuthToken() async {

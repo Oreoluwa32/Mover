@@ -176,6 +176,8 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
@@ -239,4 +241,11 @@ MONNIFY_CONTRACT_CODE = os.getenv("MONNIFY_CONTRACT_CODE", "")
 MONNIFY_BASE_URL = os.getenv(
     "MONNIFY_BASE_URL",
     "https://api.monnify.com" if IS_PRODUCTION_LIKE else "https://sandbox.monnify.com",
+)
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "avatars")
+SUPABASE_STORAGE_AVATAR_PREFIX = os.getenv(
+    "SUPABASE_STORAGE_AVATAR_PREFIX",
+    "profile-avatars",
 )

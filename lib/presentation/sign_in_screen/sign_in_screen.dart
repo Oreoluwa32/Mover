@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/validation_functions.dart';
@@ -13,9 +12,6 @@ import '../../widgets/custom_text_form_field.dart';
 import '../../widgets/loading_dialog.dart';
 import '../../services/device_memory_service.dart';
 import 'notifier/sign_in_notifier.dart';
-
-// Secure storage instance
-final storage = FlutterSecureStorage();
 
 bool _obscurePassword = true;
 
@@ -46,9 +42,9 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
 
     final user = (responseData['user'] as Map?)?.cast<String, dynamic>() ?? {};
 
-      // Remember device
-      final deviceMemory = DeviceMemoryService();
-      await deviceMemory.rememberDevice(userEmail: email);
+    // Remember device
+    final deviceMemory = DeviceMemoryService();
+    await deviceMemory.rememberDevice(userEmail: email);
 
     if (context.mounted) {
       LoadingDialog.hide(context);
@@ -58,8 +54,8 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
 
     final userSubscriptionPlan =
         user['subscription_plan'] ?? user['plan_name'] ?? user['plan'];
-    final hasSubscriptionPlan =
-        userSubscriptionPlan != null && userSubscriptionPlan.toString().isNotEmpty;
+    final hasSubscriptionPlan = userSubscriptionPlan != null &&
+        userSubscriptionPlan.toString().isNotEmpty;
 
     if (context.mounted) {
       if (hasSubscriptionPlan) {
@@ -94,11 +90,14 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
 }
 
 // Class must be immutable
-class SignInScreen extends ConsumerStatefulWidget{
+class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({Key? key})
-    : super(key: key,);
+      : super(
+          key: key,
+        );
 
-  @override SignInScreenState createState() => SignInScreenState();
+  @override
+  SignInScreenState createState() => SignInScreenState();
 }
 
 class SignInScreenState extends ConsumerState<SignInScreen> {
@@ -108,122 +107,129 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   void _validateForm(SignInNotifier notifier) {
     final email = notifier.state.emailController?.text ?? '';
     final password = notifier.state.passwordController?.text ?? '';
-    final isValid = isValidEmail(email, isRequired: true) && isValidPassword(password, isRequired: true);
+    final isValid = isValidEmail(email, isRequired: true) &&
+        isValidPassword(password, isRequired: true);
     if (_isFormValid != isValid) {
       setState(() {
         _isFormValid = isValid;
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
         final notifier = ref.watch(signInNotifier);
         // Listen to changes in the text fields
-        notifier.emailController?.addListener(() => _validateForm(ref.read(signInNotifier.notifier)));
-        notifier.passwordController?.addListener(() => _validateForm(ref.read(signInNotifier.notifier)));
+        notifier.emailController?.addListener(
+            () => _validateForm(ref.read(signInNotifier.notifier)));
+        notifier.passwordController?.addListener(
+            () => _validateForm(ref.read(signInNotifier.notifier)));
 
         return Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: Form(
-              key: _formKey,
-              child: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.maxFinite,
-                      padding: EdgeInsets.only(
-                        left: 16.h,
-                        top: 48.h,
-                        right: 16.h,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomImageView(
-                            imagePath: ImageConstant.imgLogoWithoutText,
-                            height: 32.h,
-                            width: 50.h,
-                            alignment: Alignment.centerLeft,
+          resizeToAvoidBottomInset: false,
+          body: Form(
+            key: _formKey,
+            child: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                children: [
+                  Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.only(
+                      left: 16.h,
+                      top: 48.h,
+                      right: 16.h,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomImageView(
+                          imagePath: ImageConstant.imgLogoWithoutText,
+                          height: 32.h,
+                          width: 50.h,
+                          alignment: Alignment.centerLeft,
+                        ),
+                        SizedBox(height: 16.h),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Welcome back",
+                            style: theme.textTheme.headlineSmall,
                           ),
-                          SizedBox(height: 16.h),
-                          Align(
-                            alignment: Alignment.centerLeft,
+                        ),
+                        SizedBox(height: 4.h),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Welcome back! Please enter your details.",
+                            style: CustomTextStyles.titleMediumGray600,
+                          ),
+                        ),
+                        SizedBox(height: 26.h),
+                        _buildColumnemailaddr(context),
+                        SizedBox(height: 22.h),
+                        _buildColumnpassword(context),
+                        SizedBox(height: 22.h),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () {
+                              onTapForgotPassword(context);
+                            },
                             child: Text(
-                              "Welcome back",
-                              style: theme.textTheme.headlineSmall,
+                              "Forgot password",
+                              style: CustomTextStyles.titleSmallPrimary,
                             ),
                           ),
-                          SizedBox(height: 4.h),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Welcome back! Please enter your details.",
-                              style: CustomTextStyles.titleMediumGray600,
-                            ),
+                        ),
+                        SizedBox(height: 20.h),
+                        _buildSignin(context),
+                        SizedBox(height: 16.h),
+                        _buildSigninwith(context),
+                        SizedBox(height: 30.h),
+                        Container(
+                          width: double.maxFinite,
+                          margin: EdgeInsets.only(
+                            left: 64.h,
+                            right: 68.h,
                           ),
-                          SizedBox(height: 26.h),
-                          _buildColumnemailaddr(context),
-                          SizedBox(height: 22.h),
-                          _buildColumnpassword(context),
-                          SizedBox(height: 22.h),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: GestureDetector(
-                              onTap: () {onTapForgotPassword(context);},
-                              child: Text(
-                                "Forgot password",
-                                style: CustomTextStyles.titleSmallPrimary,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Don't have an account?",
+                                style: CustomTextStyles.bodyMediumGray600,
                               ),
-                            ),
-                          ),
-                          SizedBox(height: 20.h),
-                          _buildSignin(context),
-                          SizedBox(height: 16.h),
-                          _buildSigninwith(context),
-                          SizedBox(height: 30.h),
-                          Container(
-                            width: double.maxFinite,
-                            margin: EdgeInsets.only(
-                              left: 64.h,
-                              right: 68.h,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Don't have an account?",
-                                  style: CustomTextStyles.bodyMediumGray600,
+                              SizedBox(width: 3.h),
+                              GestureDetector(
+                                onTap: () {
+                                  onTapSignUp(context);
+                                },
+                                child: Text(
+                                  "Sign up",
+                                  style: CustomTextStyles.titleSmallPrimary_1,
                                 ),
-                                SizedBox(width: 3.h),
-                                GestureDetector(
-                                  onTap: () {onTapSignUp(context);},
-                                  child: Text(
-                                    "Sign up",
-                                    style: CustomTextStyles.titleSmallPrimary_1,
-                                  ),
-                                )
-                              ],
-                            ),
+                              )
+                            ],
                           ),
-                          SizedBox(height: 142.h)
-                        ],
-                      ),
-                    )
-                  ],
-                ),
+                        ),
+                        SizedBox(height: 142.h)
+                      ],
+                    ),
+                  )
+                ],
               ),
             ),
-          );
+          ),
+        );
       },
     );
   }
 
-  // Section Widget 
-  Widget _buildEmail(BuildContext context){
+  // Section Widget
+  Widget _buildEmail(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
         return CustomTextFormField(
@@ -232,7 +238,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           textInputType: TextInputType.emailAddress,
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
           validator: (value) {
-            if(value == null || (!isValidEmail(value, isRequired: true))) {
+            if (value == null || (!isValidEmail(value, isRequired: true))) {
               return "Please enter a valid email";
             }
             return null;
@@ -242,8 +248,8 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
-  // Section Widget 
-  Widget _buildColumnemailaddr(BuildContext context){
+  // Section Widget
+  Widget _buildColumnemailaddr(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -260,42 +266,40 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
-  // Section Widget 
-  Widget _buildPassword(BuildContext context){
-    return Consumer(
-      builder: (context, ref, _) {
-        return CustomTextFormField(
-          controller: ref.watch(signInNotifier).passwordController,
-          hintText: "Enter your password",
-          textInputAction: TextInputAction.done,
-          textInputType: TextInputType.visiblePassword,
-          obscureText: _obscurePassword,
-          contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
-          validator: (value) {
-            if(value == null || (!isValidPassword(value, isRequired: true))) {
-              return "Please enter a valid password";
-            }
-            return null;
-          },
-          // Add suffix icon for show/hide password
-          suffix: IconButton(
-            icon: Icon(
-              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey,
-            ),
-            onPressed: () {
-              setState(() {
-                _obscurePassword = !_obscurePassword;
-              });
-            },
+  // Section Widget
+  Widget _buildPassword(BuildContext context) {
+    return Consumer(builder: (context, ref, _) {
+      return CustomTextFormField(
+        controller: ref.watch(signInNotifier).passwordController,
+        hintText: "Enter your password",
+        textInputAction: TextInputAction.done,
+        textInputType: TextInputType.visiblePassword,
+        obscureText: _obscurePassword,
+        contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
+        validator: (value) {
+          if (value == null || (!isValidPassword(value, isRequired: true))) {
+            return "Please enter a valid password";
+          }
+          return null;
+        },
+        // Add suffix icon for show/hide password
+        suffix: IconButton(
+          icon: Icon(
+            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+            color: Colors.grey,
           ),
-        );
-      }
-    );
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
+        ),
+      );
+    });
   }
 
-  // Section Widget 
-  Widget _buildColumnpassword(BuildContext context){
+  // Section Widget
+  Widget _buildColumnpassword(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -318,25 +322,25 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   // Section Widget
-  Widget _buildSignin(BuildContext context){
-    return Consumer(
-      builder: (context, ref, _){
-        return CustomElevatedButton(
-          text: "Sign in",
-          buttonStyle: _isFormValid ? CustomButtonStyles.fillPrimaryTL41 : CustomButtonStyles.fillBlueGray,
-          buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-          onPressed: () {
-            if(_formKey.currentState?.validate() ?? false) {
-              signInUser(context, ref);
-            }
-          },
-        );
-      }
-    );
+  Widget _buildSignin(BuildContext context) {
+    return Consumer(builder: (context, ref, _) {
+      return CustomElevatedButton(
+        text: "Sign in",
+        buttonStyle: _isFormValid
+            ? CustomButtonStyles.fillPrimaryTL41
+            : CustomButtonStyles.fillBlueGray,
+        buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
+        onPressed: () {
+          if (_formKey.currentState?.validate() ?? false) {
+            signInUser(context, ref);
+          }
+        },
+      );
+    });
   }
 
   // Section Widget
-  Widget _buildSigninwith(BuildContext context){
+  Widget _buildSigninwith(BuildContext context) {
     return CustomOutlinedButton(
       text: "Sign in with Google",
       leftIcon: Container(
@@ -355,52 +359,55 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   // Navigates to the forgot password screen when the action is triggered
-  onTapForgotPassword(BuildContext context){
+  onTapForgotPassword(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.forgotPasswordScreen);
   }
 
   // Navigates to the create account screen when the action is trigered
-  onTapSignUp(BuildContext context){
+  onTapSignUp(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.createAccountScreen);
   }
 
   // Navigates to the check mail screen when the action is triggered
-  onTapSignIn(BuildContext context){
+  onTapSignIn(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
   }
 
   onTapSigninwithGoogle(BuildContext context) async {
     LoadingDialog.show(context, message: 'Signing in with Google...');
-    
+    final authApiService = AuthApiService();
+    final accountApiService = AccountApiService();
+
     await GoogleAuthHelper().googleSignInProcess().then((googleUser) async {
-      if(googleUser != null) {
+      if (googleUser != null) {
         // Authenticate with backend
-        final authResponse = await GoogleAuthHelper().authenticateWithBackend(googleUser);
-        
+        final authResponse =
+            await GoogleAuthHelper().authenticateWithBackend(googleUser);
+
         if (context.mounted) {
           LoadingDialog.hide(context);
         }
-        
+
         if (authResponse != null) {
-          // Store tokens securely
-          final token = authResponse['token']?['key'] ?? authResponse['access_token'];
-          if (token != null) {
-            await storage.write(key: 'auth_token', value: token);
-          }
-          
+          await authApiService.persistSession(authResponse);
+          await accountApiService.hydrateSessionFromMe();
+
           // Remember device
           final deviceMemory = DeviceMemoryService();
           await deviceMemory.rememberDevice(userEmail: googleUser.email);
-          
+
           // Mark onboarding as completed
           await PrefUtils().setOnboardingCompleted(true);
-          
+
           Fluttertoast.showToast(msg: "Sign-in successful");
-          
+
           // Check if user has a subscription plan
-          final userSubscriptionPlan = authResponse['user']?['subscription_plan'] ?? authResponse['user']?['plan'];
-          final hasSubscriptionPlan = userSubscriptionPlan != null && userSubscriptionPlan.toString().isNotEmpty;
-          
+          final userSubscriptionPlan = authResponse['user']
+                  ?['subscription_plan'] ??
+              authResponse['user']?['plan'];
+          final hasSubscriptionPlan = userSubscriptionPlan != null &&
+              userSubscriptionPlan.toString().isNotEmpty;
+
           // Navigate based on subscription plan status
           if (context.mounted) {
             if (hasSubscriptionPlan) {

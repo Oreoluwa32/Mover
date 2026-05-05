@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/core/config/app_environment.dart';
 import 'package:movr/core/utils/pref_utils.dart';
+import 'package:movr/data/services/auth_session_service.dart';
+import 'package:path/path.dart' as path;
 
 class AccountApiService {
   AccountApiService({
@@ -9,6 +11,10 @@ class AccountApiService {
     FlutterSecureStorage? storage,
   })  : _baseUrl = customBaseUrl ?? AppEnvironment.apiBaseUrl,
         _storage = storage ?? const FlutterSecureStorage() {
+    _sessionService = AuthSessionService(
+      customBaseUrl: _baseUrl,
+      storage: _storage,
+    );
     _dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
@@ -30,6 +36,14 @@ class AccountApiService {
           }
           handler.next(options);
         },
+        onError: (error, handler) async {
+          final retriedResponse =
+              await _sessionService.retryIfUnauthorized(error, _dio);
+          if (retriedResponse != null) {
+            return handler.resolve(retriedResponse);
+          }
+          handler.next(error);
+        },
       ),
     );
   }
@@ -37,6 +51,7 @@ class AccountApiService {
   final String _baseUrl;
   final FlutterSecureStorage _storage;
   late final Dio _dio;
+  late final AuthSessionService _sessionService;
 
   Future<Map<String, dynamic>> getMe() async {
     final response = await _dio.get('/api/accounts/me/');
@@ -54,16 +69,36 @@ class AccountApiService {
     String? phoneNumber,
     Map<String, dynamic>? linkedSocials,
     String? avatarUrl,
+    String? avatarFilePath,
   }) async {
+    final payload = <String, dynamic>{
+      if (firstName != null) 'first_name': firstName.trim(),
+      if (lastName != null) 'last_name': lastName.trim(),
+      if (phoneNumber != null) 'phone_number': phoneNumber.trim(),
+      if (linkedSocials != null) 'linked_socials': linkedSocials,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
+    };
+
+    final hasAvatarFile =
+        avatarFilePath != null && avatarFilePath.trim().isNotEmpty;
     final response = await _dio.put(
       '/api/accounts/profile/',
-      data: {
-        if (firstName != null) 'first_name': firstName.trim(),
-        if (lastName != null) 'last_name': lastName.trim(),
-        if (phoneNumber != null) 'phone_number': phoneNumber.trim(),
-        if (linkedSocials != null) 'linked_socials': linkedSocials,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
-      },
+      data: hasAvatarFile
+          ? FormData.fromMap({
+              ...payload,
+              'avatar': await MultipartFile.fromFile(
+                avatarFilePath,
+                filename: path.basename(avatarFilePath),
+              ),
+            })
+          : payload,
+      options: hasAvatarFile
+          ? Options(
+              headers: const {
+                'Content-Type': 'multipart/form-data',
+              },
+            )
+          : null,
     );
     return Map<String, dynamic>.from(response.data as Map);
   }
@@ -91,7 +126,9 @@ class AccountApiService {
     final response = await _dio.get('/api/accounts/vehicles/');
     final data = response.data;
     if (data is List) {
-      return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      return data
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
     }
     if (data is Map && data['results'] is List) {
       return (data['results'] as List)
@@ -170,34 +207,10 @@ class AccountApiService {
   }
 
   Future<void> clearSession() async {
-    await _storage.deleteAll();
-    await PrefUtils().clearProfileImagePath();
+    await _sessionService.clearSession();
   }
 
   String extractErrorMessage(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
-        final detail = data['detail']?.toString();
-        if (detail != null && detail.isNotEmpty) {
-          return detail;
-        }
-        final message = data['message']?.toString();
-        if (message != null && message.isNotEmpty) {
-          return message;
-        }
-        if (data.entries.isNotEmpty) {
-          final value = data.entries.first.value;
-          if (value is List && value.isNotEmpty) {
-            return value.first.toString();
-          }
-          if (value != null) {
-            return value.toString();
-          }
-        }
-      }
-      return error.message ?? 'Request failed.';
-    }
-    return error.toString();
+    return AuthSessionService.extractErrorMessage(error);
   }
 }

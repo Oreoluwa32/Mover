@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+import json
 from datetime import timedelta
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -10,6 +16,7 @@ from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import permissions, response, status, viewsets
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -38,6 +45,8 @@ from .serializers import (
 )
 
 User = get_user_model()
+MAX_AVATAR_UPLOAD_SIZE = 5 * 1024 * 1024
+ALLOWED_AVATAR_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 
 
 def _email_verification_required_response(email: str) -> response.Response:
@@ -72,6 +81,69 @@ def _dispatch_email_verification(user: User) -> None:
         recipient_name=recipient_name,
         verification_code=verification_code,
     )
+
+
+def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
+        raise ValueError("Supabase avatar storage is not configured.")
+
+    extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
+    if extension not in ALLOWED_AVATAR_EXTENSIONS:
+        raise ValueError("Upload a JPG, PNG, or WEBP image.")
+
+    if uploaded_file.size > MAX_AVATAR_UPLOAD_SIZE:
+        raise ValueError("Profile image must be 5MB or less.")
+
+    content_type = (uploaded_file.content_type or "").lower()
+    if content_type and not content_type.startswith("image/"):
+        raise ValueError("Selected file is not a valid image.")
+
+    object_path = (
+        f"{settings.SUPABASE_STORAGE_AVATAR_PREFIX.rstrip('/')}/"
+        f"user-{request.user.pk}/{uuid4().hex}.{extension}"
+    )
+
+    upload_url = (
+        f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/"
+        f"{settings.SUPABASE_STORAGE_BUCKET}/{quote(object_path, safe='/')}"
+    )
+
+    request_headers = {
+        "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
+        "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
+        "Content-Type": content_type or "application/octet-stream",
+        "x-upsert": "true",
+        "cache-control": "3600",
+    }
+
+    upload_request = Request(
+        upload_url,
+        data=uploaded_file.read(),
+        headers=request_headers,
+        method="POST",
+    )
+
+    try:
+        with urlopen(upload_request, timeout=30) as upload_response:
+            upload_response.read()
+    except HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="ignore")
+        try:
+            parsed = json.loads(error_body)
+            detail = parsed.get("message") or parsed.get("error") or error_body
+        except json.JSONDecodeError:
+            detail = error_body or exc.reason
+        raise ValueError(f"Avatar upload failed: {detail}") from exc
+    except URLError as exc:
+        raise ValueError("Avatar upload failed. Please try again.") from exc
+
+    avatar_url = (
+        f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/public/"
+        f"{settings.SUPABASE_STORAGE_BUCKET}/{quote(object_path, safe='/')}"
+    )
+    profile.avatar_url = avatar_url
+    profile.save(update_fields=["avatar_url", "updated_at"])
+    return avatar_url
 
 
 class RegisterView(APIView):
@@ -290,6 +362,8 @@ class MeView(APIView):
 
 
 class ProfileView(APIView):
+    parser_classes = (JSONParser, FormParser, MultiPartParser)
+
     def get(self, request):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         payload = {
@@ -321,7 +395,18 @@ class ProfileView(APIView):
         request.user.phone_number = data.get("phone_number", request.user.phone_number)
         request.user.save(update_fields=["first_name", "last_name", "phone_number", "updated_at"])
 
-        profile.avatar_url = data.get("avatar_url", profile.avatar_url)
+        avatar_file = request.FILES.get("avatar")
+        avatar_url = data.get("avatar_url")
+        if avatar_file is not None:
+            try:
+                _store_avatar_upload(request, profile, avatar_file)
+            except ValueError as exc:
+                return response.Response(
+                    {"detail": str(exc)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        elif avatar_url is not None:
+            profile.avatar_url = avatar_url
         profile.date_of_birth = data.get("date_of_birth", profile.date_of_birth)
         profile.gender = data.get("gender", profile.gender)
         profile.emergency_contact_name = data.get(

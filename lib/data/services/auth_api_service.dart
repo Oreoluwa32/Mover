@@ -121,8 +121,11 @@ class AuthApiService {
         (authPayload['tokens'] as Map?)?.cast<String, dynamic>() ?? {};
     final user = (authPayload['user'] as Map?)?.cast<String, dynamic>() ?? {};
 
-    final accessToken = tokens['access']?.toString();
-    final refreshToken = tokens['refresh']?.toString();
+    final accessToken = tokens['access']?.toString() ??
+        authPayload['access_token']?.toString() ??
+        (authPayload['token'] as Map?)?['key']?.toString();
+    final refreshToken = tokens['refresh']?.toString() ??
+        authPayload['refresh_token']?.toString();
     final email = user['email']?.toString();
     final firstName = user['first_name']?.toString() ?? '';
     final lastName = user['last_name']?.toString() ?? '';
