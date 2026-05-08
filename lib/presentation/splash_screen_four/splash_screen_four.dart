@@ -3,17 +3,20 @@ import '../../core/app_export.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_outlined_button.dart';
-import 'notifier/splash_screen_four_notifier.dart';
+import '../onboarding/onboarding_image_preloader.dart';
 
-class SplashScreenFour extends ConsumerStatefulWidget{
+class SplashScreenFour extends ConsumerStatefulWidget {
   const SplashScreenFour({Key? key})
-  : super(key: key,);
+      : super(
+          key: key,
+        );
 
   @override
   SplashScreenFourState createState() => SplashScreenFourState();
 }
 
-class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerProviderStateMixin {
+class SplashScreenFourState extends ConsumerState<SplashScreenFour>
+    with TickerProviderStateMixin {
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
   final int screenIndex = 2;
@@ -21,14 +24,22 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      OnboardingImagePreloader.precachePath(
+        context,
+        ImageConstant.imgSplashScreenFour,
+      );
+    });
     _progressController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_progressController)
-      ..addListener(() {
-        setState(() {});
-      });
+    _progressAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_progressController)
+          ..addListener(() {
+            setState(() {});
+          });
     _progressController.forward();
   }
 
@@ -39,26 +50,27 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        body: Container(
-          width: double.maxFinite,
-          height: SizeUtils.height,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-            image: DecorationImage(
-              image: AssetImage(
-                ImageConstant.imgSplashScreenFour,
-              ),
-              fit: BoxFit.fill,
+      backgroundColor: Colors.black,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: double.maxFinite,
+        height: SizeUtils.height,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
+          image: DecorationImage(
+            image: AssetImage(
+              ImageConstant.imgSplashScreenFour,
             ),
+            fit: BoxFit.fill,
           ),
-          child: SizedBox(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+        ),
+        child: SizedBox(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               SizedBox(
                 height: SizeUtils.height,
                 width: double.maxFinite,
@@ -97,14 +109,15 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
                   ],
                 ),
               )
-            ],),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 
   // Section Widget
-  Widget _buildRowline(BuildContext context){
+  Widget _buildRowline(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Row(
@@ -118,7 +131,9 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
                   Container(
                     height: 6.h,
                     decoration: BoxDecoration(
-                      color: index <= screenIndex ? Colors.white : Colors.grey[600]!,
+                      color: index <= screenIndex
+                          ? Colors.white
+                          : Colors.grey[600]!,
                       borderRadius: BorderRadius.circular(3.h),
                     ),
                   ),
@@ -143,7 +158,7 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
   }
 
   // Section Widget
-  Widget _buildColumnreallive(BuildContext context){
+  Widget _buildColumnreallive(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -169,14 +184,18 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
           CustomElevatedButton(
             text: "Get Started",
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-            onPressed: () {onTapGetStarted(context);},
+            onPressed: () {
+              onTapGetStarted(context);
+            },
           ),
           SizedBox(height: 16.h),
           CustomOutlinedButton(
             text: "Sign In",
             buttonStyle: CustomButtonStyles.outlineOnPrimary,
             buttonTextStyle: CustomTextStyles.titleSmallOnPrimary,
-            onPresssed: () {onTapSignIn(context);},
+            onPresssed: () {
+              onTapSignIn(context);
+            },
           ),
         ],
       ),
@@ -184,17 +203,17 @@ class SplashScreenFourState extends ConsumerState<SplashScreenFour> with TickerP
   }
 
   // Navigates to the create account screen when the action is triggered
-  onTapGetStarted(BuildContext context){
+  onTapGetStarted(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.createAccountScreen);
   }
 
   // Navigates back to the splash screen three when the action is triggered
-  onTapBack(BuildContext context){
+  onTapBack(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.splashScreenThree);
   }
 
   // Navigates to the sign in screen when the action is triggered
-  onTapSignIn(BuildContext context){
+  onTapSignIn(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.signInScreen);
   }
 }

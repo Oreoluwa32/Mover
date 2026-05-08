@@ -19,7 +19,7 @@ class LoadingDialog extends StatelessWidget {
       child: SizedBox.expand(
         child: Center(
           child: MovrLoadingIndicator(
-            size: 60.h,
+            size: 40.h,
             colorFilter: const ColorFilter.mode(
               Colors.white,
               BlendMode.srcIn,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
-import '../../widgets/section_list_placeholder.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import 'models/scheduled_item_model.dart';
 import 'notifier/activity_scheduled_notifier.dart';
 import 'widgets/scheduled_item_widget.dart'; // ignore for file, class must be immutable
@@ -56,7 +56,11 @@ class ActivityScheduledScreenState
         builder: (context, ref, _) {
           final state = ref.watch(activityScheduledNotifier);
           if (state.isLoading) {
-            return const SectionListPlaceholder();
+            return const Center(
+              child: MovrLoadingIndicator(
+                label: 'Loading scheduled activity...',
+              ),
+            );
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {

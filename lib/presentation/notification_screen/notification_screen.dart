@@ -70,7 +70,11 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
         builder: (context, ref, _) {
           final state = ref.watch(notificationNotifier);
           if (state.isLoading) {
-            return const Center(child: MovrLoadingIndicator());
+            return const Center(
+              child: MovrLoadingIndicator(
+                label: 'Loading notifications...',
+              ),
+            );
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {

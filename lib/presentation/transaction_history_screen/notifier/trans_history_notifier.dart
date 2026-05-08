@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../core/app_export.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../../data/models/wallet_model.dart';
 import '../../../data/services/wallet_api_service.dart';
 import '../models/balance_item_model.dart';
@@ -21,12 +22,12 @@ final transHistoryNotifier =
             BalanceItemModel(
               title: "Balance",
               icon: ImageConstant.imgEye,
-              balance: "NGN 0.00",
+              balance: "₦ 0.00",
             ),
             BalanceItemModel(
               title: "Available Balance",
               icon: ImageConstant.imgEye,
-              balance: "NGN 0.00",
+              balance: "₦ 0.00",
             ),
           ],
           monthTransList: const [],
@@ -58,27 +59,33 @@ class TransHistoryNotifier extends StateNotifier<TransHistoryState> {
     state = state.copyWith(isLoading: true);
     try {
       final walletData = await _walletApiService.fetchWalletData();
-      final currency = walletData.currency ?? "NGN";
+      final currency = walletData.currency ?? "₦";
 
       final balanceList = [
         BalanceItemModel(
           title: "Balance",
           icon: ImageConstant.imgEye,
-          balance:
-              "$currency ${walletData.balance?.toStringAsFixed(2) ?? '0.00'}",
+          balance: CurrencyFormatter.formatAmount(
+            walletData.balance,
+            currency: currency,
+          ),
         ),
         BalanceItemModel(
           title: "Available Balance",
           icon: ImageConstant.imgEye,
-          balance:
-              "$currency ${walletData.availableBalance?.toStringAsFixed(2) ?? '0.00'}",
+          balance: CurrencyFormatter.formatAmount(
+            walletData.availableBalance,
+            currency: currency,
+          ),
         ),
       ];
 
       final transactionList = walletData.transactions?.map((transaction) {
             final amount = double.tryParse(transaction.amount ?? "0") ?? 0;
-            final formattedAmount =
-                "${amount >= 0 ? '+' : '-'} $currency ${amount.abs().toStringAsFixed(2)}";
+            final formattedAmount = CurrencyFormatter.formatSignedAmount(
+              amount,
+              currency: currency,
+            );
             return TransactionItemModel(
               id: transaction.id,
               transStatus: transaction.type,
@@ -92,8 +99,10 @@ class TransHistoryNotifier extends StateNotifier<TransHistoryState> {
 
       final monthTransList = walletData.transactions?.map((transaction) {
             final amount = double.tryParse(transaction.amount ?? "0") ?? 0;
-            final formattedAmount =
-                "${amount >= 0 ? '+' : '-'} $currency ${amount.abs().toStringAsFixed(2)}";
+            final formattedAmount = CurrencyFormatter.formatSignedAmount(
+              amount,
+              currency: currency,
+            );
             return MonthTransItemModel(
               transStatus: transaction.type,
               transDate: transaction.date,

@@ -2,8 +2,8 @@ import 'package:movr/core/config/app_environment.dart';
 
 /// Paystack configuration constants
 class PaystackConstants {
-  static const String publicKey = AppEnvironment.paystackPublicKey;
-  static const String apiBaseUrl = AppEnvironment.apiBaseUrl;
+  static final String publicKey = AppEnvironment.paystackPublicKey;
+  static final String apiBaseUrl = AppEnvironment.apiBaseUrl;
 
   // Paystack API endpoints
   static const String paystackApiUrl = 'https://api.paystack.co';

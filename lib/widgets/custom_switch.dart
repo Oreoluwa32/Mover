@@ -51,9 +51,9 @@ class CustomSwitch extends StatelessWidget{
 
   Widget get switchWidget => FlutterSwitch(
     value: value ?? false,
-    height: 24.h,
+    height: 30.h,
     width: 45.h,
-    toggleSize: 19,
+    toggleSize: 25.h,
     borderRadius: 12.h,
     activeColor: appTheme.deepPurple600,
     activeToggleColor: theme.colorScheme.onPrimary,

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
-import 'notifier/splash_screen_three_notifier.dart';
+import '../onboarding/onboarding_image_preloader.dart';
 
-class SplashScreenThree extends ConsumerStatefulWidget{
+class SplashScreenThree extends ConsumerStatefulWidget {
   const SplashScreenThree({Key? key})
-  : super(key: key,);
+      : super(
+          key: key,
+        );
 
   @override
   SplashScreenThreeState createState() => SplashScreenThreeState();
 }
 
-class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with TickerProviderStateMixin {
+class SplashScreenThreeState extends ConsumerState<SplashScreenThree>
+    with TickerProviderStateMixin {
   late AnimationController _progressController;
   late Animation<double> _progressAnimation;
   final int screenIndex = 1;
@@ -20,19 +22,27 @@ class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with Ticke
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      OnboardingImagePreloader.precachePath(
+        context,
+        ImageConstant.imgSplashScreenFour,
+      );
+    });
     _progressController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_progressController)
-      ..addListener(() {
-        setState(() {});
-      })
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          onTapNext(context);
-        }
-      });
+    _progressAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_progressController)
+          ..addListener(() {
+            setState(() {});
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              onTapNext(context);
+            }
+          });
     _progressController.forward();
   }
 
@@ -43,39 +53,46 @@ class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with Ticke
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        body: Container(
-          width: double.maxFinite,
-          height: SizeUtils.height,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(
-                ImageConstant.imgSplashScreenThree,
-              ),
-              fit: BoxFit.fill,
+      backgroundColor: Colors.black,
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        width: double.maxFinite,
+        height: SizeUtils.height,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(
+              ImageConstant.imgSplashScreenThree,
             ),
-          ),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.h,
-              vertical: 40.h,
-            ),
-            child: Column(children: [
-              _buildRowline(context),
-              Spacer(flex: 78,),
-              _buildColumnyouarein(context),
-              Spacer(flex: 21,)
-            ],),
+            fit: BoxFit.fill,
           ),
         ),
-      );
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16.h,
+            vertical: 40.h,
+          ),
+          child: Column(
+            children: [
+              _buildRowline(context),
+              Spacer(
+                flex: 78,
+              ),
+              _buildColumnyouarein(context),
+              Spacer(
+                flex: 21,
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // Section Widget
-  Widget _buildRowline(BuildContext context){
+  Widget _buildRowline(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Row(
@@ -122,7 +139,7 @@ class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with Ticke
   }
 
   // Section Widget
-  Widget _buildColumnyouarein(BuildContext context){
+  Widget _buildColumnyouarein(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -133,23 +150,27 @@ class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with Ticke
           ),
           SizedBox(height: 14.h),
           Text(
-              "Choose when, where and how you want to move. You can also choose the best price.",
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: CustomTextStyles.bodyLargeOnPrimary.copyWith(
-                height: 1.50,
-              ),
+            "Choose when, where and how you want to move. You can also choose the best price.",
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: CustomTextStyles.bodyLargeOnPrimary.copyWith(
+              height: 1.50,
             ),
+          ),
           SizedBox(height: 24.h),
           CustomElevatedButton(
             text: "Next",
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
-            onPressed: () {onTapNext(context);},
+            onPressed: () {
+              onTapNext(context);
+            },
           ),
           SizedBox(height: 22.h),
           GestureDetector(
-            onTap: () {onTapBack(context);},
+            onTap: () {
+              onTapBack(context);
+            },
             child: Text(
               "Back",
               style: theme.textTheme.titleSmall,
@@ -161,12 +182,12 @@ class SplashScreenThreeState extends ConsumerState<SplashScreenThree> with Ticke
   }
 
   // Navigates to the splash screen four when the action is triggered
-  onTapNext(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.splashScreenFour);
+  onTapNext(BuildContext context) {
+    Navigator.pushReplacementNamed(context, AppRoutes.splashScreenFour);
   }
 
   // Navigates back to the splash screen two when the action is triggered
-  onTapBack(BuildContext context){
-    Navigator.pushNamed(context, AppRoutes.splashScreenTwo);
+  onTapBack(BuildContext context) {
+    Navigator.pushReplacementNamed(context, AppRoutes.splashScreenTwo);
   }
 }

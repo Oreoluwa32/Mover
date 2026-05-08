@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
 import '../../routes/auth_route_guard.dart';
-import '../../widgets/section_list_placeholder.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import '../completed_bottomsheet/completed_bottomsheet.dart';
 import 'models/completed_item_model.dart';
 import 'notifier/activity_completed_notifier.dart';
@@ -57,7 +57,11 @@ class ActivityCompletedScreenState
         builder: (context, ref, _) {
           final state = ref.watch(activityCompletedNotifier);
           if (state.isLoading) {
-            return const SectionListPlaceholder();
+            return const Center(
+              child: MovrLoadingIndicator(
+                label: 'Loading completed activity...',
+              ),
+            );
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {

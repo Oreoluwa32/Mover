@@ -37,7 +37,11 @@ class TransactionHistoryScreenState
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
       body: isLoading
-          ? const Center(child: MovrLoadingIndicator())
+          ? const Center(
+              child: MovrLoadingIndicator(
+                label: 'Loading wallet...',
+              ),
+            )
           : RefreshIndicator(
               onRefresh: () async {
                 await ref.read(transHistoryNotifier.notifier).fetchWalletData();

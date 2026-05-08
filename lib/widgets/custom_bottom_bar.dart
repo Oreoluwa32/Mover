@@ -90,7 +90,7 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
               margin: EdgeInsets.symmetric(horizontal: 16.h),
               child: CustomPaint(
                 painter: BottomBarPainter(),
-                child: Container(
+                child: SizedBox(
                   height: 60.h,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -118,31 +118,35 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
             right: 0,
             child: Center(
               child: GestureDetector(
-                onTap: () {
-                  selectedIndex = 2;
-                  widget.onChanged?.call(BottomBarEnum.Move);
-                  setState(() {});
-                },
-                child: Container(
-                  width: 50.h,
-                  height: 50.h,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF6A19D3),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFF6A19D3).withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (_) => _setSelectedIndex(2),
+                onTap: () => _notifySelection(2),
+                child: SizedBox(
+                  width: 68.h,
+                  height: 68.h,
                   child: Center(
-                    child: CustomImageView(
-                      imagePath: bottomMenuList[2].icon,
-                      height: 24.h,
-                      width: 24.h,
-                      color: Colors.white,
+                    child: Container(
+                      width: 50.h,
+                      height: 50.h,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF6A19D3),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFF6A19D3).withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: CustomImageView(
+                          imagePath: bottomMenuList[2].icon,
+                          height: 24.h,
+                          width: 24.h,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -154,6 +158,25 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
     );
   }
 
+  void _setSelectedIndex(int index) {
+    if (!mounted || selectedIndex == index) {
+      return;
+    }
+    setState(() {
+      selectedIndex = index;
+    });
+  }
+
+  void _notifySelection(int index) {
+    _setSelectedIndex(index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      widget.onChanged?.call(bottomMenuList[index].type);
+    });
+  }
+
   Widget _buildBottomBarItem(int index) {
     bool isSelected = selectedIndex == index;
     final menuItem = bottomMenuList[index];
@@ -161,15 +184,18 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
     // Special handling for profile image
     if (menuItem.isProfileImage) {
       return GestureDetector(
-        onTap: () {
-          selectedIndex = index;
-          widget.onChanged?.call(bottomMenuList[index].type);
-          setState(() {});
-        },
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _setSelectedIndex(index),
+        onTap: () => _notifySelection(index),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
+          constraints: BoxConstraints(
+            minWidth: 64.h,
+            minHeight: 52.h,
+          ),
+          padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 6.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildProfileImageCircle(isSelected),
               SizedBox(height: 4.h),
@@ -189,15 +215,18 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
 
     // Regular menu items
     return GestureDetector(
-      onTap: () {
-        selectedIndex = index;
-        widget.onChanged?.call(bottomMenuList[index].type);
-        setState(() {});
-      },
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setSelectedIndex(index),
+      onTap: () => _notifySelection(index),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        constraints: BoxConstraints(
+          minWidth: 64.h,
+          minHeight: 52.h,
+        ),
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 6.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CustomImageView(
               imagePath: isSelected
@@ -313,12 +342,12 @@ class BottomBarPainter extends CustomPainter {
 
     // First, draw the shadow with blur
     Paint shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.1)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12);
+      ..color = Colors.black.withValues(alpha: 0.06)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
     // Create shadow path (full rectangle with rounded corners)
     Path shadowPath = _createFullBarPath(size);
-    canvas.drawPath(shadowPath.shift(Offset(0, -4)), shadowPaint);
+    canvas.drawPath(shadowPath.shift(const Offset(0, -1.5)), shadowPaint);
 
     // Draw the main bar (full rectangle with white color)
     Paint backgroundPaint = Paint()

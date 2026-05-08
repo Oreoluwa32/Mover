@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
-import '../../widgets/section_list_placeholder.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import 'models/progress_item_model.dart';
 import 'notifier/activity_progress_notifier.dart';
 import 'widgets/progress_item_widget.dart';
@@ -43,7 +43,11 @@ class ActivityProgressTabState extends ConsumerState<ActivityProgressTab> {
         builder: (context, ref, _) {
           final state = ref.watch(activityProgressNotifier);
           if (state.isLoading) {
-            return const SectionListPlaceholder();
+            return const Center(
+              child: MovrLoadingIndicator(
+                label: 'Loading active activity...',
+              ),
+            );
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
