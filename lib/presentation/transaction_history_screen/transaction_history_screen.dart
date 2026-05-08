@@ -9,6 +9,7 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import 'models/balance_item_model.dart';
 import 'models/month_trans_item_model.dart';
 import 'models/transaction_item_model.dart';
@@ -18,7 +19,7 @@ import 'widgets/month_trans_item_widget.dart';
 import 'widgets/transaction_item_widget.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
-  const TransactionHistoryScreen({Key? key}) : super(key: key);
+  const TransactionHistoryScreen({super.key});
 
   @override
   TransactionHistoryScreenState createState() =>
@@ -36,7 +37,7 @@ class TransactionHistoryScreenState
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: MovrLoadingIndicator())
           : RefreshIndicator(
               onRefresh: () async {
                 await ref.read(transHistoryNotifier.notifier).fetchWalletData();
@@ -385,7 +386,7 @@ class TransactionHistoryScreenState
           ),
           SizedBox(height: 16.h),
           if (state.fundingAccountLoading)
-            const Center(child: CircularProgressIndicator())
+            const Center(child: MovrLoadingIndicator(size: 48))
           else if (fundingAccount != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

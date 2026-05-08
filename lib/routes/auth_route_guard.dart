@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/services/device_memory_service.dart';
+import '../widgets/movr_loading_indicator.dart';
 
 class AuthRouteGuard extends StatefulWidget {
   const AuthRouteGuard({
@@ -72,7 +73,7 @@ class _AuthRouteGuardState extends State<AuthRouteGuard> {
     if (_isChecking) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: MovrLoadingIndicator(),
         ),
       );
     }

@@ -15,8 +15,8 @@ class WalletModel {
 
   factory WalletModel.fromJson(Map<String, dynamic> json) {
     return WalletModel(
-      balance: (json['balance'] as num?)?.toDouble(),
-      availableBalance: (json['available_balance'] as num?)?.toDouble(),
+      balance: _parseDouble(json['balance']),
+      availableBalance: _parseDouble(json['available_balance']),
       currency: json['currency']?.toString(),
       fundingAccount: json['funding_account'] is Map<String, dynamic>
           ? WalletFundingAccount.fromJson(
@@ -27,6 +27,16 @@ class WalletModel {
           ?.map((e) => WalletTransaction.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      return double.tryParse(value.trim());
+    }
+    return null;
   }
 }
 

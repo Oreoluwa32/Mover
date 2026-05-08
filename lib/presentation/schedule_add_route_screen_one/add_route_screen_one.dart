@@ -12,11 +12,12 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../../widgets/loading_dialog.dart';
 import 'models/add_route_one_item_model.dart';
 import 'notifier/add_route_one_notifier.dart';
 
 // ignore for file, class must be immutable
-class AddRouteScreenOne extends ConsumerStatefulWidget{
+class AddRouteScreenOne extends ConsumerStatefulWidget {
   const AddRouteScreenOne({super.key});
 
   @override
@@ -24,57 +25,83 @@ class AddRouteScreenOne extends ConsumerStatefulWidget{
 }
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
-
   TextEditingController locationController = TextEditingController();
   TextEditingController destinationController = TextEditingController();
+  bool _isCreatingRoute = false;
 
   Future<String?> getToken() async {
-  const storage = FlutterSecureStorage();
-  return await storage.read(key: 'auth_token');
-}
-
-Future<void> createRoute(BuildContext context) async {
-  final token = await getToken();
-  if (token == null) {
-    Fluttertoast.showToast(msg: "No token found. Please log in first.");
-    return;
+    const storage = FlutterSecureStorage();
+    return await storage.read(key: 'auth_token');
   }
 
-  final notifierState = ref.read(addRouteOneNotifier);
-  final url = Uri.parse('https://movr-api.onrender.com/api/v1/routes/schedule');
-  final requestBody = {
-    "location": notifierState.radioGroup, 
-    "destination": destinationController.text,
-    "transportation_mode": notifierState.addRouteOneModelObj?.transportMeansList.firstWhere(
-      (item) => item.isSelected,
-      orElse: () => AddRouteOneItemModel(),
-    ).meansTitle,
-    "service_type": notifierState.serviceTypeDropDownValue?.title,
-    "departure_time": notifierState.departureDropDownValue?.title,
-  };
-
-  try {
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Token $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
-    );
-
-    if (response.statusCode == 200) {
-      final message = jsonDecode(response.body)['message'] ?? 'Route created successfully.';
-      Fluttertoast.showToast(msg: message);
-    } else {
-      final error = jsonDecode(response.body)['error'] ?? 'Failed to create route.';
-      Fluttertoast.showToast(msg: error);
+  Future<void> createRoute(BuildContext context) async {
+    if (_isCreatingRoute) {
+      return;
     }
-  } catch (e) {
-    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
-  }
-}
 
+    final token = await getToken();
+    if (token == null) {
+      Fluttertoast.showToast(msg: "No token found. Please log in first.");
+      return;
+    }
+
+    final notifierState = ref.read(addRouteOneNotifier);
+    final url =
+        Uri.parse('https://movr-api.onrender.com/api/v1/routes/schedule');
+    final requestBody = {
+      "location": notifierState.radioGroup,
+      "destination": destinationController.text,
+      "transportation_mode":
+          notifierState.addRouteOneModelObj?.transportMeansList
+              .firstWhere(
+                (item) => item.isSelected,
+                orElse: () => AddRouteOneItemModel(),
+              )
+              .meansTitle,
+      "service_type": notifierState.serviceTypeDropDownValue?.title,
+      "departure_time": notifierState.departureDropDownValue?.title,
+    };
+
+    setState(() {
+      _isCreatingRoute = true;
+    });
+    if (context.mounted) {
+      LoadingDialog.show(context, message: 'Creating route...');
+    }
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Token $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final message = jsonDecode(response.body)['message'] ??
+            'Route created successfully.';
+        Fluttertoast.showToast(msg: message);
+      } else {
+        final error =
+            jsonDecode(response.body)['error'] ?? 'Failed to create route.';
+        Fluttertoast.showToast(msg: error);
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: "An error occurred. Please check your connection.");
+    } finally {
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      if (mounted) {
+        setState(() {
+          _isCreatingRoute = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,32 +109,32 @@ Future<void> createRoute(BuildContext context) async {
       extendBody: true,
       extendBodyBehindAppBar: true,
       body: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            children: [
-              _buildAddrouteone(context),
-              Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.only(top: 30.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildColumnmeansof(context),
-                    SizedBox(height: 22.h),
-                    _buildColumnnumberof(context),
-                    SizedBox(height: 4.h)
-                  ],
-                ),
-              )
-            ],
-          ),
+        width: double.maxFinite,
+        child: Column(
+          children: [
+            _buildAddrouteone(context),
+            Container(
+              width: double.maxFinite,
+              padding: EdgeInsets.only(top: 30.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildColumnmeansof(context),
+                  SizedBox(height: 22.h),
+                  _buildColumnnumberof(context),
+                  SizedBox(height: 4.h)
+                ],
+              ),
+            )
+          ],
         ),
-        bottomNavigationBar: _buildButtonnav(context),
-      );
+      ),
+      bottomNavigationBar: _buildButtonnav(context),
+    );
   }
 
   // Section Widget
-  Widget _buildAddrouteone(BuildContext context){
+  Widget _buildAddrouteone(BuildContext context) {
     return Container(
       width: double.maxFinite,
       padding: EdgeInsets.only(
@@ -115,7 +142,7 @@ Future<void> createRoute(BuildContext context) async {
         bottom: 22.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           bottom: BorderSide(
             color: appTheme.gray20001,
@@ -124,10 +151,13 @@ Future<void> createRoute(BuildContext context) async {
         ),
         boxShadow: [
           BoxShadow(
-            color: appTheme.black900.withOpacity(0.08),
+            color: appTheme.black900.withValues(alpha: 0.08),
             spreadRadius: 2.h,
             blurRadius: 2.h,
-            offset: const Offset(0, 3,),
+            offset: const Offset(
+              0,
+              3,
+            ),
           )
         ],
       ),
@@ -142,7 +172,9 @@ Future<void> createRoute(BuildContext context) async {
               margin: EdgeInsets.only(left: 16.h),
             ),
             centerTitle: true,
-            title: AppbarSubtitle(text: "Add Route",),
+            title: AppbarSubtitle(
+              text: "Add Route",
+            ),
             actions: [
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgPlusBlack,
@@ -170,7 +202,9 @@ Future<void> createRoute(BuildContext context) async {
                       hintText: "Enter your location",
                       borderDecoration: TextFormFieldStyleHelper.outlineGray1,
                       onTap: () {
-                        ref.read(addRouteOneNotifier.notifier).changeRadioButton('location');
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .changeRadioButton('location');
                       },
                     );
                   },
@@ -183,7 +217,9 @@ Future<void> createRoute(BuildContext context) async {
                       hintText: "Enter your destination",
                       borderDecoration: TextFormFieldStyleHelper.outlineGray1,
                       onTap: () {
-                        ref.read(addRouteOneNotifier.notifier).changeRadioButton('destination');
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .changeRadioButton('destination');
                       },
                     );
                   },
@@ -196,7 +232,7 @@ Future<void> createRoute(BuildContext context) async {
     );
   }
 
-  // Section Widget 
+  // Section Widget
   // Widget _buildColumnmeansof(BuildContext context){
   //   return Container(
   //     width: double.maxFinite,
@@ -255,7 +291,11 @@ Future<void> createRoute(BuildContext context) async {
           SizedBox(height: 12.h),
           Consumer(
             builder: (context, ref, _) {
-              final transportModes = ref.watch(addRouteOneNotifier).addRouteOneModelObj?.transportMeansList ?? [];
+              final transportModes = ref
+                      .watch(addRouteOneNotifier)
+                      .addRouteOneModelObj
+                      ?.transportMeansList ??
+                  [];
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -266,15 +306,21 @@ Future<void> createRoute(BuildContext context) async {
                     return GestureDetector(
                       onTap: () {
                         // Change the selected mode when tapped
-                        ref.read(addRouteOneNotifier.notifier).selectTransportMode(index);
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .selectTransportMode(index);
                       },
                       child: Container(
                         padding: EdgeInsets.all(15.h),
                         margin: EdgeInsets.only(right: 25.h),
                         decoration: BoxDecoration(
-                          color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : Colors.transparent,
+                          color: isSelected
+                              ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                              : Colors.transparent,
                           border: Border.all(
-                            color: isSelected ? theme.colorScheme.primary : appTheme.gray20001,
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : appTheme.gray20001,
                             width: 2.h,
                           ),
                           borderRadius: BorderRadius.circular(8.h),
@@ -290,7 +336,9 @@ Future<void> createRoute(BuildContext context) async {
                             Text(
                               mode.meansTitle ?? '',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: isSelected ? theme.colorScheme.primary : appTheme.gray600,
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : appTheme.gray600,
                               ),
                             ),
                           ],
@@ -307,9 +355,8 @@ Future<void> createRoute(BuildContext context) async {
     );
   }
 
-
   // Section Widget
-  Widget _buildColumnnumberof(BuildContext context){
+  Widget _buildColumnnumberof(BuildContext context) {
     return SizedBox(
       width: double.maxFinite,
       child: Align(
@@ -328,28 +375,34 @@ Future<void> createRoute(BuildContext context) async {
                       style: theme.textTheme.labelLarge,
                     ),
                     SizedBox(height: 4.h),
-                    Consumer(
-                      builder: (context, ref, _) {
-                        return CustomDropDown(
-                          icon: Container(
-                            margin: EdgeInsets.only(left: 16.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgBlueGrayDownArrow,
-                              height: 16.h,
-                              width: 20.h,
-                              fit: BoxFit.contain,
-                            ),
+                    Consumer(builder: (context, ref, _) {
+                      return CustomDropDown(
+                        icon: Container(
+                          margin: EdgeInsets.only(left: 16.h),
+                          child: CustomImageView(
+                            imagePath: ImageConstant.imgBlueGrayDownArrow,
+                            height: 16.h,
+                            width: 20.h,
+                            fit: BoxFit.contain,
                           ),
-                          textStyle: theme.textTheme.bodySmall?.copyWith(color: appTheme.black900),
-                          iconSize: 16.h,
-                          hintText: "Type of service",
-                          hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray600),
-                          items: ref.watch(addRouteOneNotifier).addRouteOneModelObj?.serviceTypeDropdown.map((item) => item.title).toList() ?? [],
-                          contentPadding: EdgeInsets.all(14.h),
-                          borderDecoration: DropDownStyleHelper.outlineBlueGray,
-                        );
-                      }
-                    )
+                        ),
+                        textStyle: theme.textTheme.bodySmall
+                            ?.copyWith(color: appTheme.black900),
+                        iconSize: 16.h,
+                        hintText: "Type of service",
+                        hintStyle: CustomTextStyles.bodySmallGray80001!
+                            .copyWith(color: appTheme.gray600),
+                        items: ref
+                                .watch(addRouteOneNotifier)
+                                .addRouteOneModelObj
+                                ?.serviceTypeDropdown
+                                .map((item) => item.title)
+                                .toList() ??
+                            [],
+                        contentPadding: EdgeInsets.all(14.h),
+                        borderDecoration: DropDownStyleHelper.outlineBlueGray,
+                      );
+                    })
                   ],
                 ),
               ),
@@ -364,42 +417,48 @@ Future<void> createRoute(BuildContext context) async {
                       style: theme.textTheme.labelLarge,
                     ),
                     SizedBox(height: 10.h),
-                    Consumer(
-                      builder: (context, ref, _) {
-                        return CustomDropDown(
-                          icon: Container(
-                            margin: EdgeInsets.only(left: 16.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgBlueGrayDownArrow,
-                              height: 16.h,
-                              width: 20.h,
-                              fit: BoxFit.contain,
-                            ),
+                    Consumer(builder: (context, ref, _) {
+                      return CustomDropDown(
+                        icon: Container(
+                          margin: EdgeInsets.only(left: 16.h),
+                          child: CustomImageView(
+                            imagePath: ImageConstant.imgBlueGrayDownArrow,
+                            height: 16.h,
+                            width: 20.h,
+                            fit: BoxFit.contain,
                           ),
-                          textStyle: theme.textTheme.bodySmall?.copyWith(color: appTheme.black900),
-                          iconSize: 16.h,
-                          hintText: "Set Time",
-                          hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray600),
-                          items: ref.watch(addRouteOneNotifier).addRouteOneModelObj?.departureDropdown.map((item) => item.title).toList() ?? [],
-                          prefix: Container(
-                            margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgClock,
-                              height: 16.h,
-                              width: 16.h,
-                              fit: BoxFit.contain,
-                            ),
+                        ),
+                        textStyle: theme.textTheme.bodySmall
+                            ?.copyWith(color: appTheme.black900),
+                        iconSize: 16.h,
+                        hintText: "Set Time",
+                        hintStyle: CustomTextStyles.bodySmallGray80001!
+                            .copyWith(color: appTheme.gray600),
+                        items: ref
+                                .watch(addRouteOneNotifier)
+                                .addRouteOneModelObj
+                                ?.departureDropdown
+                                .map((item) => item.title)
+                                .toList() ??
+                            [],
+                        prefix: Container(
+                          margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
+                          child: CustomImageView(
+                            imagePath: ImageConstant.imgClock,
+                            height: 16.h,
+                            width: 16.h,
+                            fit: BoxFit.contain,
                           ),
-                          prefixConstraints: BoxConstraints(
-                            maxHeight: 50.h,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 14.h,
-                            vertical: 16.h,
-                          ),
-                        );
-                      }
-                    )
+                        ),
+                        prefixConstraints: BoxConstraints(
+                          maxHeight: 50.h,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 14.h,
+                          vertical: 16.h,
+                        ),
+                      );
+                    })
                   ],
                 ),
               )
@@ -410,8 +469,8 @@ Future<void> createRoute(BuildContext context) async {
     );
   }
 
-  // Section Widget 
-  Widget _buildButtonnav(BuildContext context){
+  // Section Widget
+  Widget _buildButtonnav(BuildContext context) {
     return Container(
       height: 98.h,
       width: double.maxFinite,
@@ -420,7 +479,7 @@ Future<void> createRoute(BuildContext context) async {
         vertical: 24.h,
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withOpacity(1),
+        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
         border: Border(
           top: BorderSide(
             color: appTheme.gray20001,
@@ -433,7 +492,14 @@ Future<void> createRoute(BuildContext context) async {
         children: [
           CustomElevatedButton(
             text: "Add route",
+            loadingText: "Creating route...",
             buttonStyle: CustomButtonStyles.fillBlueGray,
+            isLoading: _isCreatingRoute,
+            onPressed: _isCreatingRoute
+                ? null
+                : () {
+                    createRoute(context);
+                  },
           )
         ],
       ),

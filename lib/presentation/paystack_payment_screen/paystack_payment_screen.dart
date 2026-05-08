@@ -8,6 +8,7 @@ import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/loading_dialog.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import '../../theme/custom_text_style.dart';
 import 'notifier/paystack_payment_notifier.dart';
 
@@ -58,12 +59,13 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
       // Debug: Check if URL is empty
       if (paymentUrl.isEmpty) {
-        final errorMsg = 'Payment URL is empty - backend may not have returned authorization URL. Please check if:\n1. Backend API is running\n2. Paystack credentials are correct\n3. Network connection is stable';
+        final errorMsg =
+            'Payment URL is empty - backend may not have returned authorization URL. Please check if:\n1. Backend API is running\n2. Paystack credentials are correct\n3. Network connection is stable';
         debugPrint('PaystackPaymentScreen: ERROR - $errorMsg');
-        
+
         ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
         ref.read(paystackPaymentNotifier.notifier).setLoading(false);
-        
+
         Fluttertoast.showToast(
           msg: 'Failed to get payment URL',
           toastLength: Toast.LENGTH_LONG,
@@ -78,10 +80,10 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
     } catch (e) {
       if (!mounted) return;
       debugPrint('PaystackPaymentScreen: Exception during initialization: $e');
-      
+
       ref.read(paystackPaymentNotifier.notifier).setError('Error: $e');
       ref.read(paystackPaymentNotifier.notifier).setLoading(false);
-      
+
       Fluttertoast.showToast(
         msg: 'Failed to initialize payment: $e',
         toastLength: Toast.LENGTH_LONG,
@@ -93,11 +95,11 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
     try {
       // Parse the URL to ensure it's valid
       final uri = Uri.parse(paymentUrl);
-      
+
       if (paymentUrl.isEmpty) {
         throw Exception('Payment URL is empty');
       }
-      
+
       _webViewController = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(
@@ -112,20 +114,24 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
             },
             onWebResourceError: (WebResourceError error) {
               debugPrint('WebView Error: ${error.description}');
-              String errorMsg = error.description ?? 'Unknown error loading payment page';
-              
+              String errorMsg =
+                  error.description ?? 'Unknown error loading payment page';
+
               // Check for SSL certificate errors on Android
-              if (errorMsg.contains('SSL') || errorMsg.contains('certificate')) {
-                errorMsg = 'SSL Certificate Error - Please check your internet connection and try again';
+              if (errorMsg.contains('SSL') ||
+                  errorMsg.contains('certificate')) {
+                errorMsg =
+                    'SSL Certificate Error - Please check your internet connection and try again';
               }
-              
+
               // Check for network errors
               if (errorMsg.contains('net::ERR')) {
-                errorMsg = 'Network Error - Please check your internet connection and try again';
+                errorMsg =
+                    'Network Error - Please check your internet connection and try again';
               }
-              
+
               ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
-              
+
               Fluttertoast.showToast(
                 msg: 'Payment page error: $errorMsg',
                 toastLength: Toast.LENGTH_LONG,
@@ -134,12 +140,14 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
           ),
         )
         ..loadRequest(uri);
-      
+
       _webViewInitialized = true;
       debugPrint('WebView initialized successfully with URL: $paymentUrl');
     } catch (e) {
       debugPrint('Error initializing WebView: $e');
-      ref.read(paystackPaymentNotifier.notifier).setError('Error initializing payment: $e');
+      ref
+          .read(paystackPaymentNotifier.notifier)
+          .setError('Error initializing payment: $e');
       Fluttertoast.showToast(
         msg: 'Error initializing payment: $e',
         toastLength: Toast.LENGTH_LONG,
@@ -149,11 +157,12 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
   void _handleUrlNavigation(String url) {
     // Check if payment was successful
-    if (url.contains('successful') || url.contains('reference=${widget.reference}')) {
+    if (url.contains('successful') ||
+        url.contains('reference=${widget.reference}')) {
       ref.read(paystackPaymentNotifier.notifier).setPaymentSuccessful(
-        true,
-        widget.reference,
-      );
+            true,
+            widget.reference,
+          );
 
       Fluttertoast.showToast(
         msg: 'Payment successful!',
@@ -191,10 +200,9 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
         children: [
           if (paymentState.paymentUrl.isNotEmpty && _webViewInitialized)
             WebViewWidget(controller: _webViewController)
-          else if (paymentState.isLoading || (paymentState.paymentUrl.isNotEmpty && !_webViewInitialized))
-            const Center(
-              child: LoadingDialog(message: 'Processing payment...'),
-            )
+          else if (paymentState.isLoading ||
+              (paymentState.paymentUrl.isNotEmpty && !_webViewInitialized))
+            const LoadingDialog(message: 'Processing payment...')
           else if (paymentState.error.isNotEmpty)
             Center(
               child: SingleChildScrollView(
@@ -223,8 +231,11 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
               ),
             )
           else
-            const Center(
-              child: CircularProgressIndicator(),
+            Center(
+              child: MovrLoadingIndicator(
+                size: 42.h,
+                label: 'Preparing payment...',
+              ),
             ),
         ],
       ),

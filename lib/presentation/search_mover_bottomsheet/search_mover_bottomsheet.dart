@@ -6,14 +6,15 @@ import '../../core/app_export.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import '../home_one_screen/notifier/home_notifier.dart';
 
 class SearchMoverBottomsheet extends ConsumerStatefulWidget {
   const SearchMoverBottomsheet({
-    Key? key,
+    super.key,
     this.requestType,
     this.requestData,
-  }) : super(key: key);
+  });
 
   final String? requestType;
   final Map<String, dynamic>? requestData;
@@ -240,7 +241,9 @@ class SearchMoverBottomsheetState
         ),
         child: Column(
           children: [
-            const CircularProgressIndicator(),
+            MovrLoadingIndicator(
+              size: 44.h,
+            ),
             SizedBox(height: 12.h),
             Text(
               "Scanning nearby movers...",

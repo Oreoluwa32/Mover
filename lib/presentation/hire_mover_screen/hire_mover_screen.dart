@@ -9,6 +9,7 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/appbar_trailing_image.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import 'models/mover_item_model.dart';
 import 'widgets/mover_item_widget.dart';
 
@@ -106,9 +107,12 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
 
   Widget _buildContent(BuildContext context) {
     if (_isLoading) {
-      return const Expanded(
+      return Expanded(
         child: Center(
-          child: CircularProgressIndicator(),
+          child: MovrLoadingIndicator(
+            size: 42.h,
+            label: 'Loading mover offers...',
+          ),
         ),
       );
     }
@@ -178,11 +182,11 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             const <String, dynamic>{};
     final requestType = args['requestType']?.toString() ?? '';
-    final requestData =
-        Map<String, dynamic>.from(args['requestData'] as Map? ?? const <String, dynamic>{});
+    final requestData = Map<String, dynamic>.from(
+        args['requestData'] as Map? ?? const <String, dynamic>{});
     final requestId = requestData['id']?.toString() ?? '';
-    final nearbyMovers =
-        List<Map<String, dynamic>>.from(args['nearbyMovers'] as List? ?? const []);
+    final nearbyMovers = List<Map<String, dynamic>>.from(
+        args['nearbyMovers'] as List? ?? const []);
 
     try {
       if (!silent && mounted) {
@@ -195,7 +199,8 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
       final matchedOffers = matches.where((match) {
         if (requestType == 'ride') {
           final rideRequest = match['ride_request'];
-          return rideRequest is Map && rideRequest['id']?.toString() == requestId;
+          return rideRequest is Map &&
+              rideRequest['id']?.toString() == requestId;
         }
         if (requestType == 'delivery') {
           final deliveryRequest = match['delivery_request'];
@@ -204,7 +209,8 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
         }
         return false;
       }).toList()
-        ..sort((left, right) => _offerPriority(right).compareTo(_offerPriority(left)));
+        ..sort((left, right) =>
+            _offerPriority(right).compareTo(_offerPriority(left)));
 
       final payloads = matchedOffers.isNotEmpty
           ? matchedOffers
@@ -237,7 +243,8 @@ class HireMoverScreenState extends ConsumerState<HireMoverScreen> {
     if (_moverOffers.isEmpty) {
       return "No mover prices yet";
     }
-    if (_offerPayloads.any((offer) => offer['status']?.toString() == 'accepted')) {
+    if (_offerPayloads
+        .any((offer) => offer['status']?.toString() == 'accepted')) {
       return "Mover selected";
     }
     if (_offerPayloads.any((offer) => offer['agreed_price'] != null)) {

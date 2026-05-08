@@ -12,6 +12,7 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_drop_down.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_text_form_field.dart';
+import '../../widgets/loading_dialog.dart';
 import 'models/add_route_one_item_model.dart';
 import 'notifier/add_route_one_notifier.dart';
 import 'widgets/places_autocomplete_field.dart';
@@ -26,6 +27,7 @@ class AddRouteScreenOne extends ConsumerStatefulWidget {
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
   final MobilityApiService _mobilityApiService = MobilityApiService();
+  bool _isCreatingRoute = false;
 
   @override
   void initState() {
@@ -91,15 +93,23 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
   }
 
   Future<void> createRoute(BuildContext context) async {
-    final notifierState = ref.read(addRouteOneNotifier);
-    
-    // Validate that coordinates are selected
-    if (notifierState.locationLat == null || notifierState.locationLng == null ||
-        notifierState.destinationLat == null || notifierState.destinationLng == null) {
-      Fluttertoast.showToast(msg: "Please select locations from the suggestions to get coordinates.");
+    if (_isCreatingRoute) {
       return;
     }
-    
+
+    final notifierState = ref.read(addRouteOneNotifier);
+
+    // Validate that coordinates are selected
+    if (notifierState.locationLat == null ||
+        notifierState.locationLng == null ||
+        notifierState.destinationLat == null ||
+        notifierState.destinationLng == null) {
+      Fluttertoast.showToast(
+          msg:
+              "Please select locations from the suggestions to get coordinates.");
+      return;
+    }
+
     final now = DateTime.now();
     final pickedTime = notifierState.setTimeController?.text.split(':');
     final departureDateTime = DateTime(
@@ -109,16 +119,24 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       int.tryParse(pickedTime?[0] ?? '0') ?? 0,
       int.tryParse(pickedTime?[1] ?? '0') ?? 0,
     ).toUtc();
-    
+
     // Format to YYYY-MM-DDTHH:MM:SSZ to match the working example exactly
 
+    setState(() {
+      _isCreatingRoute = true;
+    });
+    if (context.mounted) {
+      LoadingDialog.show(context, message: 'Creating route...');
+    }
+
     try {
-      final selectedTransportMode = notifierState.addRouteOneModelObj?.transportMeansList
-          .firstWhere(
-            (item) => item.isSelected,
-            orElse: () => AddRouteOneItemModel(),
-          )
-          .meansTitle;
+      final selectedTransportMode =
+          notifierState.addRouteOneModelObj?.transportMeansList
+              .firstWhere(
+                (item) => item.isSelected,
+                orElse: () => AddRouteOneItemModel(),
+              )
+              .meansTitle;
 
       final selectedServiceTitle =
           notifierState.serviceTypeDropDownValue?.title ?? '';
@@ -170,6 +188,15 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       Fluttertoast.showToast(
         msg: _mobilityApiService.extractErrorMessage(e),
       );
+    } finally {
+      if (context.mounted) {
+        LoadingDialog.hide(context);
+      }
+      if (mounted) {
+        setState(() {
+          _isCreatingRoute = false;
+        });
+      }
     }
   }
 
@@ -255,16 +282,14 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
               text: "Add Route",
             ),
             actions: [
-              Consumer(
-                builder: (context, ref, _) {
-                  return AppbarTrailingImage(
-                    imagePath: ImageConstant.imgPlusBlack,
-                    onTap: () {
-                      ref.read(addRouteOneNotifier.notifier).toggleStopField();
-                    },
-                  );
-                }
-              ),
+              Consumer(builder: (context, ref, _) {
+                return AppbarTrailingImage(
+                  imagePath: ImageConstant.imgPlusBlack,
+                  onTap: () {
+                    ref.read(addRouteOneNotifier.notifier).toggleStopField();
+                  },
+                );
+              }),
               AppbarTrailingImage(
                 imagePath: ImageConstant.imgSetting,
                 margin: EdgeInsets.only(
@@ -273,10 +298,9 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                 ),
                 onTap: () {
                   AppBottomSheet.show(
-                    context: context,
-                    builder: (_) => AddRouteThreeBottomsheet(),
-                    isScrollControlled: true
-                  );
+                      context: context,
+                      builder: (_) => AddRouteThreeBottomsheet(),
+                      isScrollControlled: true);
                 },
               )
             ],
@@ -297,7 +321,9 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                       radioValue: "location",
                       suffixIcon: ImageConstant.imgLocationPrimary,
                       onSuffixTap: () {
-                        ref.read(addRouteOneNotifier.notifier).fetchCurrentLocation();
+                        ref
+                            .read(addRouteOneNotifier.notifier)
+                            .fetchCurrentLocation();
                       },
                       onRadioChange: () {
                         ref
@@ -528,10 +554,12 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                             fit: BoxFit.contain,
                           ),
                         ),
-                        textStyle: theme.textTheme.bodySmall?.copyWith(color: appTheme.black900),
+                        textStyle: theme.textTheme.bodySmall
+                            ?.copyWith(color: appTheme.black900),
                         iconSize: 16.h,
                         hintText: "Type of service",
-                        hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray600),
+                        hintStyle: CustomTextStyles.bodySmallGray80001!
+                            .copyWith(color: appTheme.gray600),
                         items: ref
                                 .watch(addRouteOneNotifier)
                                 .addRouteOneModelObj
@@ -575,7 +603,8 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                         controller:
                             ref.watch(addRouteOneNotifier).setTimeController,
                         hintText: "Set time",
-                        hintStyle: CustomTextStyles.bodySmallGray80001!.copyWith(color: appTheme.gray40001),
+                        hintStyle: CustomTextStyles.bodySmallGray80001!
+                            .copyWith(color: appTheme.gray40001),
                         textInputAction: TextInputAction.done,
                         prefix: Container(
                           margin: EdgeInsets.fromLTRB(14.h, 16.h, 12.h, 16.h),
@@ -640,21 +669,29 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
   Widget _buildAddRouteButton(BuildContext context) {
     final notifierState = ref.read(addRouteOneNotifier);
-    final isTransportModeSelected = notifierState.addRouteOneModelObj?.transportMeansList.any((item) => item.isSelected) ?? false;
-    final isEnabled = notifierState.locationController?.text.isNotEmpty == true &&
-        notifierState.destinationController?.text.isNotEmpty == true &&
-        isTransportModeSelected &&
-        notifierState.serviceTypeDropDownValue?.title.isNotEmpty == true &&
-        notifierState.setTimeController?.text.isNotEmpty == true;
-    
+    final isTransportModeSelected = notifierState
+            .addRouteOneModelObj?.transportMeansList
+            .any((item) => item.isSelected) ??
+        false;
+    final isEnabled =
+        notifierState.locationController?.text.isNotEmpty == true &&
+            notifierState.destinationController?.text.isNotEmpty == true &&
+            isTransportModeSelected &&
+            notifierState.serviceTypeDropDownValue?.title.isNotEmpty == true &&
+            notifierState.setTimeController?.text.isNotEmpty == true;
+
     return CustomElevatedButton(
       text: "Add route",
+      loadingText: "Creating route...",
       buttonStyle: isEnabled
           ? CustomButtonStyles.fillPrimaryTL41
           : CustomButtonStyles.fillBlueGray,
-      onPressed: isEnabled ? () {
-        createRoute(context);
-      } : null,
+      isLoading: _isCreatingRoute,
+      onPressed: isEnabled && !_isCreatingRoute
+          ? () {
+              createRoute(context);
+            }
+          : null,
     );
   }
 
@@ -672,10 +709,10 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: theme.colorScheme.primary,
-              onPrimary: theme.colorScheme.onPrimary,
-              onSurface: appTheme.black900,
-            ),
+                  primary: theme.colorScheme.primary,
+                  onPrimary: theme.colorScheme.onPrimary,
+                  onSurface: appTheme.black900,
+                ),
             timePickerTheme: TimePickerThemeData(
               hourMinuteColor: WidgetStateColor.resolveWith((states) =>
                   states.contains(WidgetState.selected)
@@ -695,7 +732,8 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                       : theme.colorScheme.primary),
               dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
               dialHandColor: theme.colorScheme.primary,
-              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              dialBackgroundColor:
+                  theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,

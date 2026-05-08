@@ -5,12 +5,13 @@ import '../completed_bottomsheet/completed_bottomsheet.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import 'models/list_item_model.dart';
 import 'notifier/notification_notifier.dart';
 import 'widgets/list_item_widget.dart';
 
 class NotificationScreen extends ConsumerStatefulWidget {
-  const NotificationScreen({Key? key}) : super(key: key);
+  const NotificationScreen({super.key});
 
   @override
   NotificationScreenState createState() => NotificationScreenState();
@@ -69,7 +70,7 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
         builder: (context, ref, _) {
           final state = ref.watch(notificationNotifier);
           if (state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: MovrLoadingIndicator());
           }
 
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {

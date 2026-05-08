@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
 import '../../data/services/account_api_service.dart';
 import '../../data/services/mobility_api_service.dart';
+import '../../widgets/movr_loading_indicator.dart';
 
 class TaskChatScreen extends StatefulWidget {
   const TaskChatScreen({Key? key}) : super(key: key);
@@ -51,8 +52,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             const <String, dynamic>{};
-    final participantName =
-        args['participantName']?.toString() ?? 'Task chat';
+    final participantName = args['participantName']?.toString() ?? 'Task chat';
 
     return Scaffold(
       backgroundColor: theme.colorScheme.onPrimary,
@@ -80,7 +80,12 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: MovrLoadingIndicator(
+          size: 42.h,
+          label: 'Loading messages...',
+        ),
+      );
     }
 
     if (_errorMessage.isNotEmpty) {
@@ -122,8 +127,9 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
         final senderId = sender['id']?.toString() ?? '';
         final isMine = senderId.isNotEmpty && senderId == _currentUserId;
         final body = message['body']?.toString() ?? '';
-        final createdAt = DateTime.tryParse(message['created_at']?.toString() ?? '')
-            ?.toLocal();
+        final createdAt =
+            DateTime.tryParse(message['created_at']?.toString() ?? '')
+                ?.toLocal();
 
         return Align(
           alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -132,7 +138,9 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 12.h),
               decoration: BoxDecoration(
-                color: isMine ? theme.colorScheme.primary : const Color(0xFFF5F5F7),
+                color: isMine
+                    ? theme.colorScheme.primary
+                    : const Color(0xFFF5F5F7),
                 borderRadius: BorderRadius.circular(16.h),
               ),
               child: Column(
@@ -217,12 +225,11 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                   ),
                 ),
                 child: _isSending
-                    ? SizedBox(
-                        width: 18.h,
-                        height: 18.h,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ? MovrLoadingIndicator(
+                        size: 16.h,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
                         ),
                       )
                     : Icon(
@@ -267,7 +274,8 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
         _currentUserId = user['id']?.toString() ?? '';
       }
 
-      final messages = await _mobilityApiService.getMatchMessages(matchId: matchId);
+      final messages =
+          await _mobilityApiService.getMatchMessages(matchId: matchId);
       if (!mounted) {
         return;
       }

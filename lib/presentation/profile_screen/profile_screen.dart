@@ -7,6 +7,7 @@ import '../../data/services/account_api_service.dart';
 import '../../services/device_memory_service.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
+import '../../widgets/movr_loading_indicator.dart';
 import '../../widgets/user_avatar.dart';
 import '../wallet/notifier/wallet_notifier.dart';
 import 'notifier/profile_screen_notifier.dart';
@@ -311,13 +312,11 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                         borderRadius: BorderRadius.circular(24.h),
                       ),
                       child: Center(
-                        child: SizedBox(
-                          width: 20.h,
-                          height: 20.h,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                        child: MovrLoadingIndicator(
+                          size: 18.h,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
                           ),
                         ),
                       ),

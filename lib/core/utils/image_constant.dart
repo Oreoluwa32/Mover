@@ -370,7 +370,8 @@ class ImageConstant {
   static String imgBitmojiFrame = '$imagePath/img_bitmoji_frame.jpg';
 
   // Chevron right gray
-  static String imgChevronRightGray = '$imagePath/img_chevron_right_bluegray.svg';
+  static String imgChevronRightGray =
+      '$imagePath/img_chevron_right_bluegray.svg';
 
   // Black chevron right
   static String imgBlackChevronRight = '$imagePath/img_black_chevron_right.svg';
@@ -384,7 +385,7 @@ class ImageConstant {
   // Map
   static String imgMap = '$imagePath/map.png';
 
-  // Red dot 
+  // Red dot
   static String imgRedDot = '$imagePath/img_red_dot.svg';
 
   // Custom marker
@@ -407,4 +408,7 @@ class ImageConstant {
 
   // Custom marker PNG
   static String imgCustomMarkerPng = '$imagePath/img_custom_marker.png';
+
+  // Movr loading mark
+  static String imgMovrLoader = '$imagePath/movr_loading.svg';
 }

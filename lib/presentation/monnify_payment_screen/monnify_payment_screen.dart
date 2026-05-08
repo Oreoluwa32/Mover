@@ -14,6 +14,7 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/movr_loading_indicator.dart';
 
 class MonnifyPaymentScreen extends ConsumerStatefulWidget {
   final String? amount;
@@ -199,7 +200,12 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen>
               _buildHeroCard(),
               SizedBox(height: 20.h),
               if (_isLoading)
-                const Center(child: CircularProgressIndicator())
+                Center(
+                  child: MovrLoadingIndicator(
+                    size: 42.h,
+                    label: 'Loading funding details...',
+                  ),
+                )
               else if (_fundingAccount != null)
                 _buildFundingDetails(context)
               else
