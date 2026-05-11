@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -11,6 +13,7 @@ from .models import KycRecord, UserProfile, Vehicle
 from apps.mobility.models import TravelMatch
 
 User = get_user_model()
+NIGERIAN_PLATE_NUMBER_PATTERN = re.compile(r"^[A-Z]{3}-\d{3}[A-Z]{2}$")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -166,6 +169,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class VehicleSerializer(serializers.ModelSerializer):
+    def validate_plate_number(self, value):
+        normalized_value = (value or "").strip().upper()
+        if not NIGERIAN_PLATE_NUMBER_PATTERN.fullmatch(normalized_value):
+            raise serializers.ValidationError(
+                "Enter a valid Nigerian plate number in the format ABC-123DE."
+            )
+        return normalized_value
+
     class Meta:
         model = Vehicle
         fields = [

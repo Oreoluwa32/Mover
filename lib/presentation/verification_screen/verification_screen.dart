@@ -1,76 +1,182 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 import '../../core/app_export.dart';
+import '../../data/services/account_api_service.dart';
+import '../../presentation/home_screen_dialog/home_screen_dialog.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../presentation/home_screen_dialog/home_screen_dialog.dart';
-import 'notifier/verification_notifier.dart';
+import '../../widgets/movr_loading_indicator.dart';
 
-class VerificationScreen extends ConsumerStatefulWidget{
+enum _VerificationBadgeState {
+  none,
+  review,
+  approved,
+}
+
+class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({Key? key})
-    : super(key: key,);
+      : super(
+          key: key,
+        );
 
   @override
   VerificationScreenState createState() => VerificationScreenState();
 }
 
 class VerificationScreenState extends ConsumerState<VerificationScreen> {
+  bool _isLoading = true;
+  bool _isPersonalInfoComplete = false;
+  _VerificationBadgeState _identificationStatus = _VerificationBadgeState.none;
+  _VerificationBadgeState _vehicleStatus = _VerificationBadgeState.none;
+
   @override
-  Widget build(BuildContext context){
-    return Scaffold(
-        appBar: _buildAppbar(context),
-        body: Container(
-          width: double.maxFinite,
-          padding: EdgeInsets.only(
-            left: 16.h,
-            top: 22.h,
-            right: 16.h,
-          ),
-          child: Column(
-            children: [
-              SizedBox(
-                width: double.maxFinite,
-                child: GestureDetector(
-                  onTap: () {onTapPersonalInfo(context);},
-                  child: _buildAccountcardOne(
-                    context,
-                    identification: "Personal Identification",
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              SizedBox(
-                width: double.maxFinite,
-                child: GestureDetector(
-                  onTap: () {
-                    onTapIdentification(context);
-                  },
-                  child: _buildAccountcardOne(
-                    context,
-                    identification: "Identification",
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              SizedBox(
-                width: double.maxFinite,
-                child: GestureDetector(
-                  onTap: () {onTapVehicleInfo(context);},
-                  child: _buildAccountcardOne(
-                    context,
-                    identification: "Vehicle Identification",
-                  ),
-                ),
-              ),
-              SizedBox(height: 4.h)
-            ],
-          ),
-        ),
-      );
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadVerificationState();
+    });
   }
 
-  // Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context){
+  Future<void> _loadVerificationState() async {
+    final accountApiService = AccountApiService();
+    try {
+      final overview = await accountApiService.getMe();
+      final user = Map<String, dynamic>.from(
+        (overview['user'] as Map?) ?? const <String, dynamic>{},
+      );
+      final profile = Map<String, dynamic>.from(
+        (overview['profile'] as Map?) ?? const <String, dynamic>{},
+      );
+      final kyc = overview['kyc'] is Map
+          ? Map<String, dynamic>.from(overview['kyc'] as Map)
+          : null;
+      final vehicles = (overview['vehicles'] as List? ?? const [])
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isPersonalInfoComplete = _resolvePersonalInfoComplete(user, profile);
+        _identificationStatus = _resolveIdentificationStatus(kyc);
+        _vehicleStatus = _resolveVehicleStatus(vehicles);
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      Fluttertoast.showToast(
+        msg: accountApiService.extractErrorMessage(error),
+      );
+    }
+  }
+
+  bool _resolvePersonalInfoComplete(
+    Map<String, dynamic> user,
+    Map<String, dynamic> profile,
+  ) {
+    final hasFirstName =
+        (user['first_name']?.toString().trim().isNotEmpty ?? false);
+    final hasLastName =
+        (user['last_name']?.toString().trim().isNotEmpty ?? false);
+    final hasEmail = (user['email']?.toString().trim().isNotEmpty ?? false);
+    return hasFirstName && hasLastName && hasEmail;
+  }
+
+  _VerificationBadgeState _resolveIdentificationStatus(
+    Map<String, dynamic>? kyc,
+  ) {
+    if (kyc == null) {
+      return _VerificationBadgeState.none;
+    }
+
+    final hasNin = (kyc['nin']?.toString().trim().isNotEmpty ?? false);
+    final hasBvn = (kyc['bvn']?.toString().trim().isNotEmpty ?? false);
+    if (!hasNin || !hasBvn) {
+      return _VerificationBadgeState.none;
+    }
+
+    final status = (kyc['status']?.toString().toLowerCase() ?? '').trim();
+    if (status == 'verified') {
+      return _VerificationBadgeState.approved;
+    }
+    return _VerificationBadgeState.review;
+  }
+
+  _VerificationBadgeState _resolveVehicleStatus(
+    List<Map<String, dynamic>> vehicles,
+  ) {
+    if (vehicles.isEmpty) {
+      return _VerificationBadgeState.none;
+    }
+
+    final hasVerifiedVehicle = vehicles.any(
+      (vehicle) => vehicle['is_verified'] == true,
+    );
+    return hasVerifiedVehicle
+        ? _VerificationBadgeState.approved
+        : _VerificationBadgeState.review;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildAppbar(context),
+      body: _isLoading
+          ? Center(
+              child: MovrLoadingIndicator(
+                label: 'Loading verification...',
+              ),
+            )
+          : Container(
+              width: double.maxFinite,
+              padding: EdgeInsets.only(
+                left: 16.h,
+                top: 28.h,
+                right: 16.h,
+              ),
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () => onTapPersonalInfo(context),
+                    child: _buildVerificationRow(
+                      label: 'Personal Information',
+                      badgeState: _isPersonalInfoComplete
+                          ? _VerificationBadgeState.approved
+                          : _VerificationBadgeState.none,
+                    ),
+                  ),
+                  SizedBox(height: 34.h),
+                  GestureDetector(
+                    onTap: () => onTapIdentification(context),
+                    child: _buildVerificationRow(
+                      label: 'Identification',
+                      badgeState: _identificationStatus,
+                    ),
+                  ),
+                  SizedBox(height: 34.h),
+                  GestureDetector(
+                    onTap: () => onTapVehicleInfo(context),
+                    child: _buildVerificationRow(
+                      label: 'Vehicle Identification',
+                      badgeState: _vehicleStatus,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
       height: 60.h,
       leadingWidth: 40.h,
@@ -79,7 +185,9 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
         margin: EdgeInsets.only(
           left: 16.h,
         ),
-        onTap: () {onTapLeftArrow1(context);},
+        onTap: () {
+          onTapLeftArrow1(context);
+        },
       ),
       centerTitle: true,
       title: AppbarSubtitle(
@@ -89,38 +197,58 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     );
   }
 
-  // Common Widget
-  Widget _buildAccountcardOne(BuildContext context, {
-    required String identification,
+  Widget _buildVerificationRow({
+    required String label,
+    required _VerificationBadgeState badgeState,
   }) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-      ),
+    return SizedBox(
+      width: double.maxFinite,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            identification,
-            style: CustomTextStyles.bodyMediumMulishBlack900.copyWith(
-              color: appTheme.gray80001,
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: appTheme.gray80001,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
+          _buildStatusBadge(badgeState),
+          SizedBox(width: 18.h),
           CustomImageView(
             imagePath: ImageConstant.imgBlackChevronRight,
             height: 16.h,
             width: 16.h,
-          )
+          ),
         ],
       ),
     );
   }
 
-  // Navigates back to the home one screen with dialog
-  onTapLeftArrow1(BuildContext context){
+  Widget _buildStatusBadge(_VerificationBadgeState badgeState) {
+    switch (badgeState) {
+      case _VerificationBadgeState.approved:
+        return CustomImageView(
+          imagePath: ImageConstant.imgCheck,
+          height: 28.h,
+          width: 28.h,
+        );
+      case _VerificationBadgeState.review:
+        return CustomImageView(
+          imagePath: ImageConstant.imgReview,
+          height: 36.h,
+          width: 112.h,
+          fit: BoxFit.contain,
+        );
+      case _VerificationBadgeState.none:
+        return SizedBox(width: 28.h);
+    }
+  }
+
+  void onTapLeftArrow1(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.homeOneScreen);
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (context.mounted) {
         showDialog(
           context: context,
@@ -131,18 +259,15 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     });
   }
 
-  // Navigates to the personal info screen when the action is triggered
-  onTapPersonalInfo(BuildContext context){
+  void onTapPersonalInfo(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.personalInformationScreen);
   }
 
-  // Navigates to the vehicle info screen when the action is triggered
-  onTapVehicleInfo(BuildContext context){
+  void onTapVehicleInfo(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.vehicleInformationScreen);
   }
 
-  // Navigates to the identification screen when the action is triggered
-  onTapIdentification(BuildContext context) {
+  void onTapIdentification(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.identificationScreen);
   }
 }

@@ -249,3 +249,7 @@ SUPABASE_STORAGE_AVATAR_PREFIX = os.getenv(
     "SUPABASE_STORAGE_AVATAR_PREFIX",
     "profile-avatars",
 )
+SUPABASE_STORAGE_VEHICLE_PREFIX = os.getenv(
+    "SUPABASE_STORAGE_VEHICLE_PREFIX",
+    "vehicle-documents",
+)

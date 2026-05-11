@@ -1,7 +1,29 @@
+String normalizeNigerianPlateNumber(String? inputString) {
+  return (inputString ?? '').trim().toUpperCase();
+}
+
+bool isValidNigerianPlateNumber(String? inputString,
+    {bool isRequired = false}) {
+  bool isInputStringValid = false;
+  final normalizedInput = normalizeNigerianPlateNumber(inputString);
+
+  if (!isRequired && normalizedInput.isEmpty) {
+    isInputStringValid = true;
+  }
+
+  if (normalizedInput.isNotEmpty) {
+    const pattern = r'^[A-Z]{3}-\d{3}[A-Z]{2}$';
+    final regExp = RegExp(pattern);
+    isInputStringValid = regExp.hasMatch(normalizedInput);
+  }
+
+  return isInputStringValid;
+}
+
 // Checks if string contains only letters with no whitspaces
 bool isText(String? inputString, {bool isRequired = false}) {
   bool isInputStringValid = false;
-  if(!isRequired && (inputString == null ? true : inputString.isEmpty)) {
+  if (!isRequired && (inputString == null ? true : inputString.isEmpty)) {
     isInputStringValid = true;
   }
   if (inputString != null && inputString.isNotEmpty) {
@@ -30,11 +52,12 @@ bool isValidPhone(String? inputString, {bool isRequired = false}) {
 // Checks if the string is an email
 bool isValidEmail(String? inputString, {bool isRequired = false}) {
   bool isInputStringValid = false;
-  if(!isRequired && (inputString == null ? true : inputString.isEmpty)) {
+  if (!isRequired && (inputString == null ? true : inputString.isEmpty)) {
     isInputStringValid = true;
   }
   if (inputString != null && inputString.isNotEmpty) {
-    const pattern = r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    const pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     final regExp = RegExp(pattern);
     isInputStringValid = regExp.hasMatch(inputString);
   }
@@ -48,7 +71,8 @@ bool isValidPassword(String? inputString, {bool isRequired = false}) {
     isInputStringValid = true;
   }
   if (inputString != null && inputString.isNotEmpty) {
-    const pattern = r'^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{8,}$';
+    const pattern =
+        r'^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{8,}$';
     final regExp = RegExp(pattern);
     isInputStringValid = regExp.hasMatch(inputString);
   }

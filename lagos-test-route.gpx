@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="OpenAI" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Lagos Test Route</name>
+    <trkseg>
+      <trkpt lat="6.5095" lon="3.3710"></trkpt>
+      <trkpt lat="6.5120" lon="3.3695"></trkpt>
+      <trkpt lat="6.5150" lon="3.3670"></trkpt>
+      <trkpt lat="6.5180" lon="3.3645"></trkpt>
+      <trkpt lat="6.5210" lon="3.3620"></trkpt>
+      <trkpt lat="6.5240" lon="3.3595"></trkpt>
+      <trkpt lat="6.5270" lon="3.3570"></trkpt>
+      <trkpt lat="6.5300" lon="3.3545"></trkpt>
+      <trkpt lat="6.5330" lon="3.3520"></trkpt>
+      <trkpt lat="6.5360" lon="3.3495"></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/core/config/app_environment.dart';
@@ -92,6 +94,9 @@ class AccountApiService {
               ),
             })
           : payload,
+      options: hasAvatarFile
+          ? Options(contentType: Headers.multipartFormDataContentType)
+          : null,
     );
     return Map<String, dynamic>.from(response.data as Map);
   }
@@ -138,17 +143,35 @@ class AccountApiService {
     required String color,
     required String plateNumber,
     Map<String, dynamic>? metadata,
+    String? vehiclePhotoPath,
+    String? driverLicensePath,
+    String? vehicleReportPath,
+    String? vehicleInsurancePath,
   }) async {
+    final payload = {
+      'vehicle_type': vehicleType,
+      'make': make,
+      'model': model,
+      'color': color,
+      'plate_number': plateNumber.trim(),
+      'metadata': metadata ?? <String, dynamic>{},
+    };
     final response = await _dio.post(
       '/api/accounts/vehicles/',
-      data: {
-        'vehicle_type': vehicleType,
-        'make': make,
-        'model': model,
-        'color': color,
-        'plate_number': plateNumber.trim(),
-        'metadata': metadata ?? <String, dynamic>{},
-      },
+      data: await _buildVehicleRequestBody(
+        payload: payload,
+        metadata: metadata,
+        vehiclePhotoPath: vehiclePhotoPath,
+        driverLicensePath: driverLicensePath,
+        vehicleReportPath: vehicleReportPath,
+        vehicleInsurancePath: vehicleInsurancePath,
+      ),
+      options: _vehicleRequestOptions(
+        vehiclePhotoPath: vehiclePhotoPath,
+        driverLicensePath: driverLicensePath,
+        vehicleReportPath: vehicleReportPath,
+        vehicleInsurancePath: vehicleInsurancePath,
+      ),
     );
     return Map<String, dynamic>.from(response.data as Map);
   }
@@ -161,19 +184,120 @@ class AccountApiService {
     required String color,
     required String plateNumber,
     Map<String, dynamic>? metadata,
+    String? vehiclePhotoPath,
+    String? driverLicensePath,
+    String? vehicleReportPath,
+    String? vehicleInsurancePath,
   }) async {
+    final payload = {
+      'vehicle_type': vehicleType,
+      'make': make,
+      'model': model,
+      'color': color,
+      'plate_number': plateNumber.trim(),
+      'metadata': metadata ?? <String, dynamic>{},
+    };
     final response = await _dio.patch(
       '/api/accounts/vehicles/$vehicleId/',
-      data: {
-        'vehicle_type': vehicleType,
-        'make': make,
-        'model': model,
-        'color': color,
-        'plate_number': plateNumber.trim(),
-        'metadata': metadata ?? <String, dynamic>{},
-      },
+      data: await _buildVehicleRequestBody(
+        payload: payload,
+        metadata: metadata,
+        vehiclePhotoPath: vehiclePhotoPath,
+        driverLicensePath: driverLicensePath,
+        vehicleReportPath: vehicleReportPath,
+        vehicleInsurancePath: vehicleInsurancePath,
+      ),
+      options: _vehicleRequestOptions(
+        vehiclePhotoPath: vehiclePhotoPath,
+        driverLicensePath: driverLicensePath,
+        vehicleReportPath: vehicleReportPath,
+        vehicleInsurancePath: vehicleInsurancePath,
+      ),
     );
     return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  Future<Object> _buildVehicleRequestBody({
+    required Map<String, dynamic> payload,
+    Map<String, dynamic>? metadata,
+    String? vehiclePhotoPath,
+    String? driverLicensePath,
+    String? vehicleReportPath,
+    String? vehicleInsurancePath,
+  }) async {
+    final hasLocalFiles = [
+      vehiclePhotoPath,
+      driverLicensePath,
+      vehicleReportPath,
+      vehicleInsurancePath,
+    ].any(_isLocalFilePath);
+
+    if (!hasLocalFiles) {
+      return payload;
+    }
+
+    final formData = <String, dynamic>{
+      'vehicle_type': payload['vehicle_type'],
+      'make': payload['make'],
+      'model': payload['model'],
+      'color': payload['color'],
+      'plate_number': payload['plate_number'],
+      'metadata': jsonEncode(metadata ?? <String, dynamic>{}),
+    };
+
+    if (_isLocalFilePath(vehiclePhotoPath)) {
+      formData['vehicle_photo'] = await MultipartFile.fromFile(
+        vehiclePhotoPath!,
+        filename: path.basename(vehiclePhotoPath),
+      );
+    }
+    if (_isLocalFilePath(driverLicensePath)) {
+      formData['driver_license'] = await MultipartFile.fromFile(
+        driverLicensePath!,
+        filename: path.basename(driverLicensePath),
+      );
+    }
+    if (_isLocalFilePath(vehicleReportPath)) {
+      formData['vehicle_report'] = await MultipartFile.fromFile(
+        vehicleReportPath!,
+        filename: path.basename(vehicleReportPath),
+      );
+    }
+    if (_isLocalFilePath(vehicleInsurancePath)) {
+      formData['vehicle_insurance'] = await MultipartFile.fromFile(
+        vehicleInsurancePath!,
+        filename: path.basename(vehicleInsurancePath),
+      );
+    }
+
+    return FormData.fromMap(formData);
+  }
+
+  bool _isLocalFilePath(String? value) {
+    final normalized = value?.trim() ?? '';
+    return normalized.isNotEmpty &&
+        !normalized.startsWith('http://') &&
+        !normalized.startsWith('https://');
+  }
+
+  Options? _vehicleRequestOptions({
+    String? vehiclePhotoPath,
+    String? driverLicensePath,
+    String? vehicleReportPath,
+    String? vehicleInsurancePath,
+  }) {
+    final hasLocalFiles = [
+      vehiclePhotoPath,
+      driverLicensePath,
+      vehicleReportPath,
+      vehicleInsurancePath,
+    ].any(_isLocalFilePath);
+
+    if (!hasLocalFiles) {
+      return null;
+    }
+
+    return Options(contentType: Headers.multipartFormDataContentType);
   }
 
   Future<void> hydrateSessionFromMe() async {

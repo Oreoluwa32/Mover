@@ -48,6 +48,15 @@ from .serializers import (
 User = get_user_model()
 MAX_AVATAR_UPLOAD_SIZE = 5 * 1024 * 1024
 ALLOWED_AVATAR_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+MAX_VEHICLE_DOCUMENT_UPLOAD_SIZE = 8 * 1024 * 1024
+ALLOWED_VEHICLE_DOCUMENT_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+VEHICLE_DOCUMENT_CONTENT_PREFIXES = ("image/",)
+VEHICLE_DOCUMENT_FIELDS = (
+    "vehicle_photo",
+    "driver_license",
+    "vehicle_report",
+    "vehicle_insurance",
+)
 
 
 class AvatarUploadConfigurationError(Exception):
@@ -88,31 +97,38 @@ def _dispatch_email_verification(user: User) -> None:
     )
 
 
-def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
+def _upload_file_to_supabase(
+    *,
+    uploaded_file,
+    object_path: str,
+    allowed_extensions: set[str],
+    max_size: int,
+    allowed_content_prefixes: tuple[str, ...],
+    invalid_type_message: str,
+) -> str:
     if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
         raise AvatarUploadConfigurationError(
-            "Supabase avatar storage is not configured."
+            "Supabase storage is not configured."
         )
 
     extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
-    if extension not in ALLOWED_AVATAR_EXTENSIONS:
-        raise ValueError("Upload a JPG, PNG, or WEBP image.")
+    if extension not in allowed_extensions:
+        raise ValueError(invalid_type_message)
 
-    if uploaded_file.size > MAX_AVATAR_UPLOAD_SIZE:
-        raise ValueError("Profile image must be 5MB or less.")
+    if uploaded_file.size > max_size:
+        raise ValueError(f"File must be {max_size // (1024 * 1024)}MB or less.")
 
     content_type = (uploaded_file.content_type or "").lower()
     if not content_type or content_type == "application/octet-stream":
         guessed_content_type, _ = mimetypes.guess_type(uploaded_file.name or "")
         content_type = (guessed_content_type or content_type).lower()
 
-    if content_type and content_type != "application/octet-stream" and not content_type.startswith("image/"):
-        raise ValueError("Selected file is not a valid image.")
-
-    object_path = (
-        f"{settings.SUPABASE_STORAGE_AVATAR_PREFIX.rstrip('/')}/"
-        f"user-{request.user.pk}/{uuid4().hex}.{extension}"
-    )
+    if (
+        content_type
+        and content_type != "application/octet-stream"
+        and not any(content_type.startswith(prefix) for prefix in allowed_content_prefixes)
+    ):
+        raise ValueError(invalid_type_message)
 
     upload_url = (
         f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/"
@@ -144,17 +160,77 @@ def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
             detail = parsed.get("message") or parsed.get("error") or error_body
         except json.JSONDecodeError:
             detail = error_body or exc.reason
-        raise ValueError(f"Avatar upload failed: {detail}") from exc
+        raise ValueError(f"Upload failed: {detail}") from exc
     except URLError as exc:
-        raise ValueError("Avatar upload failed. Please try again.") from exc
+        raise ValueError("Upload failed. Please try again.") from exc
 
-    avatar_url = (
+    return (
         f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/public/"
         f"{settings.SUPABASE_STORAGE_BUCKET}/{quote(object_path, safe='/')}"
+    )
+
+
+def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
+    extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
+    object_path = (
+        f"{settings.SUPABASE_STORAGE_AVATAR_PREFIX.rstrip('/')}/"
+        f"user-{request.user.pk}/{uuid4().hex}.{extension}"
+    )
+    avatar_url = _upload_file_to_supabase(
+        uploaded_file=uploaded_file,
+        object_path=object_path,
+        allowed_extensions=ALLOWED_AVATAR_EXTENSIONS,
+        max_size=MAX_AVATAR_UPLOAD_SIZE,
+        allowed_content_prefixes=("image/",),
+        invalid_type_message="Upload a JPG, PNG, or WEBP image.",
     )
     profile.avatar_url = avatar_url
     profile.save(update_fields=["avatar_url", "updated_at"])
     return avatar_url
+
+
+def _normalize_vehicle_metadata(raw_metadata) -> dict[str, str]:
+    if isinstance(raw_metadata, dict):
+        return {
+            str(key): str(value)
+            for key, value in raw_metadata.items()
+            if value is not None and str(value).strip()
+        }
+    if isinstance(raw_metadata, str) and raw_metadata.strip():
+        try:
+            parsed = json.loads(raw_metadata)
+            if isinstance(parsed, dict):
+                return {
+                    str(key): str(value)
+                    for key, value in parsed.items()
+                    if value is not None and str(value).strip()
+                }
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+
+def _store_vehicle_document_uploads(request, metadata: dict[str, str]) -> dict[str, str]:
+    uploaded_metadata = dict(metadata)
+    for field_name in VEHICLE_DOCUMENT_FIELDS:
+        uploaded_file = request.FILES.get(field_name)
+        if uploaded_file is None:
+            continue
+
+        extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
+        object_path = (
+            f"{settings.SUPABASE_STORAGE_VEHICLE_PREFIX.rstrip('/')}/"
+            f"user-{request.user.pk}/{field_name}/{uuid4().hex}.{extension}"
+        )
+        uploaded_metadata[field_name] = _upload_file_to_supabase(
+            uploaded_file=uploaded_file,
+            object_path=object_path,
+            allowed_extensions=ALLOWED_VEHICLE_DOCUMENT_EXTENSIONS,
+            max_size=MAX_VEHICLE_DOCUMENT_UPLOAD_SIZE,
+            allowed_content_prefixes=VEHICLE_DOCUMENT_CONTENT_PREFIXES,
+            invalid_type_message="Upload a JPG, PNG, or WEBP image.",
+        )
+    return uploaded_metadata
 
 
 class RegisterView(APIView):
@@ -467,12 +543,84 @@ class ProfileView(APIView):
 
 class VehicleViewSet(viewsets.ModelViewSet):
     serializer_class = VehicleSerializer
+    parser_classes = (JSONParser, FormParser, MultiPartParser)
 
     def get_queryset(self):
         return Vehicle.objects.filter(owner=self.request.user).order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def _build_vehicle_payload(self, request, instance: Vehicle | None = None) -> dict[str, object]:
+        payload: dict[str, object] = {}
+        for key in (
+            "vehicle_type",
+            "make",
+            "model",
+            "color",
+            "plate_number",
+        ):
+            value = request.data.get(key)
+            if value is not None:
+                payload[key] = value
+
+        existing_metadata = (
+            dict(instance.metadata)
+            if instance is not None and isinstance(instance.metadata, dict)
+            else {}
+        )
+        metadata = dict(existing_metadata)
+        metadata.update(_normalize_vehicle_metadata(request.data.get("metadata")))
+        payload["metadata"] = _store_vehicle_document_uploads(request, metadata)
+        return payload
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=self._build_vehicle_payload(request))
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        except AvatarUploadConfigurationError as exc:
+            return response.Response(
+                {"detail": str(exc)},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except ValueError as exc:
+            return response.Response(
+                {"detail": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        headers = self.get_success_headers(serializer.data)
+        return response.Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        try:
+            serializer = self.get_serializer(
+                instance,
+                data=self._build_vehicle_payload(request, instance),
+                partial=partial,
+            )
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except AvatarUploadConfigurationError as exc:
+            return response.Response(
+                {"detail": str(exc)},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except ValueError as exc:
+            return response.Response(
+                {"detail": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return response.Response(serializer.data)
 
 
 class KycRecordView(APIView):

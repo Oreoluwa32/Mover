@@ -102,6 +102,12 @@ class ImageConstant {
   // Green check icon
   static String imgGreenCheck = '$imagePath/img_green_check.svg';
 
+  // Verification approved icon
+  static String imgCheck = '$imagePath/img_check.svg';
+
+  // Verification review badge
+  static String imgReview = '$imagePath/img_review.svg';
+
   // Blue gray down arrow
   static String imgBlueGrayDownArrow = '$imagePath/img_bluegray_down_arrow.svg';
 

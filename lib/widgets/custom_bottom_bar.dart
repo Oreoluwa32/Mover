@@ -119,7 +119,6 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
             child: Center(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTapDown: (_) => _setSelectedIndex(2),
                 onTap: () => _notifySelection(2),
                 child: SizedBox(
                   width: 68.h,
@@ -169,12 +168,7 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
 
   void _notifySelection(int index) {
     _setSelectedIndex(index);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      widget.onChanged?.call(bottomMenuList[index].type);
-    });
+    widget.onChanged?.call(bottomMenuList[index].type);
   }
 
   Widget _buildBottomBarItem(int index) {
@@ -185,7 +179,6 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
     if (menuItem.isProfileImage) {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => _setSelectedIndex(index),
         onTap: () => _notifySelection(index),
         child: Container(
           constraints: BoxConstraints(
@@ -216,7 +209,6 @@ class CustomBottomBarState extends ConsumerState<CustomBottomBar> {
     // Regular menu items
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _setSelectedIndex(index),
       onTap: () => _notifySelection(index),
       child: Container(
         constraints: BoxConstraints(
