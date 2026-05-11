@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/app_export.dart';
-import 'models/user_delivery_two_qr_model.dart';
-import 'notifier/user_delivery_two_notifier.dart';
 
 class UserDeliveryTwoQrTab extends ConsumerStatefulWidget {
   const UserDeliveryTwoQrTab({
     Key? key,
-    required this.requestId,
+    required this.qrData,
   }) : super(key: key);
 
-  final String requestId;
+  final String qrData;
 
   @override
   UserDeliveryTwoQrTabState createState() => UserDeliveryTwoQrTabState();
@@ -33,12 +31,14 @@ class UserDeliveryTwoQrTabState extends ConsumerState<UserDeliveryTwoQrTab> {
             width: double.maxFinite,
             child: Column(
               children: [
-                SizedBox(height: 20.h,),
+                SizedBox(
+                  height: 20.h,
+                ),
                 SizedBox(
                   height: 200.h,
                   child: Center(
                     child: QrImageView(
-                      data: widget.requestId,
+                      data: widget.qrData,
                       size: 200.h,
                       backgroundColor: Colors.white,
                     ),

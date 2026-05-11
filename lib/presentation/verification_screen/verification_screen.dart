@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/account_api_service.dart';
 import '../../presentation/home_screen_dialog/home_screen_dialog.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
@@ -73,9 +73,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
       setState(() {
         _isLoading = false;
       });
-      Fluttertoast.showToast(
-        msg: accountApiService.extractErrorMessage(error),
-      );
+      AppToast.error(accountApiService.extractErrorMessage(error));
     }
   }
 
@@ -136,39 +134,34 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
                 label: 'Loading verification...',
               ),
             )
-          : Container(
-              width: double.maxFinite,
-              padding: EdgeInsets.only(
-                left: 16.h,
-                top: 28.h,
-                right: 16.h,
-              ),
-              child: Column(
+          : RefreshIndicator(
+              onRefresh: _loadVerificationState,
+              child: ListView(
+                padding: EdgeInsets.only(
+                  left: 16.h,
+                  top: 28.h,
+                  right: 16.h,
+                  bottom: 24.h,
+                ),
                 children: [
-                  GestureDetector(
+                  _buildVerificationRow(
+                    label: 'Personal Information',
+                    badgeState: _isPersonalInfoComplete
+                        ? _VerificationBadgeState.approved
+                        : _VerificationBadgeState.none,
                     onTap: () => onTapPersonalInfo(context),
-                    child: _buildVerificationRow(
-                      label: 'Personal Information',
-                      badgeState: _isPersonalInfoComplete
-                          ? _VerificationBadgeState.approved
-                          : _VerificationBadgeState.none,
-                    ),
                   ),
-                  SizedBox(height: 34.h),
-                  GestureDetector(
+                  SizedBox(height: 28.h),
+                  _buildVerificationRow(
+                    label: 'Identification',
+                    badgeState: _identificationStatus,
                     onTap: () => onTapIdentification(context),
-                    child: _buildVerificationRow(
-                      label: 'Identification',
-                      badgeState: _identificationStatus,
-                    ),
                   ),
-                  SizedBox(height: 34.h),
-                  GestureDetector(
+                  SizedBox(height: 28.h),
+                  _buildVerificationRow(
+                    label: 'Vehicle Identification',
+                    badgeState: _vehicleStatus,
                     onTap: () => onTapVehicleInfo(context),
-                    child: _buildVerificationRow(
-                      label: 'Vehicle Identification',
-                      badgeState: _vehicleStatus,
-                    ),
                   ),
                 ],
               ),
@@ -200,28 +193,38 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
   Widget _buildVerificationRow({
     required String label,
     required _VerificationBadgeState badgeState,
+    required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: appTheme.gray80001,
-                fontWeight: FontWeight.w500,
+    return InkWell(
+      borderRadius: BorderRadius.circular(14.h),
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          vertical: 6.h,
+        ),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: CustomTextStyles.bodyMediumMulishBlack900.copyWith(
+                    color: appTheme.gray80001,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
+              _buildStatusBadge(badgeState),
+              SizedBox(width: 18.h),
+              CustomImageView(
+                imagePath: ImageConstant.imgBlackChevronRight,
+                height: 16.h,
+                width: 16.h,
+              ),
+            ],
           ),
-          _buildStatusBadge(badgeState),
-          SizedBox(width: 18.h),
-          CustomImageView(
-            imagePath: ImageConstant.imgBlackChevronRight,
-            height: 16.h,
-            width: 16.h,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -231,18 +234,18 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
       case _VerificationBadgeState.approved:
         return CustomImageView(
           imagePath: ImageConstant.imgCheck,
-          height: 28.h,
-          width: 28.h,
+          height: 22.h,
+          width: 22.h,
         );
       case _VerificationBadgeState.review:
         return CustomImageView(
           imagePath: ImageConstant.imgReview,
-          height: 36.h,
-          width: 112.h,
+          height: 28.h,
+          width: 82.h,
           fit: BoxFit.contain,
         );
       case _VerificationBadgeState.none:
-        return SizedBox(width: 28.h);
+        return SizedBox(width: 22.h);
     }
   }
 
@@ -259,15 +262,24 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     });
   }
 
-  void onTapPersonalInfo(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.personalInformationScreen);
+  Future<void> onTapPersonalInfo(BuildContext context) async {
+    await Navigator.pushNamed(context, AppRoutes.personalInformationScreen);
+    if (mounted) {
+      _loadVerificationState();
+    }
   }
 
-  void onTapVehicleInfo(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.vehicleInformationScreen);
+  Future<void> onTapVehicleInfo(BuildContext context) async {
+    await Navigator.pushNamed(context, AppRoutes.vehicleInformationScreen);
+    if (mounted) {
+      _loadVerificationState();
+    }
   }
 
-  void onTapIdentification(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.identificationScreen);
+  Future<void> onTapIdentification(BuildContext context) async {
+    await Navigator.pushNamed(context, AppRoutes.identificationScreen);
+    if (mounted) {
+      _loadVerificationState();
+    }
   }
 }

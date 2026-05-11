@@ -2,8 +2,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -41,7 +41,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
     final token = await getToken();
     if (token == null) {
-      Fluttertoast.showToast(msg: "No token found. Please log in first.");
+      AppToast.info('Please sign in first.');
       return;
     }
 
@@ -82,15 +82,14 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       if (response.statusCode == 200) {
         final message = jsonDecode(response.body)['message'] ??
             'Route created successfully.';
-        Fluttertoast.showToast(msg: message);
+        AppToast.success(message.toString());
       } else {
         final error =
             jsonDecode(response.body)['error'] ?? 'Failed to create route.';
-        Fluttertoast.showToast(msg: error);
+        AppToast.error(error.toString());
       }
     } catch (e) {
-      Fluttertoast.showToast(
-          msg: "An error occurred. Please check your connection.");
+      AppToast.error('Something went wrong. Please check your connection.');
     } finally {
       if (context.mounted) {
         LoadingDialog.hide(context);

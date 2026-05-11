@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/domain/googleauth/google_auth_helper.dart';
 import '../../services/device_memory_service.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../data/services/account_api_service.dart';
 import '../../data/services/auth_api_service.dart';
@@ -54,7 +54,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
 
     // Check if the fields are not empty
     if (email.isEmpty || password.isEmpty) {
-      Fluttertoast.showToast(msg: "Email and password are required");
+      AppToast.error("Enter both your email and password.");
       return;
     }
 
@@ -81,8 +81,8 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
               : email.trim();
 
       if (requiresVerification) {
-        Fluttertoast.showToast(
-          msg: response['detail']?.toString() ??
+        AppToast.info(
+          response['detail']?.toString() ??
               "We sent a verification code to your email.",
         );
         if (context.mounted) {
@@ -101,7 +101,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
       final deviceMemory = DeviceMemoryService();
       await deviceMemory.rememberDevice(userEmail: email);
 
-      Fluttertoast.showToast(msg: "Registration successful");
+      AppToast.success("Account created successfully.");
       if (context.mounted) {
         Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
       }
@@ -110,7 +110,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
         LoadingDialog.hide(context);
       }
       final errorMessage = authApiService.extractErrorMessage(e);
-      Fluttertoast.showToast(msg: errorMessage);
+      AppToast.error(errorMessage);
       if (authApiService.isEmailVerificationRequiredError(e)) {
         if (context.mounted) {
           Navigator.pushNamed(
@@ -452,7 +452,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     // Mark onboarding as completed
     await PrefUtils().setOnboardingCompleted(true);
 
-    Fluttertoast.showToast(msg: "Sign-up successful");
+    AppToast.success("Account created successfully.");
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
   }
 

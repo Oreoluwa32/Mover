@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../services/paystack_services.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -66,10 +66,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
         ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
         ref.read(paystackPaymentNotifier.notifier).setLoading(false);
 
-        Fluttertoast.showToast(
-          msg: 'Failed to get payment URL',
-          toastLength: Toast.LENGTH_LONG,
-        );
+        AppToast.error('Failed to get the payment link.');
         return;
       }
 
@@ -84,10 +81,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
       ref.read(paystackPaymentNotifier.notifier).setError('Error: $e');
       ref.read(paystackPaymentNotifier.notifier).setLoading(false);
 
-      Fluttertoast.showToast(
-        msg: 'Failed to initialize payment: $e',
-        toastLength: Toast.LENGTH_LONG,
-      );
+      AppToast.error('Failed to initialize payment. Please try again.');
     }
   }
 
@@ -132,10 +126,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
               ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
 
-              Fluttertoast.showToast(
-                msg: 'Payment page error: $errorMsg',
-                toastLength: Toast.LENGTH_LONG,
-              );
+              AppToast.error('Payment page error: $errorMsg');
             },
           ),
         )
@@ -148,10 +139,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
       ref
           .read(paystackPaymentNotifier.notifier)
           .setError('Error initializing payment: $e');
-      Fluttertoast.showToast(
-        msg: 'Error initializing payment: $e',
-        toastLength: Toast.LENGTH_LONG,
-      );
+      AppToast.error('Error initializing payment. Please try again.');
     }
   }
 
@@ -164,10 +152,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
             widget.reference,
           );
 
-      Fluttertoast.showToast(
-        msg: 'Payment successful!',
-        toastLength: Toast.LENGTH_LONG,
-      );
+      AppToast.success('Payment successful.');
 
       // Navigate back with success
       Future.delayed(const Duration(seconds: 1), () {
@@ -179,10 +164,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
     // Check if payment was cancelled
     if (url.contains('cancelled') || url.contains('fail')) {
-      Fluttertoast.showToast(
-        msg: 'Payment cancelled',
-        toastLength: Toast.LENGTH_LONG,
-      );
+      AppToast.info('Payment was cancelled.');
 
       if (mounted) {
         NavigatorService.goBack();

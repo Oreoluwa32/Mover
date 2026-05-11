@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/presentation/check_mail_screen/notifier/check_mail_notifier.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/auth_api_service.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/custom_icon_button.dart';
@@ -48,11 +48,11 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
       return;
     }
     if (otpCode.isEmpty) {
-      Fluttertoast.showToast(msg: "Please enter the verification code");
+      AppToast.error("Enter the verification code.");
       return;
     }
     if (otpCode.length != 4) {
-      Fluttertoast.showToast(msg: "Please enter the 4-digit verification code");
+      AppToast.error("Enter the 4-digit verification code.");
       return;
     }
 
@@ -71,25 +71,15 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
         return;
       }
       LoadingDialog.hide(context);
-      Fluttertoast.showToast(
-        msg: response['detail']?.toString() ?? "Email verified successfully",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: appTheme.green50,
-        textColor: Colors.white,
+      AppToast.success(
+        response['detail']?.toString() ?? "Email verified successfully.",
       );
       Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
     } catch (error) {
       if (mounted) {
         LoadingDialog.hide(context);
       }
-      Fluttertoast.showToast(
-        msg: authApiService.extractErrorMessage(error),
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: appTheme.red50,
-        textColor: Colors.white,
-      );
+      AppToast.error(authApiService.extractErrorMessage(error));
     } finally {
       if (mounted) {
         setState(() {
@@ -110,7 +100,7 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
     });
 
     try {
-      Fluttertoast.showToast(msg: "Sending a new code to your email...");
+      AppToast.info("Sending a new code to your email...");
       final response = await authApiService.requestEmailVerification(
         email: widget.email.trim(),
       );
@@ -118,23 +108,13 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
       if (!mounted) {
         return;
       }
-      Fluttertoast.showToast(
-        msg: response['detail']?.toString() ??
+      AppToast.success(
+        response['detail']?.toString() ??
             "A new verification code has been sent.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: appTheme.green50,
-        textColor: Colors.white,
       );
       _startResendCountdown();
     } catch (error) {
-      Fluttertoast.showToast(
-        msg: authApiService.extractErrorMessage(error),
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: appTheme.red50,
-        textColor: Colors.white,
-      );
+      AppToast.error(authApiService.extractErrorMessage(error));
     } finally {
       if (mounted) {
         setState(() {

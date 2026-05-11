@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../home_one_screen/notifier/home_notifier.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
@@ -28,8 +28,9 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
             const <String, dynamic>{};
     final confirmationStage = args['confirmationStage']?.toString() ?? 'pickup';
-    final title =
-        confirmationStage == 'delivery' ? 'Delivery Pin Code' : 'Pickup Pin Code';
+    final title = confirmationStage == 'delivery'
+        ? 'Delivery Pin Code'
+        : 'Pickup Pin Code';
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -67,7 +68,8 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne> {
                   : (confirmationStage == 'delivery'
                       ? 'Confirm Delivery'
                       : 'Confirm Pickup'),
-              onPressed: _isSubmitting ? null : () => _submitConfirmation(context),
+              onPressed:
+                  _isSubmitting ? null : () => _submitConfirmation(context),
             ),
             SizedBox(height: 32.h),
             GestureDetector(
@@ -98,7 +100,8 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne> {
     );
   }
 
-  PreferredSizeWidget _buildAppbar(BuildContext context, {required String title}) {
+  PreferredSizeWidget _buildAppbar(BuildContext context,
+      {required String title}) {
     return CustomAppBar(
       height: 92.h,
       leadingWidth: 40.h,
@@ -133,8 +136,16 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne> {
     final confirmationStage = args['confirmationStage']?.toString() ?? 'pickup';
     final verificationCode =
         ref.read(scanNotifier).codeController?.text.trim() ?? '';
-    if (matchId.isEmpty || verificationCode.isEmpty) {
-      Fluttertoast.showToast(msg: 'Enter the verification code.');
+    if (matchId.isEmpty) {
+      AppToast.info('Task information is missing.');
+      return;
+    }
+    if (verificationCode.isEmpty) {
+      AppToast.info('Enter the verification code.');
+      return;
+    }
+    if (verificationCode.length != 6) {
+      AppToast.info('Enter the 6-digit confirmation code.');
       return;
     }
     final homeStateNotifier = ref.read(homeNotifier.notifier);
@@ -159,14 +170,15 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne> {
         return;
       }
       Navigator.of(context).popUntil(
-        (route) => route.settings.name == AppRoutes.homeOneScreen || route.isFirst,
+        (route) =>
+            route.settings.name == AppRoutes.homeOneScreen || route.isFirst,
       );
       Future<void>.delayed(
         const Duration(milliseconds: 250),
         () => homeStateNotifier.loadPendingTask(),
       );
-      Fluttertoast.showToast(
-        msg: confirmationStage == 'delivery'
+      AppToast.success(
+        confirmationStage == 'delivery'
             ? 'Delivery confirmed.'
             : 'Pickup confirmed. Continue to destination.',
       );
@@ -177,9 +189,7 @@ class ScanScreenOneState extends ConsumerState<ScanScreenOne> {
       setState(() {
         _isSubmitting = false;
       });
-      Fluttertoast.showToast(
-        msg: _mobilityApiService.extractErrorMessage(error),
-      );
+      AppToast.error(_mobilityApiService.extractErrorMessage(error));
     }
   }
 }

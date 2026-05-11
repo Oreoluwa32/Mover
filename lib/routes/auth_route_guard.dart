@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movr/services/device_memory_service.dart';
+import '../core/utils/app_toast.dart';
 import '../widgets/movr_loading_indicator.dart';
 
 class AuthRouteGuard extends StatefulWidget {
@@ -60,7 +60,7 @@ class _AuthRouteGuardState extends State<AuthRouteGuard> {
       if (!mounted) {
         return;
       }
-      Fluttertoast.showToast(msg: 'Please sign in to continue.');
+      AppToast.info('Please sign in to continue.');
       Navigator.of(context).pushNamedAndRemoveUntil(
         widget.redirectRoute,
         (route) => false,

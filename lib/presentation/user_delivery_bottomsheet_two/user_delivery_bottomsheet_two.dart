@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
+import '../../core/utils/delivery_confirmation_code.dart';
 import '../../core/utils/task_interaction_helper.dart';
 import '../../widgets/task_route_map.dart';
-import 'notifier/user_delivery_two_notifier.dart';
 import 'user_delivery_two_pin_tab.dart';
 import 'user_delivery_two_qr_tab.dart';
 
@@ -41,14 +42,17 @@ class UserDeliveryBottomsheetTwoState
             const <String, dynamic>{};
     final requestId = args['requestId']?.toString() ?? 'movr-request';
     final moverName = args['moverName']?.toString() ?? 'Assigned mover';
-    final rating = args['rating']?.toString() ?? 'Your delivery will be delivered in 10 mins';
-    final pickupLocation = args['pickupLocation']?.toString() ?? 'Pickup location';
+    final rating = args['rating']?.toString() ??
+        'Your delivery will be delivered in 10 mins';
+    final pickupLocation =
+        args['pickupLocation']?.toString() ?? 'Pickup location';
     final destinationLocation =
         args['destinationLocation']?.toString() ?? 'Destination';
     final requestData = Map<String, dynamic>.from(
       args['requestData'] as Map? ?? const <String, dynamic>{},
     );
-    final pinCode = _buildPinFromRequestId(requestId);
+    final qrPayload = DeliveryConfirmationCode.buildDeliveryPayload(requestId);
+    final pinCode = DeliveryConfirmationCode.buildDeliveryPin(requestId);
     final travelPlan = Map<String, dynamic>.from(
       requestData['_travel_plan'] as Map? ?? const <String, dynamic>{},
     );
@@ -183,14 +187,15 @@ class UserDeliveryBottomsheetTwoState
                                 Text(
                                   'Kindly send your delivery tag to the receiver. This will confirm that the delivery was successful.',
                                   textAlign: TextAlign.center,
-                                  style: CustomTextStyles.bodyMediumMulishGray800
+                                  style: CustomTextStyles
+                                      .bodyMediumMulishGray800
                                       .copyWith(height: 1.2),
                                 ),
                                 SizedBox(height: 36.h),
                                 _buildTabs(),
                                 SizedBox(height: 14.h),
                                 _buildTabbar(
-                                  requestId: requestId,
+                                  qrPayload: qrPayload,
                                   pinCode: pinCode,
                                 ),
                                 SizedBox(height: 18.h),
@@ -405,25 +410,26 @@ class UserDeliveryBottomsheetTwoState
     );
   }
 
-  Widget _buildActionColumn(String iconPath, String label, {VoidCallback? onTap}) {
+  Widget _buildActionColumn(String iconPath, String label,
+      {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomImageView(
-          imagePath: iconPath,
-          height: 18.h,
-          width: 18.h,
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall,
-        ),
-      ],
-    ),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomImageView(
+            imagePath: iconPath,
+            height: 18.h,
+            width: 18.h,
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
     );
   }
 
@@ -477,7 +483,7 @@ class UserDeliveryBottomsheetTwoState
   }
 
   Widget _buildTabbar({
-    required String requestId,
+    required String qrPayload,
     required String pinCode,
   }) {
     return SizedBox(
@@ -485,7 +491,7 @@ class UserDeliveryBottomsheetTwoState
       child: TabBarView(
         controller: tabviewController,
         children: [
-          UserDeliveryTwoQrTab(requestId: requestId),
+          UserDeliveryTwoQrTab(qrData: qrPayload),
           UserDeliveryTwoPinTab(pinCode: pinCode),
         ],
       ),
@@ -563,22 +569,7 @@ class UserDeliveryBottomsheetTwoState
     String message,
   ) async {
     await Clipboard.setData(ClipboardData(text: value));
-    if (!mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  String _buildPinFromRequestId(String requestId) {
-    final digits = requestId.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length >= 6) {
-      return digits.substring(0, 6);
-    }
-
-    final seed = requestId.codeUnits.fold<int>(0, (sum, unit) => sum + unit);
-    return (100000 + (seed % 900000)).toString();
+    AppToast.success(message);
   }
 
   double _safeDouble(dynamic value) {

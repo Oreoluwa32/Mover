@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../data/services/auth_api_service.dart';
 import '../../data/services/account_api_service.dart';
@@ -24,7 +24,7 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
   final accountApiService = AccountApiService();
 
   if (email.isEmpty || password.isEmpty) {
-    Fluttertoast.showToast(msg: "Email and password cannot be empty.");
+    AppToast.error("Enter both your email and password.");
     return;
   }
 
@@ -40,8 +40,6 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
     await authApiService.persistSession(responseData);
     await accountApiService.hydrateSessionFromMe();
 
-    final user = (responseData['user'] as Map?)?.cast<String, dynamic>() ?? {};
-
     // Remember device
     final deviceMemory = DeviceMemoryService();
     await deviceMemory.rememberDevice(userEmail: email);
@@ -50,28 +48,21 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
       LoadingDialog.hide(context);
     }
 
-    Fluttertoast.showToast(msg: "Sign-in successful");
-
-    final userSubscriptionPlan =
-        user['subscription_plan'] ?? user['plan_name'] ?? user['plan'];
-    final hasSubscriptionPlan = userSubscriptionPlan != null &&
-        userSubscriptionPlan.toString().isNotEmpty;
+    AppToast.success("Welcome back.");
 
     if (context.mounted) {
-      if (hasSubscriptionPlan) {
-        Navigator.pushNamed(context, AppRoutes.homeOneScreen);
-      } else {
-        Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
-      }
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.homeOneScreen,
+        (route) => false,
+      );
     }
   } catch (e) {
     if (context.mounted) {
       LoadingDialog.hide(context);
     }
     if (authApiService.isEmailVerificationRequiredError(e)) {
-      Fluttertoast.showToast(
-        msg: authApiService.extractErrorMessage(e),
-      );
+      AppToast.info(authApiService.extractErrorMessage(e));
       if (context.mounted) {
         Navigator.pushNamed(
           context,
@@ -83,9 +74,7 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
       }
       return;
     }
-    Fluttertoast.showToast(
-      msg: authApiService.extractErrorMessage(e),
-    );
+    AppToast.error(authApiService.extractErrorMessage(e));
   }
 }
 
@@ -368,9 +357,9 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     Navigator.pushNamed(context, AppRoutes.createAccountScreen);
   }
 
-  // Navigates to the check mail screen when the action is triggered
+  // Navigates to the home screen when the action is triggered
   onTapSignIn(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
+    Navigator.pushNamed(context, AppRoutes.homeOneScreen);
   }
 
   onTapSigninwithGoogle(BuildContext context) async {
@@ -399,37 +388,29 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           // Mark onboarding as completed
           await PrefUtils().setOnboardingCompleted(true);
 
-          Fluttertoast.showToast(msg: "Sign-in successful");
+          AppToast.success("Welcome back.");
 
-          // Check if user has a subscription plan
-          final userSubscriptionPlan = authResponse['user']
-                  ?['subscription_plan'] ??
-              authResponse['user']?['plan'];
-          final hasSubscriptionPlan = userSubscriptionPlan != null &&
-              userSubscriptionPlan.toString().isNotEmpty;
-
-          // Navigate based on subscription plan status
           if (context.mounted) {
-            if (hasSubscriptionPlan) {
-              Navigator.pushNamed(context, AppRoutes.homeOneScreen);
-            } else {
-              Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
-            }
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.homeOneScreen,
+              (route) => false,
+            );
           }
         } else {
-          Fluttertoast.showToast(msg: "Failed to sign in. Please try again.");
+          AppToast.error("Couldn't sign you in. Please try again.");
         }
       } else {
         if (context.mounted) {
           LoadingDialog.hide(context);
         }
-        Fluttertoast.showToast(msg: 'Sign-in cancelled');
+        AppToast.info('Sign-in cancelled.');
       }
     }).catchError((onError) {
       if (context.mounted) {
         LoadingDialog.hide(context);
       }
-      Fluttertoast.showToast(msg: 'Error: ${onError.toString()}');
+      AppToast.error('Sign-in failed. Please try again.');
     });
   }
 }

@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/models/wallet_model.dart';
 import '../../data/services/wallet_api_service.dart';
 import '../notification_screen/notifier/notification_notifier.dart';
@@ -157,9 +157,8 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen>
       }
 
       final amount = double.tryParse(latestFunding.amount ?? '0') ?? 0;
-      Fluttertoast.showToast(
-        msg: 'Wallet funded successfully with NGN ${amount.toStringAsFixed(2)}',
-        gravity: ToastGravity.BOTTOM,
+      AppToast.success(
+        'Wallet funded successfully with NGN ${amount.toStringAsFixed(2)}.',
       );
     } catch (_) {
       // Best-effort polling only; avoid disrupting the funding screen.
@@ -490,9 +489,6 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen>
       return;
     }
     await Clipboard.setData(ClipboardData(text: value));
-    Fluttertoast.showToast(
-      msg: successMessage,
-      toastLength: Toast.LENGTH_SHORT,
-    );
+    AppToast.success(successMessage);
   }
 }

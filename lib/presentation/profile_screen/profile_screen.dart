@@ -1,7 +1,7 @@
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/permission_manager.dart';
 import '../../data/services/account_api_service.dart';
 import '../../services/device_memory_service.dart';
@@ -608,11 +608,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (mounted) {
       if (success) {
-        Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
+        AppToast.success('Profile picture updated successfully.');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        Fluttertoast.showToast(
-            msg: error ?? 'Failed to upload profile picture');
+        AppToast.error(error ?? 'Failed to upload profile picture.');
       }
     }
   }
@@ -625,11 +624,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (mounted) {
       if (success) {
-        Fluttertoast.showToast(msg: 'Profile picture updated successfully!');
+        AppToast.success('Profile picture updated successfully.');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        Fluttertoast.showToast(
-            msg: error ?? 'Failed to upload profile picture');
+        AppToast.error(error ?? 'Failed to upload profile picture.');
       }
     }
   }

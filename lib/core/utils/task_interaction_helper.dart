@@ -1,7 +1,7 @@
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_export.dart';
+import 'app_toast.dart';
 
 class TaskInteractionHelper {
   static String resolveMatchId(
@@ -84,14 +84,14 @@ class TaskInteractionHelper {
       isMoverSide: isMoverSide,
     );
     if (phoneNumber.isEmpty) {
-      Fluttertoast.showToast(msg: 'Phone number is not available yet.');
+      AppToast.info('Phone number is not available yet.');
       return;
     }
 
     final sanitized = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
     final uri = Uri(scheme: 'tel', path: sanitized);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      Fluttertoast.showToast(msg: 'Unable to open the dialer right now.');
+      AppToast.error('Unable to open the dialer right now.');
     }
   }
 
@@ -102,7 +102,7 @@ class TaskInteractionHelper {
   }) async {
     final matchId = resolveMatchId(requestData, args: args);
     if (matchId.isEmpty) {
-      Fluttertoast.showToast(msg: 'Task information is missing.');
+      AppToast.info('Task information is missing.');
       return;
     }
 
@@ -127,7 +127,7 @@ class TaskInteractionHelper {
   }) async {
     final matchId = resolveMatchId(requestData, args: args);
     if (matchId.isEmpty) {
-      Fluttertoast.showToast(msg: 'Task information is missing.');
+      AppToast.info('Task information is missing.');
       return;
     }
 

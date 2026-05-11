@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../data/services/auth_api_service.dart';
 import '../../theme/custom_button_style.dart';
@@ -30,7 +30,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final authApiService = AuthApiService();
 
     if (email.isEmpty) {
-      Fluttertoast.showToast(msg: "Please enter your email address.");
+      AppToast.error("Enter your email address.");
       return;
     }
 
@@ -40,11 +40,9 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       if (context.mounted) {
         LoadingDialog.hide(context);
       }
-      Fluttertoast.showToast(
-        msg: response['detail']?.toString() ??
+      AppToast.success(
+        response['detail']?.toString() ??
             "Reset instructions sent to your email.",
-        backgroundColor: appTheme.green50,
-        textColor: Colors.white,
       );
       if (context.mounted) {
         Navigator.pushNamed(
@@ -57,7 +55,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       if (context.mounted) {
         LoadingDialog.hide(context);
       }
-      Fluttertoast.showToast(msg: authApiService.extractErrorMessage(e));
+      AppToast.error(authApiService.extractErrorMessage(e));
     }
   }
 

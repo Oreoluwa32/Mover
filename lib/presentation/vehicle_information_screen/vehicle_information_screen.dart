@@ -4,9 +4,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/file_upload_helper.dart';
 import '../../core/utils/permission_manager.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../../data/services/account_api_service.dart';
@@ -207,12 +207,12 @@ class VehicleInformationScreenState
         _existingVehicleId = vehicle['id']?.toString();
       }
 
-      Fluttertoast.showToast(msg: 'Vehicle information updated successfully');
+      AppToast.success('Vehicle information submitted successfully.');
       if (context.mounted) {
-        Navigator.pushNamed(context, AppRoutes.verificationScreen);
+        Navigator.pop(context, true);
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: accountApiService.extractErrorMessage(e));
+      AppToast.error(accountApiService.extractErrorMessage(e));
     } finally {
       if (mounted) {
         setState(() {
@@ -739,7 +739,9 @@ class VehicleInformationScreenState
         final isFormComplete = _isVehicleFormComplete(vehicleState);
         return CustomElevatedButton(
           text: "Submit",
-          buttonStyle: CustomButtonStyles.fillBlueGray,
+          buttonStyle: isFormComplete
+              ? CustomButtonStyles.fillPrimaryTL41
+              : CustomButtonStyles.fillGray,
           buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
           isDisabled: !isFormComplete,
           isLoading: _isSubmitting,
@@ -756,7 +758,7 @@ class VehicleInformationScreenState
 
   // Navigates back to the verification screen
   onTapLeftArrow(BuildContext context) {
-    Navigator.pushNamed(context, AppRoutes.verificationScreen);
+    Navigator.pop(context);
   }
 
   // Requests permission to access the camera and storage, and displays a model sheet for selecting images

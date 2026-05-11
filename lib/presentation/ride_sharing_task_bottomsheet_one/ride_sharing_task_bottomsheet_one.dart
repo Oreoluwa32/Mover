@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
@@ -316,7 +316,7 @@ class _RideSharingTaskBottomsheetOneState
   Future<void> _submitBid(String requestId) async {
     final price = double.tryParse(_priceController.text.trim());
     if (requestId.isEmpty || price == null) {
-      Fluttertoast.showToast(msg: 'Enter a valid bid price.');
+      AppToast.info('Enter a valid bid price.');
       return;
     }
 
@@ -326,15 +326,13 @@ class _RideSharingTaskBottomsheetOneState
         agreedPrice: price,
       );
       await ref.read(homeNotifier.notifier).loadPendingTask();
-      Fluttertoast.showToast(msg: 'Bid submitted successfully.');
+      AppToast.success('Bid submitted successfully.');
       if (!mounted) {
         return;
       }
       NavigatorService.goBack();
     } catch (error) {
-      Fluttertoast.showToast(
-        msg: _mobilityApiService.extractErrorMessage(error),
-      );
+      AppToast.error(_mobilityApiService.extractErrorMessage(error));
     }
   }
 

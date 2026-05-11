@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../widgets/custom_icon_button.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/delivery_confirmation_code.dart';
 import '../../core/utils/task_interaction_helper.dart';
 import '../../widgets/task_route_map.dart';
 import 'user_delivery_pin_tab.dart';
@@ -44,7 +45,8 @@ class UserDeliveryBottomsheetOneState
     final requestData = Map<String, dynamic>.from(
       args['requestData'] as Map? ?? const <String, dynamic>{},
     );
-    final pinCode = _buildPinFromRequestId(requestId);
+    final qrPayload = DeliveryConfirmationCode.buildPickupPayload(requestId);
+    final pinCode = DeliveryConfirmationCode.buildPickupPin(requestId);
     final travelPlan = Map<String, dynamic>.from(
       requestData['_travel_plan'] as Map? ?? const <String, dynamic>{},
     );
@@ -160,22 +162,27 @@ class UserDeliveryBottomsheetOneState
                                 _buildTabs(),
                                 SizedBox(height: 10.h),
                                 _buildTabBarView(
-                                  requestId: requestId,
+                                  qrPayload: qrPayload,
                                   pinCode: pinCode,
                                 ),
                                 SizedBox(height: 18.h),
                                 GestureDetector(
                                   onTap: () async {
                                     final matchMap = Map<String, dynamic>.from(
-                                      requestData['_match'] as Map? ?? const <String, dynamic>{},
+                                      requestData['_match'] as Map? ??
+                                          const <String, dynamic>{},
                                     );
-                                    final cancelled = await NavigatorService.pushNamed(
+                                    final cancelled =
+                                        await NavigatorService.pushNamed(
                                       AppRoutes.rideCancelScreenOne,
                                       arguments: {
-                                        'matchId': requestData['_match_id']?.toString() ??
+                                        'matchId': requestData['_match_id']
+                                                ?.toString() ??
                                             matchMap['id']?.toString() ??
                                             '',
-                                        'requestId': requestData['id']?.toString() ?? requestId,
+                                        'requestId':
+                                            requestData['id']?.toString() ??
+                                                requestId,
                                         'requestType': requestType,
                                         'source': 'requester_task',
                                       },
@@ -333,19 +340,19 @@ class UserDeliveryBottomsheetOneState
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
-      children: [
-        CustomImageView(
-          imagePath: iconPath,
-          height: 24.h,
-          width: 24.h,
-        ),
-        SizedBox(height: 6.h),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall,
-        ),
-      ],
-    ),
+        children: [
+          CustomImageView(
+            imagePath: iconPath,
+            height: 24.h,
+            width: 24.h,
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
     );
   }
 
@@ -399,7 +406,7 @@ class UserDeliveryBottomsheetOneState
   }
 
   Widget _buildTabBarView({
-    required String requestId,
+    required String qrPayload,
     required String pinCode,
   }) {
     return SizedBox(
@@ -409,7 +416,7 @@ class UserDeliveryBottomsheetOneState
         children: [
           UserDeliveryQrTab(
             child: QrImageView(
-              data: requestId,
+              data: qrPayload,
               size: 190.h,
               backgroundColor: Colors.white,
             ),
@@ -418,16 +425,6 @@ class UserDeliveryBottomsheetOneState
         ],
       ),
     );
-  }
-
-  String _buildPinFromRequestId(String requestId) {
-    final digits = requestId.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length >= 6) {
-      return digits.substring(0, 6);
-    }
-
-    final seed = requestId.codeUnits.fold<int>(0, (sum, unit) => sum + unit);
-    return (100000 + (seed % 900000)).toString();
   }
 
   double _safeDouble(dynamic value) {

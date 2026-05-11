@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/services.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/account_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
@@ -20,6 +21,7 @@ class IdentificationScreen extends ConsumerStatefulWidget {
 class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isFormValid = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -61,34 +63,40 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
 
   Future<void> submitIdentification(BuildContext context) async {
     final accountApiService = AccountApiService();
+    if (_isSubmitting) {
+      return;
+    }
 
     final notifier = ref.read(identificationNotifier);
     final nin = notifier.ninController?.text.trim() ?? '';
     final bvn = notifier.bvnController?.text.trim() ?? '';
 
     if (!_formKey.currentState!.validate()) {
-      Fluttertoast.showToast(msg: "Please correct the errors in the form.");
+      AppToast.error("Please correct the errors in the form.");
       return;
     }
 
     try {
+      setState(() {
+        _isSubmitting = true;
+      });
       await accountApiService.updateKyc(
         nin: nin,
         bvn: bvn,
       );
 
-      Fluttertoast.showToast(
-        msg: "Identification updated successfully.",
-        backgroundColor: appTheme.green50,
-        textColor: Colors.white,
-      );
+      AppToast.success("Identification submitted successfully.");
       if (context.mounted) {
-        Navigator.pushNamed(context, AppRoutes.verificationScreen);
+        Navigator.pop(context, true);
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: accountApiService.extractErrorMessage(e),
-      );
+      AppToast.error(accountApiService.extractErrorMessage(e));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -122,7 +130,8 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
                                 "Provide your identification details to complete KYC",
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: CustomTextStyles.titleSmallGray600Medium.copyWith(height: 1.20),
+                                style: CustomTextStyles.titleSmallGray600Medium
+                                    .copyWith(height: 1.20),
                               ),
                             ),
                             SizedBox(height: 26.h),
@@ -186,6 +195,10 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
           controller: ref.watch(identificationNotifier).ninController,
           hintText: "Enter your NIN",
           textInputType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(11),
+          ],
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
           validator: (value) {
             if (value == null || value.length != 11) {
@@ -205,6 +218,10 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
           controller: ref.watch(identificationNotifier).bvnController,
           hintText: "Enter your BVN",
           textInputType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(11),
+          ],
           contentPadding: EdgeInsets.fromLTRB(14.h, 16.h, 14.h, 14.h),
           validator: (value) {
             if (value == null || value.length != 11) {
@@ -220,7 +237,12 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
   Widget _buildSubmit(BuildContext context) {
     return CustomElevatedButton(
       text: "Submit",
-      buttonStyle: _isFormValid ? CustomButtonStyles.fillPrimaryTL41 : CustomButtonStyles.fillGray,
+      buttonStyle: _isFormValid
+          ? CustomButtonStyles.fillPrimaryTL41
+          : CustomButtonStyles.fillGray,
+      isDisabled: !_isFormValid,
+      isLoading: _isSubmitting,
+      loadingText: "Submitting identification...",
       onPressed: _isFormValid
           ? () {
               submitIdentification(context);

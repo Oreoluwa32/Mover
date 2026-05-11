@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -323,9 +323,8 @@ class TransactionHistoryScreenState
               buttonStyle: CustomButtonStyles.fillGrayTL8,
               buttonTextStyle: CustomTextStyles.titleSmallInterPrimaryIndigo500,
               onPressed: () {
-                Fluttertoast.showToast(
-                  msg: "Withdrawals stay on the existing wallet flow for now.",
-                  toastLength: Toast.LENGTH_SHORT,
+                AppToast.info(
+                  'Withdrawals stay on the existing wallet flow for now.',
                 );
               },
             ),
@@ -452,14 +451,10 @@ class TransactionHistoryScreenState
                       await ref
                           .read(transHistoryNotifier.notifier)
                           .provisionFundingAccount();
-                      Fluttertoast.showToast(
-                        msg: "Funding account is ready.",
-                        toastLength: Toast.LENGTH_SHORT,
-                      );
+                      AppToast.success('Funding account is ready.');
                     } catch (error) {
-                      Fluttertoast.showToast(
-                        msg: error.toString().replaceFirst('Exception: ', ''),
-                        toastLength: Toast.LENGTH_LONG,
+                      AppToast.error(
+                        error.toString().replaceFirst('Exception: ', ''),
                       );
                     }
                   },
@@ -527,9 +522,6 @@ class TransactionHistoryScreenState
       return;
     }
     await Clipboard.setData(ClipboardData(text: value));
-    Fluttertoast.showToast(
-      msg: successMessage,
-      toastLength: Toast.LENGTH_SHORT,
-    );
+    AppToast.success(successMessage);
   }
 }

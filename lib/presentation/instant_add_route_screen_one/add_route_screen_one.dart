@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../route_settings_bottomsheet/add_route_three_bottomsheet.dart';
 import '../../theme/custom_button_style.dart';
@@ -104,9 +104,9 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         notifierState.locationLng == null ||
         notifierState.destinationLat == null ||
         notifierState.destinationLng == null) {
-      Fluttertoast.showToast(
-          msg:
-              "Please select locations from the suggestions to get coordinates.");
+      AppToast.info(
+        'Please choose both locations from the suggestions first.',
+      );
       return;
     }
 
@@ -163,7 +163,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         },
       );
 
-      Fluttertoast.showToast(msg: 'Route created successfully.');
+      AppToast.success('Route created successfully.');
       if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoutes.homeOneScreen,
@@ -185,9 +185,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         );
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: _mobilityApiService.extractErrorMessage(e),
-      );
+      AppToast.error(_mobilityApiService.extractErrorMessage(e));
     } finally {
       if (context.mounted) {
         LoadingDialog.hide(context);

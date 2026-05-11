@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/validation_functions.dart';
 import '../../data/services/auth_api_service.dart';
 import '../../theme/custom_button_style.dart';
@@ -38,18 +38,17 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final authApiService = AuthApiService();
 
     if (uid.isEmpty || token.isEmpty) {
-      Fluttertoast.showToast(
-          msg: "Invalid or expired reset token. Please try again.");
+      AppToast.error("This reset link is invalid or has expired.");
       return;
     }
 
     if (password.isEmpty || confirmPassword.isEmpty) {
-      Fluttertoast.showToast(msg: "Please fill in all fields.");
+      AppToast.error("Fill in both password fields.");
       return;
     }
 
     if (password != confirmPassword) {
-      Fluttertoast.showToast(msg: "Passwords do not match.");
+      AppToast.error("Passwords do not match.");
       return;
     }
 
@@ -64,10 +63,8 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       if (context.mounted) {
         LoadingDialog.hide(context);
       }
-      Fluttertoast.showToast(
-        msg: response['detail']?.toString() ?? "Password reset successful.",
-        backgroundColor: appTheme.green50,
-        textColor: Colors.white,
+      AppToast.success(
+        response['detail']?.toString() ?? "Password reset successful.",
       );
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(
@@ -77,7 +74,7 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       if (context.mounted) {
         LoadingDialog.hide(context);
       }
-      Fluttertoast.showToast(msg: authApiService.extractErrorMessage(e));
+      AppToast.error(authApiService.extractErrorMessage(e));
     }
   }
 

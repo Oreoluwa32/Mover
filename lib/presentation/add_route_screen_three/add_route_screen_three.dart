@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../set_date_bottomsheet/set_date_bottomsheet.dart';
 import '../../core/utils/date_time_utils.dart';
@@ -169,9 +169,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         location.trim().isEmpty ||
         destination == null ||
         destination.trim().isEmpty) {
-      Fluttertoast.showToast(
-        msg: "Please provide both your route locations.",
-      );
+      AppToast.info('Please provide both your route locations.');
       return;
     }
 
@@ -180,7 +178,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
       departureTime,
     );
     if (parsedDeparture == null) {
-      Fluttertoast.showToast(msg: "Please provide a valid departure date and time.");
+      AppToast.info('Please provide a valid departure date and time.');
       return;
     }
 
@@ -227,7 +225,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         },
       );
 
-      Fluttertoast.showToast(msg: 'Route created successfully.');
+      AppToast.success('Route created successfully.');
       if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           AppRoutes.homeOneScreen,
@@ -239,9 +237,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         );
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: _mobilityApiService.extractErrorMessage(e),
-      );
+      AppToast.error(_mobilityApiService.extractErrorMessage(e));
     }
   }
 
