@@ -30,7 +30,7 @@ class ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final authApiService = AuthApiService();
 
     if (email.isEmpty) {
-      AppToast.error("Enter your email address.");
+      AppToast.error("Please enter your email address.");
       return;
     }
 

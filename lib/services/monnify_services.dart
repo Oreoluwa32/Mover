@@ -39,9 +39,6 @@ class MonnifyServices {
     };
 
     try {
-      print('🔵 Monnify: Calling backend at: $url');
-      print('🔵 Monnify: Request data: $data');
-      
       final response = await http.post(
         Uri.parse(url),
         headers: {
@@ -55,18 +52,13 @@ class MonnifyServices {
         onTimeout: () => throw 'Request timeout - backend not responding',
       );
 
-      print('🔵 Monnify: Response status: ${response.statusCode}');
-      print('🔵 Monnify: Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        print('🔵 Monnify: Parsed response: $jsonResponse');
         return MonnifyAuthResponse.fromJson(jsonResponse);
       } else {
         throw ('Failed to initialize transaction: ${response.statusCode} ${response.reasonPhrase} - ${response.body}');
       }
     } on Exception catch (e) {
-      print('❌ Monnify Error: $e');
       throw ('An error occurred while initializing the transaction: $e');
     }
   }

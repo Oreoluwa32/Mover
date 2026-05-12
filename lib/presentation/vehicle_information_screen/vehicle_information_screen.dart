@@ -207,7 +207,7 @@ class VehicleInformationScreenState
         _existingVehicleId = vehicle['id']?.toString();
       }
 
-      AppToast.success('Vehicle information submitted successfully.');
+      AppToast.success('Vehicle information updated successfully');
       if (context.mounted) {
         Navigator.pop(context, true);
       }

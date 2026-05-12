@@ -48,11 +48,11 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
       return;
     }
     if (otpCode.isEmpty) {
-      AppToast.error("Enter the verification code.");
+      AppToast.error("Please enter the verification code");
       return;
     }
     if (otpCode.length != 4) {
-      AppToast.error("Enter the 4-digit verification code.");
+      AppToast.error("Please enter the 4-digit verification code");
       return;
     }
 
@@ -72,7 +72,7 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
       }
       LoadingDialog.hide(context);
       AppToast.success(
-        response['detail']?.toString() ?? "Email verified successfully.",
+        response['detail']?.toString() ?? "Email verified successfully",
       );
       Navigator.pushNamed(context, AppRoutes.emailVerifiedScreen);
     } catch (error) {

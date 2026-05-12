@@ -63,11 +63,7 @@ class GooglePlacesService {
   GooglePlacesService({
     required this.apiKey,
     Dio? dio,
-  }) : dio = dio ?? Dio() {
-    if (apiKey.isEmpty) {
-      print('WARNING: Google Places API key is empty! Search will not work.');
-    }
-  }
+  }) : dio = dio ?? Dio();
 
   Future<List<PlacePrediction>> getPlacePredictions(
     String input, {
@@ -101,7 +97,6 @@ class GooglePlacesService {
         final status = data['status'] as String?;
 
         if (status != 'OK' && status != 'ZERO_RESULTS') {
-          print('Google Places API Error: $status - ${data['error_message']}');
           return [];
         }
 
@@ -115,7 +110,6 @@ class GooglePlacesService {
         throw Exception('Failed to fetch predictions: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching place predictions: $e');
       rethrow;
     }
   }
@@ -147,8 +141,6 @@ class GooglePlacesService {
         final status = data['status'] as String?;
 
         if (status != 'OK') {
-          print(
-              'Google Places Details API Error: $status - ${data['error_message']}');
           throw Exception('API Error: $status');
         }
 
@@ -163,14 +155,12 @@ class GooglePlacesService {
             'Failed to fetch place details: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching place details: $e');
       rethrow;
     }
   }
 
   Future<String?> getAddressFromLatLng(double lat, double lng) async {
     try {
-      print('Geocoding request for: $lat, $lng');
       final response = await dio.get(
         'https://maps.googleapis.com/maps/api/geocode/json',
         queryParameters: {
@@ -179,25 +169,19 @@ class GooglePlacesService {
         },
       );
 
-      print('Geocoding response status: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        print('Geocoding data status: ${data['status']}');
 
         if (data['status'] == 'OK') {
           final results = data['results'] as List?;
           if (results != null && results.isNotEmpty) {
             final address = results[0]['formatted_address'] as String?;
-            print('Found address: $address');
             return address;
           }
-        } else {
-          print('Geocoding error: ${data['error_message']}');
         }
       }
       return null;
     } catch (e) {
-      print('Error in getAddressFromLatLng: $e');
       return null;
     }
   }

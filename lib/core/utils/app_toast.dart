@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 enum AppToastType {
@@ -18,15 +17,10 @@ class AppToast {
       return;
     }
 
-    Fluttertoast.cancel();
     Fluttertoast.showToast(
       msg: normalizedMessage,
       toastLength: toastLength,
       gravity: ToastGravity.BOTTOM,
-      backgroundColor: _backgroundColor(type),
-      textColor: Colors.white,
-      fontSize: 14,
-      timeInSecForIosWeb: toastLength == Toast.LENGTH_LONG ? 4 : 2,
     );
   }
 
@@ -55,16 +49,5 @@ class AppToast {
       type: AppToastType.error,
       toastLength: toastLength,
     );
-  }
-
-  static Color _backgroundColor(AppToastType type) {
-    switch (type) {
-      case AppToastType.success:
-        return const Color(0xFF15803D);
-      case AppToastType.error:
-        return const Color(0xFFB42318);
-      case AppToastType.info:
-        return const Color(0xFF2B2F38);
-    }
   }
 }

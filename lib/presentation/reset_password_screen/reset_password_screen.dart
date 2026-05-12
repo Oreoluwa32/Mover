@@ -38,12 +38,12 @@ class ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final authApiService = AuthApiService();
 
     if (uid.isEmpty || token.isEmpty) {
-      AppToast.error("This reset link is invalid or has expired.");
+      AppToast.error("Invalid or expired reset token. Please try again.");
       return;
     }
 
     if (password.isEmpty || confirmPassword.isEmpty) {
-      AppToast.error("Fill in both password fields.");
+      AppToast.error("Please fill in all fields.");
       return;
     }
 

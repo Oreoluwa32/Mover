@@ -87,7 +87,6 @@ class _PlacesAutocompleteFieldState
               child: Consumer(
                 builder: (context, ref, _) {
                   final state = ref.watch(placesAutocompleteProvider);
-                  print('Places Overlay - Showing: ${state.showSuggestions}, Predictions: ${state.predictions.length}, Error: ${state.error}');
                   if (!state.showSuggestions || state.predictions.isEmpty) {
                     return const SizedBox.shrink();
                   }
@@ -165,9 +164,7 @@ class _PlacesAutocompleteFieldState
                 ref
                     .read(placesAutocompleteProvider.notifier)
                     .searchPlaces(value);
-              } catch (e) {
-                print('Error in searchPlaces: $e');
-              }
+              } catch (_) {}
             },
             onTap: () {
               widget.onRadioChange();

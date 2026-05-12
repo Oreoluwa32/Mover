@@ -24,7 +24,7 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
   final accountApiService = AccountApiService();
 
   if (email.isEmpty || password.isEmpty) {
-    AppToast.error("Enter both your email and password.");
+    AppToast.error("Email and password cannot be empty.");
     return;
   }
 
@@ -48,7 +48,7 @@ Future<void> signInUser(BuildContext context, WidgetRef ref) async {
       LoadingDialog.hide(context);
     }
 
-    AppToast.success("Welcome back.");
+    AppToast.success("Sign-in successful");
 
     if (context.mounted) {
       Navigator.pushNamedAndRemoveUntil(
@@ -388,7 +388,7 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
           // Mark onboarding as completed
           await PrefUtils().setOnboardingCompleted(true);
 
-          AppToast.success("Welcome back.");
+          AppToast.success("Sign-in successful");
 
           if (context.mounted) {
             Navigator.pushNamedAndRemoveUntil(
@@ -398,19 +398,19 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
             );
           }
         } else {
-          AppToast.error("Couldn't sign you in. Please try again.");
+          AppToast.error("Failed to sign in. Please try again.");
         }
       } else {
         if (context.mounted) {
           LoadingDialog.hide(context);
         }
-        AppToast.info('Sign-in cancelled.');
+        AppToast.info('Sign-in cancelled');
       }
     }).catchError((onError) {
       if (context.mounted) {
         LoadingDialog.hide(context);
       }
-      AppToast.error('Sign-in failed. Please try again.');
+      AppToast.error('Error: ${onError.toString()}');
     });
   }
 }

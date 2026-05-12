@@ -4,7 +4,6 @@ import 'package:location/location.dart';
 import '../../../core/app_export.dart';
 import '../../../core/utils/location_manager.dart';
 import '../../../data/models/selectionPopupModel/selection_popup_model.dart';
-import '../../../services/google_places_service.dart';
 import '../models/add_route_one_item_model.dart';
 import '../models/add_route_one_model.dart';
 import 'places_autocomplete_notifier.dart';
@@ -119,17 +118,13 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
 
   Future<void> fetchCurrentLocation() async {
     try {
-      print('fetchCurrentLocation triggered');
       bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
       if (!hasPermission) {
-        print('Location permission denied');
         return;
       }
 
       Location location = Location();
-      print('Getting current location...');
       LocationData locationData = await location.getLocation();
-      print('Location received: ${locationData.latitude}, ${locationData.longitude}');
 
       if (locationData.latitude != null && locationData.longitude != null) {
         final placesService = _ref.read(googlePlacesServiceProvider);
@@ -144,13 +139,8 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
             locationLat: locationData.latitude,
             locationLng: locationData.longitude,
           );
-          print('Address set to controller: $address');
-        } else {
-          print('Failed to get address from LatLng');
         }
       }
-    } catch (e) {
-      print('Error fetching current location: $e');
-    }
+    } catch (_) {}
   }
 }

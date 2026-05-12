@@ -608,10 +608,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (mounted) {
       if (success) {
-        AppToast.success('Profile picture updated successfully.');
+        AppToast.success('Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        AppToast.error(error ?? 'Failed to upload profile picture.');
+        AppToast.error(error ?? 'Failed to upload profile picture');
       }
     }
   }
@@ -624,10 +624,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (mounted) {
       if (success) {
-        AppToast.success('Profile picture updated successfully.');
+        AppToast.success('Profile picture updated successfully!');
       } else {
         final error = ref.read(profileScreenNotifier).profileImageError;
-        AppToast.error(error ?? 'Failed to upload profile picture.');
+        AppToast.error(error ?? 'Failed to upload profile picture');
       }
     }
   }

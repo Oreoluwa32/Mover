@@ -24,7 +24,6 @@ class PlacesAutocompleteNotifier extends StateNotifier<PlacesAutocompleteState> 
       : super(const PlacesAutocompleteState());
 
   Future<void> searchPlaces(String query) async {
-    print('searchPlaces called with query: "$query"');
     if (query.isEmpty) {
       state = state.copyWith(
         predictions: [],
@@ -42,13 +41,11 @@ class PlacesAutocompleteNotifier extends StateNotifier<PlacesAutocompleteState> 
     );
 
     try {
-      print('Fetching predictions for: $query');
       final predictions = await _placesService.getPlacePredictions(
         query,
         sessionToken: _sessionToken,
       );
 
-      print('Received ${predictions.length} predictions');
       state = state.copyWith(
         predictions: predictions,
         isLoading: false,
@@ -56,7 +53,6 @@ class PlacesAutocompleteNotifier extends StateNotifier<PlacesAutocompleteState> 
         error: null,
       );
     } catch (e) {
-      print('Error searching places: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),

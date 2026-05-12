@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -10,6 +11,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import KycRecord, UserProfile, Vehicle
+from .storage_utils import StorageConfigurationError, resolve_supabase_asset_url
 from apps.mobility.models import TravelMatch
 
 User = get_user_model()
@@ -152,6 +154,22 @@ class ResetPasswordConfirmSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        avatar_url = data.get("avatar_url")
+        try:
+            data["avatar_url"] = resolve_supabase_asset_url(
+                avatar_url,
+                bucket=settings.SUPABASE_AVATAR_BUCKET,
+                public_access=settings.SUPABASE_STORAGE_AVATAR_PUBLIC,
+                supabase_url=settings.SUPABASE_URL,
+                service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+                signed_url_ttl_seconds=settings.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS,
+            )
+        except (StorageConfigurationError, ValueError):
+            data["avatar_url"] = avatar_url or ""
+        return data
+
     class Meta:
         model = UserProfile
         fields = [
@@ -169,6 +187,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class VehicleSerializer(serializers.ModelSerializer):
+    metadata = serializers.SerializerMethodField()
+
     def validate_plate_number(self, value):
         normalized_value = (value or "").strip().upper()
         if not NIGERIAN_PLATE_NUMBER_PATTERN.fullmatch(normalized_value):
@@ -176,6 +196,25 @@ class VehicleSerializer(serializers.ModelSerializer):
                 "Enter a valid Nigerian plate number in the format ABC-123DE."
             )
         return normalized_value
+
+    def get_metadata(self, obj):
+        raw_metadata = obj.metadata if isinstance(obj.metadata, dict) else {}
+        resolved_metadata = {}
+        for key, value in raw_metadata.items():
+            if value is None:
+                continue
+            try:
+                resolved_metadata[str(key)] = resolve_supabase_asset_url(
+                    str(value),
+                    bucket=settings.SUPABASE_VEHICLE_BUCKET,
+                    public_access=settings.SUPABASE_STORAGE_VEHICLE_PUBLIC,
+                    supabase_url=settings.SUPABASE_URL,
+                    service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+                    signed_url_ttl_seconds=settings.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS,
+                )
+            except (StorageConfigurationError, ValueError):
+                resolved_metadata[str(key)] = str(value)
+        return resolved_metadata
 
     class Meta:
         model = Vehicle
@@ -231,3 +270,19 @@ class AccountProfileSerializer(serializers.Serializer):
     linked_socials = serializers.JSONField(required=False)
     notification_preferences = serializers.JSONField(required=False)
     payment_preferences = serializers.JSONField(required=False)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        avatar_url = data.get("avatar_url")
+        try:
+            data["avatar_url"] = resolve_supabase_asset_url(
+                avatar_url,
+                bucket=settings.SUPABASE_AVATAR_BUCKET,
+                public_access=settings.SUPABASE_STORAGE_AVATAR_PUBLIC,
+                supabase_url=settings.SUPABASE_URL,
+                service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+                signed_url_ttl_seconds=settings.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS,
+            )
+        except (StorageConfigurationError, ValueError):
+            data["avatar_url"] = avatar_url or ""
+        return data

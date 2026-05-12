@@ -85,7 +85,7 @@ class IdentificationScreenState extends ConsumerState<IdentificationScreen> {
         bvn: bvn,
       );
 
-      AppToast.success("Identification submitted successfully.");
+      AppToast.success("Identification updated successfully.");
       if (context.mounted) {
         Navigator.pop(context, true);
       }

@@ -54,7 +54,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
 
     // Check if the fields are not empty
     if (email.isEmpty || password.isEmpty) {
-      AppToast.error("Enter both your email and password.");
+      AppToast.error("Email and password are required");
       return;
     }
 
@@ -101,7 +101,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
       final deviceMemory = DeviceMemoryService();
       await deviceMemory.rememberDevice(userEmail: email);
 
-      AppToast.success("Account created successfully.");
+      AppToast.success("Registration successful");
       if (context.mounted) {
         Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
       }
@@ -452,7 +452,7 @@ class CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     // Mark onboarding as completed
     await PrefUtils().setOnboardingCompleted(true);
 
-    AppToast.success("Account created successfully.");
+    AppToast.success("Sign-up successful");
     Navigator.pushNamed(context, AppRoutes.selectPlanScreen);
   }
 

@@ -28,7 +28,7 @@ class DeepLinkService {
     // Handle initial deep link (app started via deep link)
     _appLinks.getInitialLink().then((link) {
       if (link != null) {
-        developer.log('Initial deep link received: $link');
+        developer.log('Initial deep link received.');
         _handleDeepLink(link);
       }
     }).catchError((err) {
@@ -38,7 +38,7 @@ class DeepLinkService {
     // Listen for incoming deep links (app already running)
     _appLinks.uriLinkStream.listen(
       (link) {
-        developer.log('Deep link stream received: $link');
+        developer.log('Deep link stream received.');
         _handleDeepLink(link);
       },
       onError: (err) {
@@ -53,7 +53,7 @@ class DeepLinkService {
       return;
     }
 
-    developer.log('Processing deep link: ${link.toString()}');
+    developer.log('Processing deep link route.');
     final route = AppRoutes.onDeepLinkRoute(link.toString());
     if (route != null) {
       // Use pushAndRemoveUntil to prevent navigation stack issues
@@ -63,7 +63,7 @@ class DeepLinkService {
       );
       developer.log('Deep link route navigation successful');
     } else {
-      developer.log('No route found for deep link: ${link.toString()}');
+      developer.log('No route found for deep link.');
     }
   }
 }

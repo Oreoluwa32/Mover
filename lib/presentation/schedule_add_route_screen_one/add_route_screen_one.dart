@@ -41,7 +41,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
 
     final token = await getToken();
     if (token == null) {
-      AppToast.info('Please sign in first.');
+      AppToast.info("No token found. Please log in first.");
       return;
     }
 
@@ -89,7 +89,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         AppToast.error(error.toString());
       }
     } catch (e) {
-      AppToast.error('Something went wrong. Please check your connection.');
+      AppToast.error("An error occurred. Please check your connection.");
     } finally {
       if (context.mounted) {
         LoadingDialog.hide(context);

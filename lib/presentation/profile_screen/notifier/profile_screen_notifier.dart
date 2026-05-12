@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:io';
@@ -46,7 +45,6 @@ class GlobalProfileImageNotifier extends StateNotifier<String?> {
   }
 
   void updatePath(String? path) {
-    debugPrint('Updating global profile image path to: $path');
     state = path;
   }
 }
@@ -95,17 +93,14 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
       }
 
       String imagePath = selectedImages.first ?? '';
-      debugPrint('Selected image path: $imagePath');
 
       // Update state with local path immediately for UI feedback
       state = state.copyWith(selectedLocalImagePath: imagePath);
       // Also update global provider for bottom bar
-      debugPrint('Updating globalProfileImagePathProvider with local path');
       ref.read(globalProfileImagePathProvider.notifier).updatePath(imagePath);
 
       // Validate image
       if (!_validateImage(imagePath)) {
-        debugPrint('Image validation failed');
         state = state.copyWith(
           isUploadingProfileImage: false,
           profileImageError: 'Invalid image file',
@@ -114,16 +109,13 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
       }
 
       // Upload to backend
-      debugPrint('Starting upload to backend...');
       String? uploadedImageUrl = await _uploadProfileImageToBackend(imagePath);
 
       if (uploadedImageUrl != null) {
-        debugPrint('Upload successful, URL: $uploadedImageUrl');
         // Save image URL locally for syncing purposes
         await PrefUtils().setProfileImagePath(uploadedImageUrl);
 
         // Update global provider with the network URL
-        debugPrint('Updating globalProfileImagePathProvider with network URL');
         ref
             .read(globalProfileImagePathProvider.notifier)
             .updatePath(uploadedImageUrl);
@@ -134,7 +126,6 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
         );
         return true;
       } else {
-        debugPrint('Upload failed or URL is null');
         state = state.copyWith(
           isUploadingProfileImage: false,
         );
@@ -192,7 +183,6 @@ class ProfileScreenNotifier extends StateNotifier<ProfileScreenState> {
       }
       return avatarUrl;
     } catch (e) {
-      debugPrint('Error uploading profile image: $e');
       state = state.copyWith(
         profileImageError: accountApiService.extractErrorMessage(e),
       );

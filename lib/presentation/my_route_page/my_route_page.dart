@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_export.dart';
-import '../instant_add_route_screen_one/add_route_screen_one.dart';
-import '../add_route_screen_three/add_route_screen_three.dart';
 import '../../widgets/custom_floating_button.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
@@ -14,10 +12,7 @@ import 'widgets/savedroute_item_widget.dart';
 class MyRoutePage extends ConsumerStatefulWidget {
   final Function(bool)? onOverlayChanged;
   
-  const MyRoutePage({Key? key, this.onOverlayChanged})
-      : super(
-          key: key,
-        );
+  const MyRoutePage({super.key, this.onOverlayChanged});
 
   @override
   MyRoutePageState createState() => MyRoutePageState();
@@ -66,49 +61,49 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
-      child: Stack(
-        children: [
-          Container(color: theme.colorScheme.onPrimary),
-          Column(
-            children: [
-              SafeArea(
-                bottom: false,
-                child: _buildAppbar(context),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.maxFinite,
-                  padding: EdgeInsets.symmetric(horizontal: 16.h),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [_buildSavedroute(context)],
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.onPrimary,
+        appBar: _buildAppbar(context),
+        body: Stack(
+          children: [
+            Container(color: theme.colorScheme.onPrimary),
+            Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.symmetric(horizontal: 16.h),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [_buildSavedroute(context)],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_isExpanded)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _toggleExpanded,
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.5),
                   ),
                 ),
               ),
-            ],
-          ),
-          if (_isExpanded)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: _toggleExpanded,
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.5),
-                ),
-              ),
-            ),
-          Positioned(
-            right: 16.h,
-            bottom: 180.h,
-            child: _buildFloatingactionb(context),
-          ),
-          if (_isExpanded)
             Positioned(
-              right: 24.h,
-              bottom: 245.h,
-              child: _buildOverlayButtons(context),
+              right: 16.h,
+              bottom: 180.h,
+              child: _buildFloatingactionb(context),
             ),
-        ],
+            if (_isExpanded)
+              Positioned(
+                right: 24.h,
+                bottom: 245.h,
+                child: _buildOverlayButtons(context),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -186,12 +181,12 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(100.h),
         ),
+        onTap: _toggleExpanded,
         child: Icon(
           _isExpanded ? Icons.close : Icons.add,
           color: Colors.white,
           size: 24.h,
         ),
-        onTap: _toggleExpanded,
       ),
     );
   }
@@ -215,6 +210,10 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                 borderRadius: BorderRadiusStyle.roundedBorder4,
               ),
               child: GestureDetector(
+                onTap: () {
+                  _toggleExpanded();
+                  onTapInstant(context);
+                },
                 child: Text(
                   'Instant route',
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -223,10 +222,6 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                     fontSize: 12.fSize,
                   ),
                 ),
-                onTap: () {
-                  _toggleExpanded();
-                  onTapInstant(context);
-                },
               )
             ),
             SizedBox(width: 12.h),
@@ -269,6 +264,10 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                 borderRadius: BorderRadiusStyle.roundedBorder4,
               ),
               child: GestureDetector(
+                onTap: () {
+                  _toggleExpanded();
+                  onTapSchedule(context);
+                },
                 child: Text(
                   'Schedule route',
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -277,10 +276,6 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
                     fontSize: 12.fSize,
                   ),
                 ),
-                onTap: () {
-                  _toggleExpanded();
-                  onTapSchedule(context);
-                },
               )
             ),
             SizedBox(width: 12.h),

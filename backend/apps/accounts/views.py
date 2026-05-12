@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 import json
-import mimetypes
 from datetime import timedelta
 from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote
-from urllib.request import Request, urlopen
 from uuid import uuid4
 
 from django.conf import settings
@@ -44,6 +40,12 @@ from .serializers import (
     UserSerializer,
     VehicleSerializer,
 )
+from .storage_utils import (
+    StorageConfigurationError,
+    build_storage_reference,
+    extract_storage_object_path,
+    upload_file_to_supabase,
+)
 
 User = get_user_model()
 MAX_AVATAR_UPLOAD_SIZE = 5 * 1024 * 1024
@@ -57,10 +59,6 @@ VEHICLE_DOCUMENT_FIELDS = (
     "vehicle_report",
     "vehicle_insurance",
 )
-
-
-class AvatarUploadConfigurationError(Exception):
-    pass
 
 
 def _email_verification_required_response(email: str) -> response.Response:
@@ -97,92 +95,23 @@ def _dispatch_email_verification(user: User) -> None:
     )
 
 
-def _upload_file_to_supabase(
-    *,
-    uploaded_file,
-    object_path: str,
-    allowed_extensions: set[str],
-    max_size: int,
-    allowed_content_prefixes: tuple[str, ...],
-    invalid_type_message: str,
-) -> str:
-    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
-        raise AvatarUploadConfigurationError(
-            "Supabase storage is not configured."
-        )
-
-    extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
-    if extension not in allowed_extensions:
-        raise ValueError(invalid_type_message)
-
-    if uploaded_file.size > max_size:
-        raise ValueError(f"File must be {max_size // (1024 * 1024)}MB or less.")
-
-    content_type = (uploaded_file.content_type or "").lower()
-    if not content_type or content_type == "application/octet-stream":
-        guessed_content_type, _ = mimetypes.guess_type(uploaded_file.name or "")
-        content_type = (guessed_content_type or content_type).lower()
-
-    if (
-        content_type
-        and content_type != "application/octet-stream"
-        and not any(content_type.startswith(prefix) for prefix in allowed_content_prefixes)
-    ):
-        raise ValueError(invalid_type_message)
-
-    upload_url = (
-        f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/"
-        f"{settings.SUPABASE_STORAGE_BUCKET}/{quote(object_path, safe='/')}"
-    )
-
-    request_headers = {
-        "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
-        "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
-        "Content-Type": content_type or "application/octet-stream",
-        "x-upsert": "true",
-        "cache-control": "3600",
-    }
-
-    upload_request = Request(
-        upload_url,
-        data=uploaded_file.read(),
-        headers=request_headers,
-        method="POST",
-    )
-
-    try:
-        with urlopen(upload_request, timeout=30) as upload_response:
-            upload_response.read()
-    except HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="ignore")
-        try:
-            parsed = json.loads(error_body)
-            detail = parsed.get("message") or parsed.get("error") or error_body
-        except json.JSONDecodeError:
-            detail = error_body or exc.reason
-        raise ValueError(f"Upload failed: {detail}") from exc
-    except URLError as exc:
-        raise ValueError("Upload failed. Please try again.") from exc
-
-    return (
-        f"{settings.SUPABASE_URL.rstrip('/')}/storage/v1/object/public/"
-        f"{settings.SUPABASE_STORAGE_BUCKET}/{quote(object_path, safe='/')}"
-    )
-
-
 def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
     extension = Path(uploaded_file.name or "").suffix.lower().lstrip(".")
     object_path = (
         f"{settings.SUPABASE_STORAGE_AVATAR_PREFIX.rstrip('/')}/"
         f"user-{request.user.pk}/{uuid4().hex}.{extension}"
     )
-    avatar_url = _upload_file_to_supabase(
+    avatar_url = upload_file_to_supabase(
         uploaded_file=uploaded_file,
         object_path=object_path,
         allowed_extensions=ALLOWED_AVATAR_EXTENSIONS,
         max_size=MAX_AVATAR_UPLOAD_SIZE,
         allowed_content_prefixes=("image/",),
         invalid_type_message="Upload a JPG, PNG, or WEBP image.",
+        supabase_url=settings.SUPABASE_URL,
+        service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+        bucket=settings.SUPABASE_AVATAR_BUCKET,
+        public_access=settings.SUPABASE_STORAGE_AVATAR_PUBLIC,
     )
     profile.avatar_url = avatar_url
     profile.save(update_fields=["avatar_url", "updated_at"])
@@ -192,7 +121,7 @@ def _store_avatar_upload(request, profile: UserProfile, uploaded_file) -> str:
 def _normalize_vehicle_metadata(raw_metadata) -> dict[str, str]:
     if isinstance(raw_metadata, dict):
         return {
-            str(key): str(value)
+            str(key): _normalize_vehicle_metadata_value(str(value))
             for key, value in raw_metadata.items()
             if value is not None and str(value).strip()
         }
@@ -201,13 +130,24 @@ def _normalize_vehicle_metadata(raw_metadata) -> dict[str, str]:
             parsed = json.loads(raw_metadata)
             if isinstance(parsed, dict):
                 return {
-                    str(key): str(value)
+                    str(key): _normalize_vehicle_metadata_value(str(value))
                     for key, value in parsed.items()
                     if value is not None and str(value).strip()
                 }
         except json.JSONDecodeError:
             return {}
     return {}
+
+
+def _normalize_vehicle_metadata_value(value: str) -> str:
+    object_path = extract_storage_object_path(
+        value,
+        bucket=settings.SUPABASE_VEHICLE_BUCKET,
+        supabase_url=settings.SUPABASE_URL,
+    )
+    if object_path:
+        return build_storage_reference(settings.SUPABASE_VEHICLE_BUCKET, object_path)
+    return value
 
 
 def _store_vehicle_document_uploads(request, metadata: dict[str, str]) -> dict[str, str]:
@@ -222,13 +162,17 @@ def _store_vehicle_document_uploads(request, metadata: dict[str, str]) -> dict[s
             f"{settings.SUPABASE_STORAGE_VEHICLE_PREFIX.rstrip('/')}/"
             f"user-{request.user.pk}/{field_name}/{uuid4().hex}.{extension}"
         )
-        uploaded_metadata[field_name] = _upload_file_to_supabase(
+        uploaded_metadata[field_name] = upload_file_to_supabase(
             uploaded_file=uploaded_file,
             object_path=object_path,
             allowed_extensions=ALLOWED_VEHICLE_DOCUMENT_EXTENSIONS,
             max_size=MAX_VEHICLE_DOCUMENT_UPLOAD_SIZE,
             allowed_content_prefixes=VEHICLE_DOCUMENT_CONTENT_PREFIXES,
             invalid_type_message="Upload a JPG, PNG, or WEBP image.",
+            supabase_url=settings.SUPABASE_URL,
+            service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+            bucket=settings.SUPABASE_VEHICLE_BUCKET,
+            public_access=settings.SUPABASE_STORAGE_VEHICLE_PUBLIC,
         )
     return uploaded_metadata
 
@@ -487,7 +431,7 @@ class ProfileView(APIView):
         if avatar_file is not None:
             try:
                 _store_avatar_upload(request, profile, avatar_file)
-            except AvatarUploadConfigurationError as exc:
+            except StorageConfigurationError as exc:
                 return response.Response(
                     {"detail": str(exc)},
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -579,7 +523,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=self._build_vehicle_payload(request))
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
-        except AvatarUploadConfigurationError as exc:
+        except StorageConfigurationError as exc:
             return response.Response(
                 {"detail": str(exc)},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -609,7 +553,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
             )
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-        except AvatarUploadConfigurationError as exc:
+        except StorageConfigurationError as exc:
             return response.Response(
                 {"detail": str(exc)},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,

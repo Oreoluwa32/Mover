@@ -105,7 +105,7 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         notifierState.destinationLat == null ||
         notifierState.destinationLng == null) {
       AppToast.info(
-        'Please choose both locations from the suggestions first.',
+        "Please select locations from the suggestions to get coordinates.",
       );
       return;
     }

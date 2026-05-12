@@ -9,7 +9,6 @@ import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/loading_dialog.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/movr_loading_indicator.dart';
-import '../../theme/custom_text_style.dart';
 import 'notifier/paystack_payment_notifier.dart';
 
 class PaystackPaymentScreen extends ConsumerStatefulWidget {
@@ -18,11 +17,11 @@ class PaystackPaymentScreen extends ConsumerStatefulWidget {
   final String reference;
 
   const PaystackPaymentScreen({
-    Key? key,
+    super.key,
     required this.amount,
     required this.email,
     required this.reference,
-  }) : super(key: key);
+  });
 
   @override
   PaystackPaymentScreenState createState() => PaystackPaymentScreenState();
@@ -42,10 +41,6 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
   Future<void> _initializePayment() async {
     try {
       ref.read(paystackPaymentNotifier.notifier).setLoading(true);
-      debugPrint('PaystackPaymentScreen: Initializing payment with:');
-      debugPrint('  Amount: ${widget.amount}');
-      debugPrint('  Email: ${widget.email}');
-      debugPrint('  Reference: ${widget.reference}');
 
       final paymentUrl = await _paystackServices.getPaymentUrl(
         amount: widget.amount,
@@ -55,18 +50,15 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
       if (!mounted) return;
 
-      debugPrint('PaystackPaymentScreen: Payment URL received: $paymentUrl');
-
       // Debug: Check if URL is empty
       if (paymentUrl.isEmpty) {
         final errorMsg =
             'Payment URL is empty - backend may not have returned authorization URL. Please check if:\n1. Backend API is running\n2. Paystack credentials are correct\n3. Network connection is stable';
-        debugPrint('PaystackPaymentScreen: ERROR - $errorMsg');
 
         ref.read(paystackPaymentNotifier.notifier).setError(errorMsg);
         ref.read(paystackPaymentNotifier.notifier).setLoading(false);
 
-        AppToast.error('Failed to get the payment link.');
+        AppToast.error('Failed to get payment URL');
         return;
       }
 
@@ -76,12 +68,11 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
       _initializeWebView(paymentUrl);
     } catch (e) {
       if (!mounted) return;
-      debugPrint('PaystackPaymentScreen: Exception during initialization: $e');
 
       ref.read(paystackPaymentNotifier.notifier).setError('Error: $e');
       ref.read(paystackPaymentNotifier.notifier).setLoading(false);
 
-      AppToast.error('Failed to initialize payment. Please try again.');
+      AppToast.error('Failed to initialize payment: $e');
     }
   }
 
@@ -99,17 +90,13 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
         ..setNavigationDelegate(
           NavigationDelegate(
             onPageStarted: (String url) {
-              debugPrint('WebView: Page started loading - $url');
               _handleUrlNavigation(url);
             },
             onPageFinished: (String url) {
-              debugPrint('WebView: Page finished loading - $url');
               _handleUrlNavigation(url);
             },
             onWebResourceError: (WebResourceError error) {
-              debugPrint('WebView Error: ${error.description}');
-              String errorMsg =
-                  error.description ?? 'Unknown error loading payment page';
+              String errorMsg = error.description;
 
               // Check for SSL certificate errors on Android
               if (errorMsg.contains('SSL') ||
@@ -133,13 +120,11 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
         ..loadRequest(uri);
 
       _webViewInitialized = true;
-      debugPrint('WebView initialized successfully with URL: $paymentUrl');
     } catch (e) {
-      debugPrint('Error initializing WebView: $e');
       ref
           .read(paystackPaymentNotifier.notifier)
           .setError('Error initializing payment: $e');
-      AppToast.error('Error initializing payment. Please try again.');
+      AppToast.error('Error initializing payment: $e');
     }
   }
 
@@ -152,7 +137,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
             widget.reference,
           );
 
-      AppToast.success('Payment successful.');
+      AppToast.success('Payment successful!');
 
       // Navigate back with success
       Future.delayed(const Duration(seconds: 1), () {
@@ -164,7 +149,7 @@ class PaystackPaymentScreenState extends ConsumerState<PaystackPaymentScreen> {
 
     // Check if payment was cancelled
     if (url.contains('cancelled') || url.contains('fail')) {
-      AppToast.info('Payment was cancelled.');
+      AppToast.info('Payment cancelled');
 
       if (mounted) {
         NavigatorService.goBack();

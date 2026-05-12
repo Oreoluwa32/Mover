@@ -158,7 +158,7 @@ class MonnifyPaymentScreenState extends ConsumerState<MonnifyPaymentScreen>
 
       final amount = double.tryParse(latestFunding.amount ?? '0') ?? 0;
       AppToast.success(
-        'Wallet funded successfully with NGN ${amount.toStringAsFixed(2)}.',
+        'Wallet funded successfully with NGN ${amount.toStringAsFixed(2)}',
       );
     } catch (_) {
       // Best-effort polling only; avoid disrupting the funding screen.

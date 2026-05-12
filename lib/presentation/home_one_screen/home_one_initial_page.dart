@@ -36,6 +36,12 @@ class HomeOneInitialPage extends ConsumerStatefulWidget {
 // ignore for file: must be immutabel
 class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     with TickerProviderStateMixin {
+  static const Duration _motionSmoothingInterval =
+      Duration(milliseconds: 60);
+  static const Duration _markerRefreshInterval =
+      Duration(milliseconds: 75);
+  static const Duration _cameraFollowThrottle =
+      Duration(milliseconds: 140);
   final loc.Location locationController = loc.Location();
   final MobilityApiService _mobilityApiService = MobilityApiService();
   final MobilityRealtimeService _realtimeService = MobilityRealtimeService();
@@ -479,7 +485,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     final headingDiff =
         _angleDifference(_lastRenderedMarkerHeading!, userHeading).abs();
 
-    return latDiff > 0.000003 || lngDiff > 0.000003 || headingDiff > 2.0;
+    return latDiff > 0.0000012 || lngDiff > 0.0000012 || headingDiff > 1.0;
   }
 
   void _requestMarkerRefresh({bool force = false}) {
@@ -499,7 +505,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       return;
     }
 
-    _markerRefreshTimer = Timer(const Duration(milliseconds: 120), () {
+    _markerRefreshTimer = Timer(_markerRefreshInterval, () {
       _markerRefreshTimer = null;
       final activeController = _navigationViewController;
       if (!mounted || activeController == null) {
@@ -514,6 +520,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     return homeState.isNavigationActive ||
         homeState.isLive ||
         homeState.highlightRoute;
+  }
+
+  bool _shouldAutoFollowUserLocation() {
+    // Keep the user's marker in view even when live mode is off. Transit mode
+    // still controls the more opinionated bearing/tilt camera behavior.
+    return true;
   }
 
   double _markerRotationForCurrentMode() {
@@ -729,8 +741,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       // Configure location settings for better tracking during transit
       await locationController.changeSettings(
         accuracy: loc.LocationAccuracy.high,
-        interval: 700, // Faster updates for smoother transit feedback
-        distanceFilter: 1, // Capture small movements while in motion
+        interval: 500, // Faster updates for smoother transit feedback
+        distanceFilter: 1, // Keep sensor noise low while still tracking motion
       );
 
       _locationSubscription?.cancel();
@@ -750,8 +762,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
           final bool isFirstLocation = currentPosition == null;
           final bool isNavigating = ref.read(homeNotifier).isNavigationActive;
 
-          // Use smaller threshold when navigating to keep focus on custom marker
-          final double threshold = isNavigating ? 0.00002 : 0.0001;
+          // Use a tighter threshold while following the user so new GPS samples
+          // feed the smoothing loop sooner and the marker can glide.
+          final double threshold =
+              _isTransitFollowMode() ? 0.000006 : 0.00003;
 
           if (isFirstLocation ||
               (currentPosition!.latitude - newPosition.latitude).abs() >
@@ -776,7 +790,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                 });
               }
 
-              if (_isTransitFollowMode()) {
+              if (_shouldAutoFollowUserLocation()) {
                 _followUserOnMap(newPosition, force: true);
               } else {
                 cameraToPosition(newPosition);
@@ -836,7 +850,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     }
 
     _motionSmoothingTimer ??=
-        Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        Timer.periodic(_motionSmoothingInterval, (timer) {
       if (!mounted) {
         timer.cancel();
         _motionSmoothingTimer = null;
@@ -856,11 +870,11 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       _motionTickCount++;
 
       final controller = _navigationViewController;
-      if (controller != null) {
-        _requestMarkerRefresh();
+      if (controller != null && (positionChanged || headingChanged)) {
+        _updateMarkers(controller, force: true);
       }
 
-      final shouldFollowMap = _isTransitFollowMode();
+      final shouldFollowMap = _shouldAutoFollowUserLocation();
       if (shouldFollowMap &&
           currentPosition != null &&
           (_motionTickCount % 2 == 0 || positionChanged || headingChanged)) {
@@ -877,16 +891,24 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     final latDiff = _targetPosition!.latitude - currentPosition!.latitude;
     final lngDiff = _targetPosition!.longitude - currentPosition!.longitude;
 
-    if (latDiff.abs() < 0.000001 && lngDiff.abs() < 0.000001) {
+    if (latDiff.abs() < 0.0000008 && lngDiff.abs() < 0.0000008) {
       if (currentPosition != _targetPosition) {
         currentPosition = _targetPosition;
       }
       return false;
     }
 
+    final remainingDistance = math.max(latDiff.abs(), lngDiff.abs());
+    final baseFactor = _isTransitFollowMode() ? 0.16 : 0.20;
+    final stepFactor = remainingDistance > 0.00005
+        ? baseFactor + 0.08
+        : remainingDistance > 0.000015
+            ? baseFactor + 0.04
+            : baseFactor;
+
     final nextPosition = LatLng(
-      latitude: currentPosition!.latitude + (latDiff * 0.28),
-      longitude: currentPosition!.longitude + (lngDiff * 0.28),
+      latitude: currentPosition!.latitude + (latDiff * stepFactor),
+      longitude: currentPosition!.longitude + (lngDiff * stepFactor),
     );
 
     currentPosition = nextPosition;
@@ -899,14 +921,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     }
 
     final delta = _angleDifference(userHeading, _targetHeading!);
-    if (delta.abs() < 1.0) {
+    if (delta.abs() < 0.6) {
       if (userHeading != _targetHeading) {
         userHeading = _targetHeading!;
       }
       return false;
     }
 
-    userHeading = _normalizeHeading(userHeading + (delta * 0.22));
+    final headingFactor = _isTransitFollowMode() ? 0.16 : 0.20;
+    userHeading = _normalizeHeading(userHeading + (delta * headingFactor));
     return true;
   }
 
@@ -976,8 +999,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     final now = DateTime.now();
     if (!force &&
         _lastCameraFollowAt != null &&
-        now.difference(_lastCameraFollowAt!) <
-            const Duration(milliseconds: 220)) {
+        now.difference(_lastCameraFollowAt!) < _cameraFollowThrottle) {
       return;
     }
 
@@ -2038,7 +2060,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         onTap: () {
           // Reset map to current location when floating button is tapped
           if (currentPosition != null) {
-            cameraToPosition(currentPosition!);
+            _followUserOnMap(currentPosition!, force: true);
           }
         },
         // backgroundColor: theme.colorScheme.primary,
