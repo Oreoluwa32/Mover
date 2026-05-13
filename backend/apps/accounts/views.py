@@ -177,6 +177,13 @@ def _store_vehicle_document_uploads(request, metadata: dict[str, str]) -> dict[s
     return uploaded_metadata
 
 
+def _mark_vehicle_for_review(metadata: dict[str, str]) -> dict[str, str]:
+    pending_metadata = dict(metadata)
+    pending_metadata["review_status"] = "pending"
+    pending_metadata["reviewer_notes"] = ""
+    return pending_metadata
+
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -515,7 +522,9 @@ class VehicleViewSet(viewsets.ModelViewSet):
         )
         metadata = dict(existing_metadata)
         metadata.update(_normalize_vehicle_metadata(request.data.get("metadata")))
-        payload["metadata"] = _store_vehicle_document_uploads(request, metadata)
+        metadata = _store_vehicle_document_uploads(request, metadata)
+        payload["metadata"] = _mark_vehicle_for_review(metadata)
+        payload["is_verified"] = False
         return payload
 
     def create(self, request, *args, **kwargs):
@@ -576,7 +585,7 @@ class KycRecordView(APIView):
         kyc, _ = KycRecord.objects.get_or_create(user=request.user)
         serializer = KycRecordSerializer(kyc, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(status=KycRecord.Status.PENDING, reviewer_notes="")
         return response.Response(serializer.data)
 
 

@@ -20,6 +20,7 @@ NIGERIAN_PLATE_NUMBER_PATTERN = re.compile(r"^[A-Z]{3}-\d{3}[A-Z]{2}$")
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
     home_away_label = serializers.SerializerMethodField()
     rating_count = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
@@ -34,6 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
+            "avatar_url",
             "phone_number",
             "account_type",
             "auth_provider",
@@ -51,6 +53,21 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name() or obj.email
+
+    def get_avatar_url(self, obj):
+        profile = getattr(obj, "profile", None)
+        avatar_url = getattr(profile, "avatar_url", "")
+        try:
+            return resolve_supabase_asset_url(
+                avatar_url,
+                bucket=settings.SUPABASE_AVATAR_BUCKET,
+                public_access=settings.SUPABASE_STORAGE_AVATAR_PUBLIC,
+                supabase_url=settings.SUPABASE_URL,
+                service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+                signed_url_ttl_seconds=settings.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS,
+            )
+        except (StorageConfigurationError, ValueError):
+            return avatar_url or ""
 
     def get_home_away_label(self, obj):
         if obj.home_city and obj.current_city and obj.home_city.lower() != obj.current_city.lower():
@@ -188,6 +205,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class VehicleSerializer(serializers.ModelSerializer):
     metadata = serializers.SerializerMethodField()
+    review_status = serializers.SerializerMethodField()
+    reviewer_notes = serializers.SerializerMethodField()
 
     def validate_plate_number(self, value):
         normalized_value = (value or "").strip().upper()
@@ -203,6 +222,8 @@ class VehicleSerializer(serializers.ModelSerializer):
         for key, value in raw_metadata.items():
             if value is None:
                 continue
+            if str(key) in {"review_status", "reviewer_notes"}:
+                continue
             try:
                 resolved_metadata[str(key)] = resolve_supabase_asset_url(
                     str(value),
@@ -216,6 +237,16 @@ class VehicleSerializer(serializers.ModelSerializer):
                 resolved_metadata[str(key)] = str(value)
         return resolved_metadata
 
+    def get_review_status(self, obj):
+        metadata = obj.metadata if isinstance(obj.metadata, dict) else {}
+        if obj.is_verified:
+            return "verified"
+        return str(metadata.get("review_status") or "pending")
+
+    def get_reviewer_notes(self, obj):
+        metadata = obj.metadata if isinstance(obj.metadata, dict) else {}
+        return str(metadata.get("reviewer_notes") or "")
+
     class Meta:
         model = Vehicle
         fields = [
@@ -227,7 +258,16 @@ class VehicleSerializer(serializers.ModelSerializer):
             "plate_number",
             "seats",
             "is_verified",
+            "review_status",
+            "reviewer_notes",
             "metadata",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "is_verified",
+            "review_status",
+            "reviewer_notes",
             "created_at",
         ]
 

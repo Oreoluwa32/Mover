@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from rest_framework import serializers
 
+from apps.accounts.storage_utils import (
+    StorageConfigurationError,
+    resolve_supabase_asset_url,
+)
 from .models import DeliveryRequest, EmergencyAlert, RideRequest, TaskIncidentReport, TaskMessage, TaskReview, TrackingEvent, TrackingSession, TravelMatch, TravelPlan
 
 User = get_user_model()
@@ -11,6 +16,7 @@ User = get_user_model()
 
 class UserSummarySerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
     home_away_label = serializers.SerializerMethodField()
     rating_count = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
@@ -24,6 +30,7 @@ class UserSummarySerializer(serializers.ModelSerializer):
             "email",
             "phone_number",
             "full_name",
+            "avatar_url",
             "home_city",
             "current_city",
             "home_away_label",
@@ -35,6 +42,21 @@ class UserSummarySerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name() or obj.email
+
+    def get_avatar_url(self, obj):
+        profile = getattr(obj, "profile", None)
+        avatar_url = getattr(profile, "avatar_url", "")
+        try:
+            return resolve_supabase_asset_url(
+                avatar_url,
+                bucket=settings.SUPABASE_AVATAR_BUCKET,
+                public_access=settings.SUPABASE_STORAGE_AVATAR_PUBLIC,
+                supabase_url=settings.SUPABASE_URL,
+                service_role_key=settings.SUPABASE_SERVICE_ROLE_KEY,
+                signed_url_ttl_seconds=settings.SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS,
+            )
+        except (StorageConfigurationError, ValueError):
+            return avatar_url or ""
 
     def get_home_away_label(self, obj):
         if obj.home_city and obj.current_city and obj.home_city.lower() != obj.current_city.lower():

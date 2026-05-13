@@ -70,6 +70,32 @@ class MobilityApiService {
     return <Map<String, dynamic>>[];
   }
 
+  List<Map<String, dynamic>> _filterPlansByType(
+    List<Map<String, dynamic>> allPlans, {
+    String? planType,
+  }) {
+    if (planType == null || planType.trim().isEmpty) {
+      return allPlans;
+    }
+
+    final expectedType = planType.trim().toLowerCase();
+    return allPlans.where((plan) {
+      final currentType = plan['plan_type']?.toString().trim().toLowerCase();
+      if (expectedType == 'ride') {
+        return currentType == 'ride' || currentType == 'hybrid';
+      }
+      if (expectedType == 'delivery') {
+        return currentType == 'delivery' || currentType == 'hybrid';
+      }
+      return currentType == expectedType;
+    }).toList();
+  }
+
+  bool _isPlanBidEligible(Map<String, dynamic> plan) {
+    final status = plan['status']?.toString().trim().toLowerCase();
+    return status == 'published' || status == 'in_progress';
+  }
+
   void _notifyTaskStateChanged(String reason) {
     TaskStateSync.emit(reason);
   }
@@ -102,8 +128,11 @@ class MobilityApiService {
     return _extractCollection(response.data);
   }
 
-  Future<Map<String, dynamic>?> getLatestTravelPlan() async {
-    final plans = await getMyTravelPlans();
+  Future<Map<String, dynamic>?> getLatestTravelPlan({
+    String? planType,
+  }) async {
+    final allPlans = await getMyTravelPlans();
+    final plans = _filterPlansByType(allPlans, planType: planType);
     if (plans.isEmpty) {
       return null;
     }
@@ -115,6 +144,24 @@ class MobilityApiService {
     for (final plan in plans) {
       final status = plan['status']?.toString();
       if (status == 'in_progress' || status == 'published') {
+        return plan;
+      }
+    }
+    return plans.first;
+  }
+
+  Future<Map<String, dynamic>?> getLatestBiddableTravelPlan({
+    String? planType,
+  }) async {
+    final allPlans = await getMyTravelPlans();
+    final plans = _filterPlansByType(allPlans, planType: planType)
+        .where(_isPlanBidEligible)
+        .toList();
+    if (plans.isEmpty) {
+      return null;
+    }
+    for (final plan in plans) {
+      if (plan['is_live'] == true) {
         return plan;
       }
     }

@@ -7,6 +7,7 @@ import '../../core/utils/app_toast.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
+import '../../widgets/user_avatar.dart';
 import '../home_one_screen/notifier/home_notifier.dart';
 
 class DeliveryTaskOneBottomsheet extends ConsumerStatefulWidget {
@@ -63,6 +64,7 @@ class DeliveryTaskBottomsheetState
     final dropoff = requestData['dropoff_name']?.toString() ?? 'Destination';
     final requesterName =
         requestData['requester']?['full_name']?.toString() ?? 'Movr user';
+    final requesterAvatarUrl = _extractRequesterAvatarUrl(requestData);
     final requestId = requestData['id']?.toString() ?? '';
     final description = requestData['package_description']?.toString() ??
         'No description provided.';
@@ -150,6 +152,7 @@ class DeliveryTaskBottomsheetState
                         SizedBox(height: 32.h),
                         _buildRequesterRow(
                           requesterName: requesterName,
+                          requesterAvatarUrl: requesterAvatarUrl,
                           weightLabel: weightLabel,
                         ),
                         SizedBox(height: 16.h),
@@ -344,7 +347,8 @@ class DeliveryTaskBottomsheetState
                     buttonStyle: isPriceValid
                         ? CustomButtonStyles.fillPrimaryTL41
                         : CustomButtonStyles.fillBlueGray,
-                    onPressed: isPriceValid ? () => _submitBid(requestId) : null,
+                    onPressed:
+                        isPriceValid ? () => _submitBid(requestId) : null,
                   ),
                 ),
               ],
@@ -357,12 +361,14 @@ class DeliveryTaskBottomsheetState
 
   Widget _buildRequesterRow({
     required String requesterName,
+    required String? requesterAvatarUrl,
     required String weightLabel,
   }) {
     return Row(
       children: [
-        CustomImageView(
-          imagePath: ImageConstant.imgProfile,
+        UserAvatar(
+          imagePath: requesterAvatarUrl,
+          name: requesterName,
           height: 50.h,
           width: 50.h,
           radius: BorderRadius.circular(25.h),
@@ -542,9 +548,26 @@ class DeliveryTaskBottomsheetState
     }
 
     try {
+      final latestTravelPlan = await _mobilityApiService.getLatestTravelPlan(
+        planType: 'delivery',
+      );
+      final travelPlan = await _mobilityApiService.getLatestBiddableTravelPlan(
+        planType: 'delivery',
+      );
+      final travelPlanId = travelPlan?['id']?.toString() ?? '';
+      if (travelPlanId.isEmpty) {
+        AppToast.info(
+          latestTravelPlan == null
+              ? 'Create or publish a delivery route before bidding.'
+              : 'Publish your delivery route before bidding.',
+        );
+        return;
+      }
+
       await _mobilityApiService.bidDeliveryRequest(
         requestId: requestId,
         agreedPrice: price,
+        travelPlanId: travelPlanId,
       );
       await ref.read(homeNotifier.notifier).loadPendingTask();
       AppToast.success('Bid submitted successfully.');
@@ -558,8 +581,10 @@ class DeliveryTaskBottomsheetState
   }
 
   String _formatCountdown() {
-    final minutes = _timeRemaining.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = _timeRemaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes =
+        _timeRemaining.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds =
+        _timeRemaining.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
 
@@ -572,5 +597,40 @@ class DeliveryTaskBottomsheetState
       return 'Medium';
     }
     return 'Light';
+  }
+
+  String? _extractRequesterAvatarUrl(Map<String, dynamic> requestData) {
+    final requester = requestData['requester'];
+    if (requester is Map) {
+      final requesterMap = Map<String, dynamic>.from(requester);
+      final directAvatar = requesterMap['avatar_url']?.toString();
+      if (directAvatar != null &&
+          directAvatar.isNotEmpty &&
+          directAvatar != 'null') {
+        return directAvatar;
+      }
+      final nestedProfile = requesterMap['profile'];
+      if (nestedProfile is Map) {
+        final nestedAvatar = nestedProfile['avatar_url']?.toString();
+        if (nestedAvatar != null &&
+            nestedAvatar.isNotEmpty &&
+            nestedAvatar != 'null') {
+          return nestedAvatar;
+        }
+      }
+    }
+
+    final fallbackKeys = <String>[
+      'requester_avatar_url',
+      'requester_avatar',
+      'avatar_url',
+    ];
+    for (final key in fallbackKeys) {
+      final value = requestData[key]?.toString();
+      if (value != null && value.isNotEmpty && value != 'null') {
+        return value;
+      }
+    }
+    return null;
   }
 }
