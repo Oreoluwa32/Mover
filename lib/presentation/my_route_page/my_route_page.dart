@@ -63,24 +63,31 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
       ),
       child: Scaffold(
         backgroundColor: theme.colorScheme.onPrimary,
+        extendBodyBehindAppBar: true,
         appBar: _buildAppbar(context),
         body: Stack(
           children: [
             Container(color: theme.colorScheme.onPrimary),
-            Column(
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.symmetric(horizontal: 16.h),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [_buildSavedroute(context)],
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.only(top: 60.h),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: double.maxFinite,
+                        padding: EdgeInsets.symmetric(horizontal: 16.h),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [_buildSavedroute(context)],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
             if (_isExpanded)
               Positioned.fill(
