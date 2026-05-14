@@ -13,13 +13,21 @@ enum _VerificationBadgeState {
   none,
   review,
   approved,
+  rejected,
+}
+
+class _VerificationRowState {
+  const _VerificationRowState({
+    required this.badgeState,
+    this.note = '',
+  });
+
+  final _VerificationBadgeState badgeState;
+  final String note;
 }
 
 class VerificationScreen extends ConsumerStatefulWidget {
-  const VerificationScreen({Key? key})
-      : super(
-          key: key,
-        );
+  const VerificationScreen({super.key}) : super();
 
   @override
   VerificationScreenState createState() => VerificationScreenState();
@@ -28,8 +36,12 @@ class VerificationScreen extends ConsumerStatefulWidget {
 class VerificationScreenState extends ConsumerState<VerificationScreen> {
   bool _isLoading = true;
   bool _isPersonalInfoComplete = false;
-  _VerificationBadgeState _identificationStatus = _VerificationBadgeState.none;
-  _VerificationBadgeState _vehicleStatus = _VerificationBadgeState.none;
+  _VerificationRowState _identificationState = const _VerificationRowState(
+    badgeState: _VerificationBadgeState.none,
+  );
+  _VerificationRowState _vehicleState = const _VerificationRowState(
+    badgeState: _VerificationBadgeState.none,
+  );
 
   @override
   void initState() {
@@ -62,8 +74,8 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
 
       setState(() {
         _isPersonalInfoComplete = _resolvePersonalInfoComplete(user, profile);
-        _identificationStatus = _resolveIdentificationStatus(kyc);
-        _vehicleStatus = _resolveVehicleStatus(vehicles);
+        _identificationState = _resolveIdentificationState(kyc);
+        _vehicleState = _resolveVehicleState(vehicles);
         _isLoading = false;
       });
     } catch (error) {
@@ -89,39 +101,99 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
     return hasFirstName && hasLastName && hasEmail;
   }
 
-  _VerificationBadgeState _resolveIdentificationStatus(
+  _VerificationRowState _resolveIdentificationState(
     Map<String, dynamic>? kyc,
   ) {
     if (kyc == null) {
-      return _VerificationBadgeState.none;
+      return const _VerificationRowState(
+        badgeState: _VerificationBadgeState.none,
+      );
     }
 
     final hasNin = (kyc['nin']?.toString().trim().isNotEmpty ?? false);
     final hasBvn = (kyc['bvn']?.toString().trim().isNotEmpty ?? false);
     if (!hasNin || !hasBvn) {
-      return _VerificationBadgeState.none;
+      return const _VerificationRowState(
+        badgeState: _VerificationBadgeState.none,
+      );
     }
 
     final status = (kyc['status']?.toString().toLowerCase() ?? '').trim();
+    final reviewerNotes = (kyc['reviewer_notes']?.toString().trim() ?? '');
     if (status == 'verified') {
-      return _VerificationBadgeState.approved;
+      return const _VerificationRowState(
+        badgeState: _VerificationBadgeState.approved,
+      );
     }
-    return _VerificationBadgeState.review;
+    if (status == 'rejected') {
+      return _VerificationRowState(
+        badgeState: _VerificationBadgeState.rejected,
+        note: reviewerNotes.isNotEmpty
+            ? reviewerNotes
+            : 'Your identification needs another review.',
+      );
+    }
+    return _VerificationRowState(
+      badgeState: _VerificationBadgeState.review,
+      note: reviewerNotes,
+    );
   }
 
-  _VerificationBadgeState _resolveVehicleStatus(
+  _VerificationRowState _resolveVehicleState(
     List<Map<String, dynamic>> vehicles,
   ) {
     if (vehicles.isEmpty) {
-      return _VerificationBadgeState.none;
+      return const _VerificationRowState(
+        badgeState: _VerificationBadgeState.none,
+      );
     }
 
-    final hasVerifiedVehicle = vehicles.any(
-      (vehicle) => vehicle['is_verified'] == true,
+    final hasVerifiedVehicle = vehicles.cast<Map<String, dynamic>>().firstWhere(
+          (vehicle) => vehicle['is_verified'] == true,
+          orElse: () => const <String, dynamic>{},
+        );
+    if (hasVerifiedVehicle.isNotEmpty) {
+      return const _VerificationRowState(
+        badgeState: _VerificationBadgeState.approved,
+      );
+    }
+
+    final rejectedVehicle = vehicles.cast<Map<String, dynamic>>().firstWhere(
+          (vehicle) =>
+              (vehicle['review_status']?.toString().toLowerCase() ?? '') ==
+              'rejected',
+          orElse: () => const <String, dynamic>{},
+        );
+    if (rejectedVehicle.isNotEmpty) {
+      final reviewerNotes =
+          (rejectedVehicle['reviewer_notes']?.toString().trim() ?? '');
+      return _VerificationRowState(
+        badgeState: _VerificationBadgeState.rejected,
+        note: reviewerNotes.isNotEmpty
+            ? reviewerNotes
+            : 'Your vehicle documents need to be updated.',
+      );
+    }
+
+    final reviewVehicle = vehicles.cast<Map<String, dynamic>>().firstWhere(
+          (vehicle) =>
+              (vehicle['review_status']?.toString().toLowerCase() ?? '') ==
+                  'pending' ||
+              vehicle['metadata'] is Map,
+          orElse: () => const <String, dynamic>{},
+        );
+    if (reviewVehicle.isNotEmpty) {
+      final reviewerNotes =
+          (reviewVehicle['reviewer_notes']?.toString().trim() ?? '');
+      return _VerificationRowState(
+        badgeState: _VerificationBadgeState.review,
+        note: reviewerNotes,
+      );
+    }
+
+    return const _VerificationRowState(
+      badgeState: _VerificationBadgeState.none,
     );
-    return hasVerifiedVehicle
-        ? _VerificationBadgeState.approved
-        : _VerificationBadgeState.review;
   }
 
   @override
@@ -146,21 +218,23 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
                 children: [
                   _buildVerificationRow(
                     label: 'Personal Information',
-                    badgeState: _isPersonalInfoComplete
-                        ? _VerificationBadgeState.approved
-                        : _VerificationBadgeState.none,
+                    rowState: _VerificationRowState(
+                      badgeState: _isPersonalInfoComplete
+                          ? _VerificationBadgeState.approved
+                          : _VerificationBadgeState.none,
+                    ),
                     onTap: () => onTapPersonalInfo(context),
                   ),
                   SizedBox(height: 28.h),
                   _buildVerificationRow(
                     label: 'Identification',
-                    badgeState: _identificationStatus,
+                    rowState: _identificationState,
                     onTap: () => onTapIdentification(context),
                   ),
                   SizedBox(height: 28.h),
                   _buildVerificationRow(
                     label: 'Vehicle Identification',
-                    badgeState: _vehicleStatus,
+                    rowState: _vehicleState,
                     onTap: () => onTapVehicleInfo(context),
                   ),
                 ],
@@ -192,7 +266,7 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
 
   Widget _buildVerificationRow({
     required String label,
-    required _VerificationBadgeState badgeState,
+    required _VerificationRowState rowState,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -202,28 +276,59 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
         padding: EdgeInsets.symmetric(
           vertical: 6.h,
         ),
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: CustomTextStyles.bodyMediumMulishBlack900.copyWith(
-                    color: appTheme.gray80001,
-                    fontWeight: FontWeight.w500,
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.maxFinite,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: CustomTextStyles.bodyMediumMulishBlack900
+                              .copyWith(
+                            color: appTheme.gray80001,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (rowState.note.trim().isNotEmpty) ...[
+                          SizedBox(height: 6.h),
+                          Text(
+                            rowState.note.trim(),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: rowState.badgeState ==
+                                      _VerificationBadgeState.rejected
+                                  ? appTheme.redA700
+                                  : appTheme.gray600,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
+                  SizedBox(width: 12.h),
+                  Padding(
+                    padding: EdgeInsets.only(top: 2.h),
+                    child: _buildStatusBadge(rowState.badgeState),
+                  ),
+                  SizedBox(width: 18.h),
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: CustomImageView(
+                      imagePath: ImageConstant.imgBlackChevronRight,
+                      height: 16.h,
+                      width: 16.h,
+                    ),
+                  ),
+                ],
               ),
-              _buildStatusBadge(badgeState),
-              SizedBox(width: 18.h),
-              CustomImageView(
-                imagePath: ImageConstant.imgBlackChevronRight,
-                height: 16.h,
-                width: 16.h,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -243,6 +348,24 @@ class VerificationScreenState extends ConsumerState<VerificationScreen> {
           height: 28.h,
           width: 82.h,
           fit: BoxFit.contain,
+        );
+      case _VerificationBadgeState.rejected:
+        return Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 12.h,
+            vertical: 5.h,
+          ),
+          decoration: BoxDecoration(
+            color: appTheme.red50,
+            borderRadius: BorderRadius.circular(999.h),
+          ),
+          child: Text(
+            'Rejected',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: appTheme.redA700,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         );
       case _VerificationBadgeState.none:
         return SizedBox(width: 22.h);
