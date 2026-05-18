@@ -1,9 +1,8 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/app_export.dart';
 import '../../core/utils/app_toast.dart';
+import '../../data/models/selectionPopupModel/selection_popup_model.dart';
+import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -25,13 +24,84 @@ class AddRouteScreenOne extends ConsumerStatefulWidget {
 }
 
 class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
-  TextEditingController locationController = TextEditingController();
-  TextEditingController destinationController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController destinationController = TextEditingController();
+  final MobilityApiService _mobilityApiService = MobilityApiService();
   bool _isCreatingRoute = false;
 
-  Future<String?> getToken() async {
-    const storage = FlutterSecureStorage();
-    return await storage.read(key: 'auth_token');
+  String _mapPlanType(String title) {
+    switch (title.toLowerCase()) {
+      case 'ride sharing':
+      case 'ride':
+      case 'ride-sharing':
+        return 'ride';
+      case 'delivery':
+        return 'delivery';
+      default:
+        return 'hybrid';
+    }
+  }
+
+  String _mapVehicleType(String title) {
+    switch (title.toLowerCase()) {
+      case 'bike':
+        return 'bike';
+      case 'car':
+        return 'car';
+      case 'bus':
+        return 'bus';
+      case 'train':
+        return 'train';
+      case 'airplane':
+        return 'airplane';
+      case 'public':
+        return 'public_transit';
+      case 'truck':
+        return 'truck';
+      default:
+        return title.toLowerCase().replaceAll(' ', '_');
+    }
+  }
+
+  SelectionPopupModel? _resolveSelectedOption(
+    SelectionPopupModel? explicit,
+    List<SelectionPopupModel> options,
+  ) {
+    if ((explicit?.title ?? '').trim().isNotEmpty) {
+      return explicit;
+    }
+    for (final option in options) {
+      if (option.isSelected == true) {
+        return option;
+      }
+    }
+    return options.isNotEmpty ? options.first : null;
+  }
+
+  DateTime _buildDepartureTime(String? rawTime) {
+    final normalized = (rawTime ?? '').trim().toLowerCase();
+    final match =
+        RegExp(r'^(\d{1,2}):(\d{2})\s*([ap]m)$').firstMatch(normalized);
+    final now = DateTime.now();
+    if (match == null) {
+      return now.toUtc();
+    }
+
+    var hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2)!);
+    final period = match.group(3)!;
+
+    if (period == 'pm' && hour != 12) {
+      hour += 12;
+    } else if (period == 'am' && hour == 12) {
+      hour = 0;
+    }
+
+    var departure = DateTime(now.year, now.month, now.day, hour, minute);
+    if (departure.isBefore(now)) {
+      departure = departure.add(const Duration(days: 1));
+    }
+    return departure.toUtc();
   }
 
   Future<void> createRoute(BuildContext context) async {
@@ -39,28 +109,41 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       return;
     }
 
-    final token = await getToken();
-    if (token == null) {
-      AppToast.info("No token found. Please log in first.");
+    final notifierState = ref.read(addRouteOneNotifier);
+    final location = locationController.text.trim();
+    final destination = destinationController.text.trim();
+    final selectedTransportMode =
+        notifierState.addRouteOneModelObj?.transportMeansList
+            .firstWhere(
+              (item) => item.isSelected,
+              orElse: () => AddRouteOneItemModel(),
+            )
+            .meansTitle;
+    final selectedService = _resolveSelectedOption(
+      notifierState.serviceTypeDropDownValue,
+      notifierState.addRouteOneModelObj?.serviceTypeDropdown ?? const [],
+    );
+    final selectedDeparture = _resolveSelectedOption(
+      notifierState.departureDropDownValue,
+      notifierState.addRouteOneModelObj?.departureDropdown ?? const [],
+    );
+
+    if (location.isEmpty || destination.isEmpty) {
+      AppToast.info('Please enter both route locations first.');
       return;
     }
-
-    final notifierState = ref.read(addRouteOneNotifier);
-    final url =
-        Uri.parse('https://movr-api.onrender.com/api/v1/routes/schedule');
-    final requestBody = {
-      "location": notifierState.radioGroup,
-      "destination": destinationController.text,
-      "transportation_mode":
-          notifierState.addRouteOneModelObj?.transportMeansList
-              .firstWhere(
-                (item) => item.isSelected,
-                orElse: () => AddRouteOneItemModel(),
-              )
-              .meansTitle,
-      "service_type": notifierState.serviceTypeDropDownValue?.title,
-      "departure_time": notifierState.departureDropDownValue?.title,
-    };
+    if ((selectedTransportMode ?? '').trim().isEmpty) {
+      AppToast.info('Please choose a means of transportation.');
+      return;
+    }
+    if ((selectedService?.title ?? '').trim().isEmpty) {
+      AppToast.info('Please choose a service type.');
+      return;
+    }
+    if ((selectedDeparture?.title ?? '').trim().isEmpty) {
+      AppToast.info('Please choose a departure time.');
+      return;
+    }
 
     setState(() {
       _isCreatingRoute = true;
@@ -70,26 +153,27 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
     }
 
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Token $token',
-          'Content-Type': 'application/json',
+      await _mobilityApiService.createTravelPlan(
+        title: '$location to $destination',
+        planType: _mapPlanType(selectedService!.title),
+        originName: location,
+        destinationName: destination,
+        departureTime: _buildDepartureTime(selectedDeparture!.title),
+        vehicleType: _mapVehicleType(selectedTransportMode ?? ''),
+        metadata: {
+          'route_kind': 'scheduled_legacy',
+          'display_departure_time': selectedDeparture.title,
         },
-        body: jsonEncode(requestBody),
       );
-
-      if (response.statusCode == 200) {
-        final message = jsonDecode(response.body)['message'] ??
-            'Route created successfully.';
-        AppToast.success(message.toString());
-      } else {
-        final error =
-            jsonDecode(response.body)['error'] ?? 'Failed to create route.';
-        AppToast.error(error.toString());
+      AppToast.success('Route created successfully.');
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.homeOneScreen,
+          (route) => false,
+        );
       }
     } catch (e) {
-      AppToast.error("An error occurred. Please check your connection.");
+      AppToast.error(_mobilityApiService.extractErrorMessage(e));
     } finally {
       if (context.mounted) {
         LoadingDialog.hide(context);
@@ -100,6 +184,13 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    locationController.dispose();
+    destinationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -400,6 +491,18 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                             [],
                         contentPadding: EdgeInsets.all(14.h),
                         borderDecoration: DropDownStyleHelper.outlineBlueGray,
+                        onChanged: (value) {
+                          final selected = ref
+                              .read(addRouteOneNotifier)
+                              .addRouteOneModelObj
+                              ?.serviceTypeDropdown
+                              .firstWhere((item) => item.title == value);
+                          if (selected != null) {
+                            ref
+                                .read(addRouteOneNotifier.notifier)
+                                .selectServiceType(selected);
+                          }
+                        },
                       );
                     })
                   ],
@@ -456,6 +559,18 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
                           horizontal: 14.h,
                           vertical: 16.h,
                         ),
+                        onChanged: (value) {
+                          final selected = ref
+                              .read(addRouteOneNotifier)
+                              .addRouteOneModelObj
+                              ?.departureDropdown
+                              .firstWhere((item) => item.title == value);
+                          if (selected != null) {
+                            ref
+                                .read(addRouteOneNotifier.notifier)
+                                .selectDepartureTime(selected);
+                          }
+                        },
                       );
                     })
                   ],

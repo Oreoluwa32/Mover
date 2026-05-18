@@ -33,18 +33,26 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
   void initState() {
     super.initState();
     final notifierState = ref.read(addRouteOneNotifier);
-    notifierState.locationController?.addListener(() {
+    notifierState.locationController?.addListener(_refreshFormState);
+    notifierState.destinationController?.addListener(_refreshFormState);
+    notifierState.stopController?.addListener(_refreshFormState);
+    notifierState.setTimeController?.addListener(_refreshFormState);
+  }
+
+  void _refreshFormState() {
+    if (mounted) {
       setState(() {});
-    });
-    notifierState.destinationController?.addListener(() {
-      setState(() {});
-    });
-    notifierState.stopController?.addListener(() {
-      setState(() {});
-    });
-    notifierState.setTimeController?.addListener(() {
-      setState(() {});
-    });
+    }
+  }
+
+  @override
+  void dispose() {
+    final notifierState = ref.read(addRouteOneNotifier);
+    notifierState.locationController?.removeListener(_refreshFormState);
+    notifierState.destinationController?.removeListener(_refreshFormState);
+    notifierState.stopController?.removeListener(_refreshFormState);
+    notifierState.setTimeController?.removeListener(_refreshFormState);
+    super.dispose();
   }
 
   String _mapPlanType(String title) {

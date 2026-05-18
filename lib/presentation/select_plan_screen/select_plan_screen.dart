@@ -1,15 +1,11 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:movr/presentation/home_screen_dialog/home_screen_dialog.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
-import 'notifier/select_plan_notifier.dart';
 
 class _PlanOption {
   final String imagePath;
@@ -23,17 +19,17 @@ class _PlanOption {
   });
 }
 
-class SelectPlanScreen extends ConsumerStatefulWidget{
+class SelectPlanScreen extends ConsumerStatefulWidget {
   const SelectPlanScreen({Key? key})
-    : super(key: key,);
+      : super(
+          key: key,
+        );
 
   @override
   SelectPlanScreenState createState() => SelectPlanScreenState();
 }
 
 class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
-
-  final storage = FlutterSecureStorage();
   late final PageController _pageController;
   int _currentPlanIndex = 0;
 
@@ -75,56 +71,22 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     ),
   ];
 
-  Future<String?> getToken() async {
-    return await storage.read(key: 'auth_token');
-  }
-
-  Future<void> updateSubscriptionPlan(BuildContext context, String planName) async {
-  final token = await getToken();
-  if (token == null) {
-    Fluttertoast.showToast(msg: "No token found. Please log in first.");
-    return;
-  }
-
-  final url = Uri.parse('https://demosystem.pythonanywhere.com/update-subscription/');
-  final requestBody = {
-    "plan_name": planName,
-  };
-
-  try {
-    final response = await http.put(
-      url,
-      headers: {
-        'Authorization': 'Token $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
-    );
-
-    if (response.statusCode == 200) {
-      Fluttertoast.showToast(msg: "Plan updated successfully");
-      Navigator.pushNamed(context, AppRoutes.homeOneScreen);
-      Future.delayed(Duration(milliseconds: 300), () {
-        if (context.mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) => HomeScreenDialog(),
-          );
-        }
-      });
-    } else {
-      try {
-        final error = jsonDecode(response.body)['error'] ?? 'Failed to update subscription plan';
-        Fluttertoast.showToast(msg: error);
-      } catch (e) {
-        Fluttertoast.showToast(msg: "Failed to update subscription plan");
-      }
+  Future<void> applySelectedPlan(BuildContext context, String planName) async {
+    AppToast.success('$planName plan selected.');
+    if (!context.mounted) {
+      return;
     }
-  } catch (e) {
-    Fluttertoast.showToast(msg: "An error occurred. Please check your connection.");
+    Navigator.pushNamed(context, AppRoutes.homeOneScreen);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) => HomeScreenDialog(),
+        );
+      }
+    });
   }
-}
 
   @override
   void initState() {
@@ -141,34 +103,34 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: _buildAppbar(context),
-        body: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            children: [
-              Container(
-                width: double.maxFinite,
-                padding: EdgeInsets.only(top: 32.h),
-                child: Column(
-                  children: [
-                    _buildColumnselectapl(context),
-                    SizedBox(height: 24.h),
-                    _buildHorizontalscroll(context),
-                    SizedBox(height: 24.h),
-                    _buildColumnfeatures(context),
-                    SizedBox(height: 4.h)
-                  ],
-                ),
+      appBar: _buildAppbar(context),
+      body: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          children: [
+            Container(
+              width: double.maxFinite,
+              padding: EdgeInsets.only(top: 32.h),
+              child: Column(
+                children: [
+                  _buildColumnselectapl(context),
+                  SizedBox(height: 24.h),
+                  _buildHorizontalscroll(context),
+                  SizedBox(height: 24.h),
+                  _buildColumnfeatures(context),
+                  SizedBox(height: 4.h)
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        bottomNavigationBar: _buildColumnduration(context),
-      );
+      ),
+      bottomNavigationBar: _buildColumnduration(context),
+    );
   }
 
   // Section Widget
-  PreferredSizeWidget _buildAppbar(BuildContext context){
+  PreferredSizeWidget _buildAppbar(BuildContext context) {
     return CustomAppBar(
       height: 90.h,
       leadingWidth: 40.h,
@@ -196,7 +158,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
   }
 
   // Section Widget
-  Widget _buildColumnselectapl(BuildContext context){
+  Widget _buildColumnselectapl(BuildContext context) {
     return Container(
       width: double.maxFinite,
       margin: EdgeInsets.symmetric(horizontal: 16.h),
@@ -245,8 +207,8 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     );
   }
 
-  // Section Widget 
-  Widget _buildHorizontalscroll(BuildContext context){
+  // Section Widget
+  Widget _buildHorizontalscroll(BuildContext context) {
     return SizedBox(
       height: 76.h,
       child: PageView.builder(
@@ -296,8 +258,8 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     );
   }
 
-  // Section Widget 
-  Widget _buildColumnfeatures(BuildContext context){
+  // Section Widget
+  Widget _buildColumnfeatures(BuildContext context) {
     final plan = _plans[_currentPlanIndex];
     return Container(
       width: double.maxFinite,
@@ -324,8 +286,8 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     );
   }
 
-  // Section Widget 
-  Widget _buildColumnduration(BuildContext context){
+  // Section Widget
+  Widget _buildColumnduration(BuildContext context) {
     return Container(
       height: 116.h,
       width: double.maxFinite,
@@ -347,7 +309,7 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
             margin: EdgeInsets.only(bottom: 10.h),
             buttonTextStyle: CustomTextStyles.titleMediumOnPrimary,
             onPressed: () {
-              updateSubscriptionPlan(context, _plans[_currentPlanIndex].name);
+              applySelectedPlan(context, _plans[_currentPlanIndex].name);
             },
           )
         ],
@@ -355,14 +317,14 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     );
   }
 
-  // Common Widget 
+  // Common Widget
   Widget _buildPlanThree(
     BuildContext context, {
-      required String iconparksolid, 
-      required String basicplanTwo, 
-      required String priceThree,
-      required String periodTwo,
-    }) {
+    required String iconparksolid,
+    required String basicplanTwo,
+    required String priceThree,
+    required String periodTwo,
+  }) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: 14.h,
@@ -425,10 +387,10 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
     );
   }
 
-  // Common Widget 
+  // Common Widget
   Widget _buildRowcheckmark(
     BuildContext context, {
-      required String monetize20,
+    required String monetize20,
   }) {
     return Row(
       children: [
@@ -469,15 +431,14 @@ class SelectPlanScreenState extends ConsumerState<SelectPlanScreen> {
   }
 
   // Navigates to the home screen dialog
-  onTapTryForFree(BuildContext context){
+  onTapTryForFree(BuildContext context) {
     showDialog(
-      context: context, 
-      builder: (_) => AlertDialog(
-        content: HomeScreenDialog(),
-        backgroundColor: Colors.transparent,
-        contentPadding: EdgeInsets.zero,
-        insetPadding: EdgeInsets.zero,
-      )
-    );
+        context: context,
+        builder: (_) => AlertDialog(
+              content: HomeScreenDialog(),
+              backgroundColor: Colors.transparent,
+              contentPadding: EdgeInsets.zero,
+              insetPadding: EdgeInsets.zero,
+            ));
   }
 }

@@ -273,3 +273,17 @@ SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS = _int_env(
     "SUPABASE_STORAGE_SIGNED_URL_TTL_SECONDS",
     3600,
 )
+
+if IS_PRODUCTION_LIKE and SUPABASE_STORAGE_VEHICLE_PUBLIC:
+    raise ImproperlyConfigured(
+        "SUPABASE_STORAGE_VEHICLE_PUBLIC must be false outside local development."
+    )
+
+if (
+    IS_PRODUCTION_LIKE
+    and SUPABASE_STORAGE_AVATAR_PUBLIC
+    and SUPABASE_VEHICLE_BUCKET == SUPABASE_AVATAR_BUCKET
+):
+    raise ImproperlyConfigured(
+        "Vehicle documents must not share the public avatar bucket outside local development."
+    )

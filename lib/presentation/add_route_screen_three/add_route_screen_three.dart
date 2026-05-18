@@ -53,17 +53,29 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     }
   }
 
+  @override
+  void dispose() {
+    final notifierState = ref.read(addRouteTwoNotifier);
+    notifierState.locationController?.removeListener(_refreshFormState);
+    notifierState.destinationController?.removeListener(_refreshFormState);
+    notifierState.setDateController?.removeListener(_refreshFormState);
+    notifierState.setTimeController?.removeListener(_refreshFormState);
+    notifierState.setTimeBeginController?.removeListener(_refreshFormState);
+    notifierState.setTimeEndController?.removeListener(_refreshFormState);
+    super.dispose();
+  }
+
   Map<String, DateTime?> _parseDateRange(String dateRangeText) {
     try {
       final parts = dateRangeText.split(' - ');
       if (parts.length != 2) return {'startDate': null, 'endDate': null};
-      
+
       final startDateStr = parts[0].trim();
       final endDateStr = parts[1].trim();
-      
+
       final startDate = _parseDate(startDateStr);
       final endDate = _parseDate(endDateStr);
-      
+
       return {'startDate': startDate, 'endDate': endDate};
     } catch (e) {
       return {'startDate': null, 'endDate': null};
@@ -74,11 +86,11 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     try {
       final parts = dateStr.split('/');
       if (parts.length != 3) return null;
-      
+
       final month = int.parse(parts[0]);
       final day = int.parse(parts[1]);
       final year = int.parse(parts[2]);
-      
+
       return DateTime(year, month, day);
     } catch (e) {
       return null;
@@ -149,7 +161,7 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
     // Convert image to base64
     final itemImageBase64 = notifierState.imagePath != null
-        ? base64Encode(File(notifierState.imagePath!).readAsBytesSync())
+        ? base64Encode(await File(notifierState.imagePath!).readAsBytes())
         : null;
 
     final location = notifierState.locationController?.text;
@@ -157,10 +169,10 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final destination = notifierState.destinationController?.text;
     final departureDate = notifierState.setDateController?.text;
     final departureTime = notifierState.setTimeController?.text;
-    final returnRoute = notifierState.isReturnTrip 
-        ? (notifierState.returnDestination.isNotEmpty 
-            ? notifierState.returnDestination 
-            : location) 
+    final returnRoute = notifierState.isReturnTrip
+        ? (notifierState.returnDestination.isNotEmpty
+            ? notifierState.returnDestination
+            : location)
         : "No";
     final timeBegin = notifierState.setTimeBeginController?.text;
     final timeEnd = notifierState.setTimeEndController?.text;
@@ -190,12 +202,13 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
       parsedArrival = parsedArrival.add(const Duration(days: 1));
     }
 
-    final selectedTransportMode = notifierState.addRouteTwoModelObj?.transportMeansList
-        .firstWhere(
-          (item) => item.isSelected,
-          orElse: () => AddRouteItemModel(),
-        )
-        .tabTitle;
+    final selectedTransportMode =
+        notifierState.addRouteTwoModelObj?.transportMeansList
+            .firstWhere(
+              (item) => item.isSelected,
+              orElse: () => AddRouteItemModel(),
+            )
+            .tabTitle;
 
     try {
       await _mobilityApiService.createTravelPlan(
@@ -213,10 +226,13 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         seatsAvailable: 1,
         metadata: {
           'route_kind': 'scheduled',
-          if (departureDate?.isNotEmpty == true) 'display_date_range': departureDate,
+          if (departureDate?.isNotEmpty == true)
+            'display_date_range': departureDate,
           if (stop?.isNotEmpty == true) 'stop_location': stop,
-          if (stop?.isNotEmpty == true) 'stop_location_latitude': notifierState.stopLat,
-          if (stop?.isNotEmpty == true) 'stop_location_longitude': notifierState.stopLng,
+          if (stop?.isNotEmpty == true)
+            'stop_location_latitude': notifierState.stopLat,
+          if (stop?.isNotEmpty == true)
+            'stop_location_longitude': notifierState.stopLng,
           'return_trip': notifierState.isReturnTrip,
           if (returnRoute != "No") 'return_route': returnRoute,
           if (timeBegin?.isNotEmpty == true) 'time_begin': timeBegin,
@@ -284,11 +300,15 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                                 _buildDoyouwantto(context),
                                 Consumer(
                                   builder: (context, ref, _) {
-                                    final isReturnTrip = ref.watch(addRouteTwoNotifier).isReturnTrip;
-                                    if (!isReturnTrip) return const SizedBox.shrink();
-                                    
+                                    final isReturnTrip = ref
+                                        .watch(addRouteTwoNotifier)
+                                        .isReturnTrip;
+                                    if (!isReturnTrip)
+                                      return const SizedBox.shrink();
+
                                     return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         SizedBox(height: 22.h),
                                         _buildColumnreturn(context),
@@ -372,19 +392,17 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
               text: "Add Route",
             ),
             actions: [
-              Consumer(
-                builder: (context, ref, _) {
-                  return AppbarTrailingImage(
-                    imagePath: ImageConstant.imgPlusBlack,
-                    margin: EdgeInsets.only(
-                      right: 15.h,
-                    ),
-                    onTap: () {
-                      ref.read(addRouteTwoNotifier.notifier).toggleStopField();
-                    },
-                  );
-                }
-              )
+              Consumer(builder: (context, ref, _) {
+                return AppbarTrailingImage(
+                  imagePath: ImageConstant.imgPlusBlack,
+                  margin: EdgeInsets.only(
+                    right: 15.h,
+                  ),
+                  onTap: () {
+                    ref.read(addRouteTwoNotifier.notifier).toggleStopField();
+                  },
+                );
+              })
             ],
           ),
           SizedBox(height: 22.h),
@@ -678,9 +696,10 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
           vertical: 16.h,
         ),
         onTap: () {
-          final dateRangeText = ref.watch(addRouteTwoNotifier).setDateController?.text ?? '';
+          final dateRangeText =
+              ref.watch(addRouteTwoNotifier).setDateController?.text ?? '';
           final parsedDates = _parseDateRange(dateRangeText);
-          
+
           AppBottomSheet.show(
               context: context,
               shape: RoundedRectangleBorder(
@@ -1068,7 +1087,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
 
   bool _isFormValid(AddRouteTwoState state) {
     final hasLocation = state.locationController?.text.isNotEmpty ?? false;
-    final hasDestination = state.destinationController?.text.isNotEmpty ?? false;
+    final hasDestination =
+        state.destinationController?.text.isNotEmpty ?? false;
     final hasTransportMode = state.addRouteTwoModelObj?.transportMeansList
             .any((item) => item.isSelected) ??
         false;
@@ -1077,7 +1097,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     final hasDepartureTime = state.setTimeController?.text.isNotEmpty ?? false;
 
     final hasAnsweredReturn = state.returnRadio.isNotEmpty;
-    final hasValidReturn = !state.isReturnTrip || state.returnDestination.isNotEmpty;
+    final hasValidReturn =
+        !state.isReturnTrip || state.returnDestination.isNotEmpty;
     final hasTimeBegin = state.setTimeBeginController?.text.isNotEmpty ?? false;
     final hasTimeEnd = state.setTimeEndController?.text.isNotEmpty ?? false;
 
@@ -1182,10 +1203,10 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: theme.colorScheme.primary,
-              onPrimary: theme.colorScheme.onPrimary,
-              onSurface: appTheme.black900,
-            ),
+                  primary: theme.colorScheme.primary,
+                  onPrimary: theme.colorScheme.onPrimary,
+                  onSurface: appTheme.black900,
+                ),
             timePickerTheme: TimePickerThemeData(
               hourMinuteColor: WidgetStateColor.resolveWith((states) =>
                   states.contains(WidgetState.selected)
@@ -1205,7 +1226,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                       : theme.colorScheme.primary),
               dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
               dialHandColor: theme.colorScheme.primary,
-              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              dialBackgroundColor:
+                  theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,
@@ -1230,10 +1252,10 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: theme.colorScheme.primary,
-              onPrimary: theme.colorScheme.onPrimary,
-              onSurface: appTheme.black900,
-            ),
+                  primary: theme.colorScheme.primary,
+                  onPrimary: theme.colorScheme.onPrimary,
+                  onSurface: appTheme.black900,
+                ),
             timePickerTheme: TimePickerThemeData(
               hourMinuteColor: WidgetStateColor.resolveWith((states) =>
                   states.contains(WidgetState.selected)
@@ -1253,7 +1275,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                       : theme.colorScheme.primary),
               dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
               dialHandColor: theme.colorScheme.primary,
-              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              dialBackgroundColor:
+                  theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,
@@ -1264,7 +1287,9 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
     if (pickedTime != null) {
       final formattedTime =
           "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
-      ref.read(addRouteTwoNotifier.notifier).updateTimeBeginField(formattedTime);
+      ref
+          .read(addRouteTwoNotifier.notifier)
+          .updateTimeBeginField(formattedTime);
     }
   }
 
@@ -1278,10 +1303,10 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: theme.colorScheme.primary,
-              onPrimary: theme.colorScheme.onPrimary,
-              onSurface: appTheme.black900,
-            ),
+                  primary: theme.colorScheme.primary,
+                  onPrimary: theme.colorScheme.onPrimary,
+                  onSurface: appTheme.black900,
+                ),
             timePickerTheme: TimePickerThemeData(
               hourMinuteColor: WidgetStateColor.resolveWith((states) =>
                   states.contains(WidgetState.selected)
@@ -1301,7 +1326,8 @@ class AddRouteScreenThreeState extends ConsumerState<AddRouteScreenThree> {
                       : theme.colorScheme.primary),
               dayPeriodBorderSide: BorderSide(color: theme.colorScheme.primary),
               dialHandColor: theme.colorScheme.primary,
-              dialBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              dialBackgroundColor:
+                  theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
           ),
           child: child!,
