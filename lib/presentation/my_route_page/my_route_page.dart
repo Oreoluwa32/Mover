@@ -11,14 +11,15 @@ import 'widgets/savedroute_item_widget.dart';
 // ignore for file, must be immutable
 class MyRoutePage extends ConsumerStatefulWidget {
   final Function(bool)? onOverlayChanged;
-  
+
   const MyRoutePage({super.key, this.onOverlayChanged});
 
   @override
   MyRoutePageState createState() => MyRoutePageState();
 }
 
-class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProviderStateMixin {
+class MyRoutePageState extends ConsumerState<MyRoutePage>
+    with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
   late AnimationController _animationController;
   late Animation<double> _rotationAnimation;
@@ -63,15 +64,24 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
       ),
       child: Scaffold(
         backgroundColor: theme.colorScheme.onPrimary,
-        extendBodyBehindAppBar: true,
-        appBar: _buildAppbar(context),
         body: Stack(
           children: [
             Container(color: theme.colorScheme.onPrimary),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: _buildAppbar(context),
+              ),
+            ),
             SafeArea(
               bottom: false,
               child: Padding(
-                padding: EdgeInsets.only(top: 60.h),
+                padding: EdgeInsets.only(
+                  top: 60.h,
+                ),
                 child: Column(
                   children: [
                     Expanded(
@@ -207,30 +217,29 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 30.h,
-              padding: EdgeInsets.symmetric(
-                horizontal: 14.h,
-                vertical: 6.h,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadiusStyle.roundedBorder4,
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  _toggleExpanded();
-                  onTapInstant(context);
-                },
-                child: Text(
-                  'Instant route',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.fSize,
-                  ),
+                height: 30.h,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 14.h,
+                  vertical: 6.h,
                 ),
-              )
-            ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadiusStyle.roundedBorder4,
+                ),
+                child: GestureDetector(
+                  onTap: () {
+                    _toggleExpanded();
+                    onTapInstant(context);
+                  },
+                  child: Text(
+                    'Instant route',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12.fSize,
+                    ),
+                  ),
+                )),
             SizedBox(width: 12.h),
             GestureDetector(
               onTap: () {
@@ -261,30 +270,29 @@ class MyRoutePageState extends ConsumerState<MyRoutePage> with SingleTickerProvi
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 30.h,
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.h,
-                vertical: 6.h,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadiusStyle.roundedBorder4,
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  _toggleExpanded();
-                  onTapSchedule(context);
-                },
-                child: Text(
-                  'Schedule route',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.fSize,
-                  ),
+                height: 30.h,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.h,
+                  vertical: 6.h,
                 ),
-              )
-            ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadiusStyle.roundedBorder4,
+                ),
+                child: GestureDetector(
+                  onTap: () {
+                    _toggleExpanded();
+                    onTapSchedule(context);
+                  },
+                  child: Text(
+                    'Schedule route',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12.fSize,
+                    ),
+                  ),
+                )),
             SizedBox(width: 12.h),
             GestureDetector(
               onTap: () {

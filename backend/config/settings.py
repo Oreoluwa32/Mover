@@ -187,6 +187,33 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_PARSER_CLASSES": (
+        "config.api_security.SanitizedJSONParser",
+        "config.api_security.SanitizedFormParser",
+        "config.api_security.SanitizedMultiPartParser",
+    ),
+    "DEFAULT_RENDERER_CLASSES": (
+        "config.api_security.SanitizedJSONRenderer",
+    ),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "config.api_security.MovrAnonRateThrottle",
+        "config.api_security.MovrUserRateThrottle",
+        "config.api_security.MovrScopedRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("API_THROTTLE_ANON_RATE", "30/minute"),
+        "user": os.getenv("API_THROTTLE_USER_RATE", "120/minute"),
+        "auth": os.getenv("API_THROTTLE_AUTH_RATE", "10/minute"),
+        "email_verification": os.getenv(
+            "API_THROTTLE_EMAIL_VERIFICATION_RATE",
+            "6/hour",
+        ),
+        "password_reset": os.getenv(
+            "API_THROTTLE_PASSWORD_RESET_RATE",
+            "5/hour",
+        ),
+        "payments": os.getenv("API_THROTTLE_PAYMENTS_RATE", "30/minute"),
+    },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
 }

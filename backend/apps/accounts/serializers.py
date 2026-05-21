@@ -12,6 +12,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import KycRecord, UserProfile, Vehicle
 from .storage_utils import StorageConfigurationError, resolve_supabase_asset_url
+from .verification import (
+    has_completed_personal_information,
+    has_verified_government_identification,
+    has_verified_vehicle_identification,
+    is_fully_verified_user,
+)
 from apps.mobility.models import TravelMatch
 
 User = get_user_model()
@@ -26,6 +32,10 @@ class UserSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     completed_jobs = serializers.SerializerMethodField()
     linked_socials = serializers.SerializerMethodField()
+    personal_information_completed = serializers.SerializerMethodField()
+    government_identification_completed = serializers.SerializerMethodField()
+    vehicle_identification_completed = serializers.SerializerMethodField()
+    is_fully_verified = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -48,6 +58,10 @@ class UserSerializer(serializers.ModelSerializer):
             "average_rating",
             "completed_jobs",
             "linked_socials",
+            "personal_information_completed",
+            "government_identification_completed",
+            "vehicle_identification_completed",
+            "is_fully_verified",
             "created_at",
         ]
 
@@ -90,6 +104,18 @@ class UserSerializer(serializers.ModelSerializer):
     def get_linked_socials(self, obj):
         profile = getattr(obj, "profile", None)
         return profile.linked_socials if profile else {}
+
+    def get_personal_information_completed(self, obj):
+        return has_completed_personal_information(obj)
+
+    def get_government_identification_completed(self, obj):
+        return has_verified_government_identification(obj)
+
+    def get_vehicle_identification_completed(self, obj):
+        return has_verified_vehicle_identification(obj)
+
+    def get_is_fully_verified(self, obj):
+        return is_fully_verified_user(obj)
 
 
 class RegisterSerializer(serializers.ModelSerializer):

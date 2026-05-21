@@ -14,6 +14,7 @@ from rest_framework import permissions, response, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
+from config.api_security import sanitize_string
 from apps.accounts.models import KycRecord
 
 from .models import MonnifyReservedAccount, SavedBankAccount, Wallet, WalletTransaction
@@ -248,6 +249,8 @@ def _legacy_verify_payload(transaction: WalletTransaction) -> dict:
 
 
 class WalletView(APIView):
+    throttle_scope = "payments"
+
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         funding_account = getattr(wallet, "monnify_account", None)
@@ -263,6 +266,8 @@ class LegacyWalletView(WalletView):
 
 
 class FundingAccountView(APIView):
+    throttle_scope = "payments"
+
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         funding_account = getattr(wallet, "monnify_account", None)
@@ -307,6 +312,8 @@ class FundingAccountView(APIView):
 
 
 class WalletBalanceView(APIView):
+    throttle_scope = "payments"
+
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         return response.Response(
@@ -320,6 +327,8 @@ class WalletBalanceView(APIView):
 
 
 class TransactionHistoryView(APIView):
+    throttle_scope = "payments"
+
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         transactions = wallet.transactions.order_by("-created_at")
@@ -333,6 +342,8 @@ class TransactionHistoryView(APIView):
 
 
 class PaymentInitializeView(APIView):
+    throttle_scope = "payments"
+
     def post(self, request):
         serializer = PaymentInitializeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -365,10 +376,11 @@ class PaymentInitializeView(APIView):
 class PaymentCheckoutView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+    throttle_scope = "payments"
 
     def get(self, request, reference):
         transaction = get_object_or_404(WalletTransaction, reference=reference)
-        result = request.query_params.get("result")
+        result = sanitize_string(request.query_params.get("result") or "")
         if result == "successful":
             transaction.gateway_response = {"message": "Simulated checkout completed"}
             transaction.save(update_fields=["gateway_response", "updated_at"])
@@ -394,6 +406,8 @@ class PaymentCheckoutView(APIView):
 
 
 class PaymentVerifyView(APIView):
+    throttle_scope = "payments"
+
     def post(self, request):
         transaction = get_object_or_404(WalletTransaction, reference=request.data.get("reference"), wallet__user=request.user)
         return response.Response(
@@ -412,6 +426,7 @@ class PaymentVerifyView(APIView):
 
 class LegacyPaystackInitializeView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "payments"
 
     def post(self, request):
         serializer = PaymentInitializeSerializer(data=request.data)
@@ -446,6 +461,7 @@ class LegacyPaystackInitializeView(APIView):
 
 class LegacyPaystackVerifyView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "payments"
 
     def get(self, _request, reference):
         transaction = get_object_or_404(WalletTransaction, reference=reference)
@@ -467,6 +483,7 @@ class LegacyMonnifyInitializeView(LegacyPaystackInitializeView):
 
 class LegacyMonnifyVerifyView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "payments"
 
     def get(self, _request, reference):
         transaction = get_object_or_404(WalletTransaction, reference=reference)
@@ -476,6 +493,7 @@ class LegacyMonnifyVerifyView(APIView):
 class MonnifyWebhookView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+    throttle_classes = []
 
     def post(self, request):
         raw_body = request.body or b""
@@ -522,11 +540,15 @@ class MonnifyWebhookView(APIView):
 
 
 class BanksView(APIView):
+    throttle_scope = "payments"
+
     def get(self, _request):
         return response.Response({"status": True, "data": SUPPORTED_BANKS})
 
 
 class WithdrawalInitializeView(APIView):
+    throttle_scope = "payments"
+
     def post(self, request):
         serializer = WithdrawalInitializeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -561,6 +583,8 @@ class WithdrawalInitializeView(APIView):
 
 
 class WithdrawalCompleteView(APIView):
+    throttle_scope = "payments"
+
     def post(self, request):
         transaction = get_object_or_404(
             WalletTransaction,
@@ -579,6 +603,8 @@ class WithdrawalCompleteView(APIView):
 
 
 class BankAccountListView(APIView):
+    throttle_scope = "payments"
+
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         return response.Response(SavedBankAccountSerializer(wallet.bank_accounts.all(), many=True).data)

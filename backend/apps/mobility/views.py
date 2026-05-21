@@ -9,6 +9,8 @@ from rest_framework import response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
+from config.api_security import sanitize_string
+from apps.accounts.verification import is_fully_verified_user
 from .models import DeliveryRequest, EmergencyAlert, RideRequest, TaskIncidentReport, TaskMessage, TaskReview, TrackingEvent, TrackingSession, TravelMatch, TravelPlan
 from .serializers import (
     DeliveryRequestSerializer,
@@ -26,6 +28,15 @@ from .serializers import (
 
 REQUEST_EXPIRY_WINDOW = timedelta(hours=3)
 ACCEPTED_MATCH_EXPIRY_WINDOW = timedelta(hours=12)
+
+
+def _filter_plans_for_fully_verified_creators(queryset):
+    eligible_plan_ids = [
+        plan.id
+        for plan in queryset.select_related("created_by")
+        if is_fully_verified_user(plan.created_by)
+    ]
+    return queryset.filter(id__in=eligible_plan_ids)
 
 
 def _expire_stale_requests(request_model, *, match_field: str):
@@ -172,7 +183,7 @@ def _expire_stale_accepted_matches():
 
 
 def _find_matching_plan_for_ride(instance: RideRequest):
-    return (
+    queryset = _filter_plans_for_fully_verified_creators(
         TravelPlan.objects.filter(
             status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
             plan_type__in=[TravelPlan.PlanType.RIDE, TravelPlan.PlanType.HYBRID],
@@ -182,12 +193,12 @@ def _find_matching_plan_for_ride(instance: RideRequest):
         )
         .exclude(created_by=instance.requester)
         .order_by("departure_time")
-        .first()
     )
+    return queryset.first()
 
 
 def _find_matching_plan_for_delivery(instance: DeliveryRequest):
-    return (
+    queryset = _filter_plans_for_fully_verified_creators(
         TravelPlan.objects.filter(
             status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
             plan_type__in=[TravelPlan.PlanType.DELIVERY, TravelPlan.PlanType.HYBRID],
@@ -197,11 +208,14 @@ def _find_matching_plan_for_delivery(instance: DeliveryRequest):
         )
         .exclude(created_by=instance.requester)
         .order_by("departure_time")
-        .first()
     )
+    return queryset.first()
 
 
 def _resolve_owner_travel_plan(user, provided_id: str | None, allowed_types: list[str]):
+    if not is_fully_verified_user(user):
+        return None
+
     queryset = TravelPlan.objects.filter(
         created_by=user,
         status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
@@ -245,11 +259,12 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
             queryset = queryset.exclude(created_by=self.request.user).filter(
                 status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS]
             )
+            queryset = _filter_plans_for_fully_verified_creators(queryset)
 
-        origin = self.request.query_params.get("origin")
-        destination = self.request.query_params.get("destination")
-        plan_type = self.request.query_params.get("plan_type")
-        date = self.request.query_params.get("date")
+        origin = sanitize_string(self.request.query_params.get("origin") or "")
+        destination = sanitize_string(self.request.query_params.get("destination") or "")
+        plan_type = sanitize_string(self.request.query_params.get("plan_type") or "")
+        date = sanitize_string(self.request.query_params.get("date") or "")
         if origin:
             queryset = queryset.filter(origin_name__icontains=origin)
         if destination:
@@ -286,6 +301,8 @@ class RideRequestViewSet(viewsets.ModelViewSet):
         _expire_stale_requests(RideRequest, match_field="ride_request")
         queryset = RideRequest.objects.select_related("matched_plan", "requester").order_by("-created_at")
         if self.request.query_params.get("discover") == "true":
+            if not is_fully_verified_user(self.request.user):
+                return queryset.none()
             return (
                 queryset.filter(status__in=[RideRequest.Status.OPEN, RideRequest.Status.MATCHED])
                 .exclude(requester=self.request.user)
@@ -366,6 +383,8 @@ class DeliveryRequestViewSet(viewsets.ModelViewSet):
         _expire_stale_requests(DeliveryRequest, match_field="delivery_request")
         queryset = DeliveryRequest.objects.select_related("matched_plan", "requester").order_by("-created_at")
         if self.request.query_params.get("discover") == "true":
+            if not is_fully_verified_user(self.request.user):
+                return queryset.none()
             return (
                 queryset.filter(status__in=[DeliveryRequest.Status.OPEN, DeliveryRequest.Status.MATCHED])
                 .exclude(requester=self.request.user)

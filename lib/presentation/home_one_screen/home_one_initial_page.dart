@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
 import 'package:google_navigation_flutter/google_navigation_flutter.dart';
 import 'package:location/location.dart' as loc;
@@ -14,6 +13,7 @@ import 'package:movr/presentation/ride_sharing_task_bottomsheet_one/ride_sharing
 import 'package:movr/presentation/ride_sharing_pickup_one/ride_sharing_pickup_one.dart';
 import 'package:movr/presentation/ride_sharing_pickup_two/ride_sharing_pickup_two.dart';
 import '../../core/app_export.dart';
+import '../../core/utils/app_toast.dart';
 import '../../core/utils/constants.dart';
 import '../../core/utils/location_manager.dart';
 import '../../core/utils/map_utils.dart';
@@ -36,12 +36,9 @@ class HomeOneInitialPage extends ConsumerStatefulWidget {
 // ignore for file: must be immutabel
 class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     with TickerProviderStateMixin {
-  static const Duration _motionSmoothingInterval =
-      Duration(milliseconds: 60);
-  static const Duration _markerRefreshInterval =
-      Duration(milliseconds: 75);
-  static const Duration _cameraFollowThrottle =
-      Duration(milliseconds: 140);
+  static const Duration _motionSmoothingInterval = Duration(milliseconds: 60);
+  static const Duration _markerRefreshInterval = Duration(milliseconds: 75);
+  static const Duration _cameraFollowThrottle = Duration(milliseconds: 140);
   final loc.Location locationController = loc.Location();
   final MobilityApiService _mobilityApiService = MobilityApiService();
   final MobilityRealtimeService _realtimeService = MobilityRealtimeService();
@@ -85,6 +82,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   double? _lastRenderedMarkerHeading;
   LatLng? _lastMovementSamplePosition;
   DateTime? _lastCameraFollowAt;
+  bool _isManualBrowseMode = false;
 
   // Polyline variables
   List<LatLng> polylineCoordinates = [];
@@ -370,7 +368,12 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       body: Stack(
         children: [
           // Google Map as background - full screen
-          _buildMaps(context),
+          Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerMove: (_) => _enterManualBrowseMode(),
+            child: _buildMaps(context),
+          ),
+          _buildFloatingUserMarker(),
 
           // Static UI overlays
           _buildTopRightNotificationButton(context),
@@ -422,7 +425,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     final homeState = ref.read(homeNotifier);
     List<MarkerOptions> markerOptions = [];
 
-    if (currentPosition != null) {
+    if (currentPosition != null && !_shouldUseFloatingUserMarker()) {
       markerOptions.add(
         MarkerOptions(
           position: currentPosition!,
@@ -525,7 +528,39 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   bool _shouldAutoFollowUserLocation() {
     // Keep the user's marker in view even when live mode is off. Transit mode
     // still controls the more opinionated bearing/tilt camera behavior.
-    return true;
+    return !_isManualBrowseMode;
+  }
+
+  bool _shouldUseFloatingUserMarker() {
+    return currentPosition != null && _shouldAutoFollowUserLocation();
+  }
+
+  void _enterManualBrowseMode() {
+    if (_isManualBrowseMode) {
+      return;
+    }
+    _isManualBrowseMode = true;
+    if (mounted) {
+      setState(() {});
+    }
+    final controller = _navigationViewController;
+    if (controller != null) {
+      _requestMarkerRefresh(force: true);
+    }
+  }
+
+  void _resumeAutoFollowUser() {
+    if (!_isManualBrowseMode) {
+      return;
+    }
+    _isManualBrowseMode = false;
+    if (mounted) {
+      setState(() {});
+    }
+    final controller = _navigationViewController;
+    if (controller != null) {
+      _requestMarkerRefresh(force: true);
+    }
   }
 
   double _markerRotationForCurrentMode() {
@@ -535,6 +570,25 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       return 0.0;
     }
     return userHeading;
+  }
+
+  Widget _buildFloatingUserMarker() {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: _shouldUseFloatingUserMarker() ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 180),
+        child: Center(
+          child: Transform.rotate(
+            angle: _isTransitFollowMode() ? 0 : (userHeading * math.pi / 180),
+            child: CustomImageView(
+              imagePath: ImageConstant.imgCustomMarker,
+              height: 42.h,
+              width: 42.h,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _applyNavigationMapTheme(
@@ -764,8 +818,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
 
           // Use a tighter threshold while following the user so new GPS samples
           // feed the smoothing loop sooner and the marker can glide.
-          final double threshold =
-              _isTransitFollowMode() ? 0.000006 : 0.00003;
+          final double threshold = _isTransitFollowMode() ? 0.000006 : 0.00003;
 
           if (isFirstLocation ||
               (currentPosition!.latitude - newPosition.latitude).abs() >
@@ -849,8 +902,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       _motionTickCount = 0;
     }
 
-    _motionSmoothingTimer ??=
-        Timer.periodic(_motionSmoothingInterval, (timer) {
+    _motionSmoothingTimer ??= Timer.periodic(_motionSmoothingInterval, (timer) {
       if (!mounted) {
         timer.cancel();
         _motionSmoothingTimer = null;
@@ -1410,11 +1462,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                 }
                 final message =
                     error.toString().replaceFirst('Exception: ', '');
-                Fluttertoast.showToast(
-                  msg: message,
-                  toastLength: Toast.LENGTH_LONG,
-                  gravity: ToastGravity.BOTTOM,
-                );
+                AppToast.error(message);
               });
             },
           );
@@ -2060,6 +2108,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         onTap: () {
           // Reset map to current location when floating button is tapped
           if (currentPosition != null) {
+            _resumeAutoFollowUser();
             _followUserOnMap(currentPosition!, force: true);
           }
         },

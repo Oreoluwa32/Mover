@@ -1,22 +1,30 @@
 from __future__ import annotations
 
 import json
+import html
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlencode
 from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.db import transaction
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import permissions, response, status, viewsets
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from config.api_security import (
+    SanitizedFormParser,
+    SanitizedJSONParser,
+    SanitizedMultiPartParser,
+    sanitize_string,
+)
 from .emailing import (
     EmailVerificationError,
     PasswordResetEmailError,
@@ -46,6 +54,7 @@ from .storage_utils import (
     extract_storage_object_path,
     upload_file_to_supabase,
 )
+from .verification import is_fully_verified_user
 
 User = get_user_model()
 MAX_AVATAR_UPLOAD_SIZE = 5 * 1024 * 1024
@@ -186,6 +195,7 @@ def _mark_vehicle_for_review(metadata: dict[str, str]) -> dict[str, str]:
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "auth"
 
     def post(self, request):
         email = (request.data.get("email") or "").strip()
@@ -236,6 +246,7 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "auth"
 
     def post(self, request):
         email = (request.data.get("email") or "").strip()
@@ -263,6 +274,7 @@ class LoginView(APIView):
 
 class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "password_reset"
 
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
@@ -274,12 +286,16 @@ class ForgotPasswordView(APIView):
             uid = urlsafe_base64_encode(str(user.pk).encode("utf-8"))
             token = PasswordResetTokenGenerator().make_token(user)
             reset_url = build_password_reset_url(uid=uid, token=token)
+            reset_open_url = request.build_absolute_uri(
+                f"/api/auth/password/reset/open/?{urlencode({'uid': uid, 'token': token})}"
+            )
             recipient_name = user.get_full_name() or user.email
             try:
                 send_password_reset_email(
                     to_email=user.email,
                     recipient_name=recipient_name,
                     reset_url=reset_url,
+                    reset_open_url=reset_open_url,
                 )
             except PasswordResetEmailError as exc:
                 return response.Response(
@@ -298,6 +314,7 @@ class ForgotPasswordView(APIView):
 
 class EmailVerificationRequestView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "email_verification"
 
     def post(self, request):
         serializer = EmailVerificationRequestSerializer(data=request.data)
@@ -325,6 +342,7 @@ class EmailVerificationRequestView(APIView):
 
 class EmailVerificationConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "email_verification"
 
     def post(self, request):
         serializer = EmailVerificationConfirmSerializer(data=request.data)
@@ -358,6 +376,7 @@ class EmailVerificationConfirmView(APIView):
 
 class ResetPasswordConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "password_reset"
 
     def post(self, request):
         serializer = ResetPasswordConfirmSerializer(data=request.data)
@@ -387,6 +406,80 @@ class ResetPasswordConfirmView(APIView):
         return response.Response({"detail": "Password reset successful."})
 
 
+class PasswordResetOpenView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = "password_reset"
+
+    def get(self, request):
+        uid = sanitize_string(request.query_params.get("uid") or "")
+        token = sanitize_string(request.query_params.get("token") or "")
+        deep_link = build_password_reset_url(uid=uid, token=token)
+        escaped_deep_link = html.escape(deep_link, quote=True)
+
+        html = f"""
+        <!doctype html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Open Movr</title>
+            <style>
+              body {{
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #faf7ff;
+                color: #1f2937;
+                font-family: Arial, sans-serif;
+              }}
+              .card {{
+                width: min(92vw, 420px);
+                background: #fff;
+                border-radius: 24px;
+                padding: 32px 24px;
+                text-align: center;
+                box-shadow: 0 16px 40px rgba(109, 40, 217, 0.12);
+              }}
+              .button {{
+                display: inline-block;
+                margin-top: 20px;
+                padding: 14px 22px;
+                border-radius: 999px;
+                background: #6d28d9;
+                color: #fff;
+                text-decoration: none;
+                font-weight: 700;
+              }}
+              .link {{
+                display: block;
+                margin-top: 18px;
+                color: #6d28d9;
+                word-break: break-all;
+              }}
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <h1 style="margin:0 0 12px;">Open Movr</h1>
+              <p style="margin:0 0 8px;">Your password reset is ready.</p>
+              <p style="margin:0;color:#6b7280;">If the app does not open automatically, use the button below.</p>
+              <a class="button" href="{escaped_deep_link}">Open in Movr</a>
+              <a class="link" href="{escaped_deep_link}">{escaped_deep_link}</a>
+            </div>
+            <script>
+              window.location.replace("{escaped_deep_link}");
+              setTimeout(function () {{
+                window.location.href = "{escaped_deep_link}";
+              }}, 500);
+            </script>
+          </body>
+        </html>
+        """
+        return HttpResponse(html)
+
+
 class MeView(APIView):
     def get(self, request):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -395,12 +488,13 @@ class MeView(APIView):
             "profile": profile,
             "vehicles": request.user.vehicles.all(),
             "kyc": getattr(request.user, "kyc_record", None),
+            "is_fully_verified": is_fully_verified_user(request.user),
         }
         return response.Response(AccountOverviewSerializer(payload).data)
 
 
 class ProfileView(APIView):
-    parser_classes = (JSONParser, FormParser, MultiPartParser)
+    parser_classes = (SanitizedJSONParser, SanitizedFormParser, SanitizedMultiPartParser)
 
     def get(self, request):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -494,7 +588,7 @@ class ProfileView(APIView):
 
 class VehicleViewSet(viewsets.ModelViewSet):
     serializer_class = VehicleSerializer
-    parser_classes = (JSONParser, FormParser, MultiPartParser)
+    parser_classes = (SanitizedJSONParser, SanitizedFormParser, SanitizedMultiPartParser)
 
     def get_queryset(self):
         return Vehicle.objects.filter(owner=self.request.user).order_by("-created_at")
@@ -603,3 +697,4 @@ class LiveStatusView(APIView):
 
 class MovrTokenRefreshView(TokenRefreshView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "auth"

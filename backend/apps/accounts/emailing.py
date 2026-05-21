@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+import html
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
@@ -96,8 +97,11 @@ def send_password_reset_email(
     to_email: str,
     recipient_name: str,
     reset_url: str,
+    reset_open_url: str,
 ) -> None:
-    greeting_name = recipient_name.strip() or "there"
+    greeting_name = html.escape(recipient_name.strip() or "there")
+    safe_reset_url = html.escape(reset_url, quote=True)
+    safe_reset_open_url = html.escape(reset_open_url, quote=True)
     subject = "Reset your Movr password"
     html = f"""
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;">
@@ -106,14 +110,15 @@ def send_password_reset_email(
       <p>We received a request to reset your Movr password.</p>
       <p>
         <a
-          href="{reset_url}"
+          href="{safe_reset_open_url}"
           style="display:inline-block;padding:12px 20px;background:#6D28D9;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:600;"
         >
           Reset Password
         </a>
       </p>
-      <p>If the button does not open the app, copy and paste this link into your browser:</p>
-      <p><a href="{reset_url}">{reset_url}</a></p>
+      <p>If the button does not open the app, open this browser-safe link instead:</p>
+      <p><a href="{safe_reset_open_url}">{safe_reset_open_url}</a></p>
+      <p>Direct deep link: <a href="{safe_reset_url}">{safe_reset_url}</a></p>
       <p>If you did not request this, you can safely ignore this email.</p>
       <p>Movr Team</p>
     </div>
@@ -121,7 +126,8 @@ def send_password_reset_email(
     text = (
         f"Hello {greeting_name},\n\n"
         "We received a request to reset your Movr password.\n\n"
-        f"Open this link to reset it:\n{reset_url}\n\n"
+        f"Open this link to reset it:\n{reset_open_url}\n\n"
+        f"Movr deep link:\n{reset_url}\n\n"
         "If you did not request this, you can ignore this email.\n\n"
         "Movr Team"
     )
@@ -142,7 +148,7 @@ def send_email_verification_email(
     recipient_name: str,
     verification_code: str,
 ) -> None:
-    greeting_name = recipient_name.strip() or "there"
+    greeting_name = html.escape(recipient_name.strip() or "there")
     subject = "Verify your Movr email"
     html = f"""
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;">

@@ -12,6 +12,7 @@ from .views import (
     MovrTokenRefreshView,
     ProfileView,
     RegisterView,
+    PasswordResetOpenView,
     ResetPasswordConfirmView,
     VehicleViewSet,
 )
@@ -25,6 +26,7 @@ urlpatterns = [
     path("email-verification/request/", EmailVerificationRequestView.as_view()),
     path("email-verification/confirm/", EmailVerificationConfirmView.as_view()),
     path("password/forgot/", ForgotPasswordView.as_view()),
+    path("password/reset/open/", PasswordResetOpenView.as_view()),
     path("password/reset/", ResetPasswordConfirmView.as_view()),
     path("refresh/", MovrTokenRefreshView.as_view()),
     path("me/", MeView.as_view()),

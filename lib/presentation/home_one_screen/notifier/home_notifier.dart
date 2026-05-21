@@ -193,7 +193,12 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
   /// Toggle isLive status and call backend API
   Future<void> toggleIsLive(bool value, {String? routeId}) async {
-    state = state.copyWith(isToggling: true);
+    final previousIsLive = state.isLive;
+    state = state.copyWith(
+      isLive: value,
+      isToggling: true,
+    );
+    _syncPendingTaskPolling(value);
 
     try {
       await _userApiService.toggleLiveStatus(
@@ -202,11 +207,9 @@ class HomeNotifier extends StateNotifier<HomeState> {
       );
 
       state = state.copyWith(
-        isLive: value,
         showLiveNotification: true,
         isToggling: false,
       );
-      _syncPendingTaskPolling(value);
 
       await loadPendingTask();
 
@@ -214,10 +217,10 @@ class HomeNotifier extends StateNotifier<HomeState> {
       state = state.copyWith(showLiveNotification: false);
     } catch (e) {
       state = state.copyWith(
-        isLive: !value,
+        isLive: previousIsLive,
         isToggling: false,
       );
-      _syncPendingTaskPolling(!value);
+      _syncPendingTaskPolling(previousIsLive);
       rethrow;
     }
   }

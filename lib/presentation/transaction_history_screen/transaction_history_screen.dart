@@ -11,11 +11,9 @@ import '../../widgets/app_bar/custom_app_bar.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../../widgets/movr_loading_indicator.dart';
 import 'models/balance_item_model.dart';
-import 'models/month_trans_item_model.dart';
 import 'models/transaction_item_model.dart';
 import 'notifier/trans_history_notifier.dart';
 import 'widgets/balance_item_widget.dart';
-import 'widgets/month_trans_item_widget.dart';
 import 'widgets/transaction_item_widget.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
@@ -64,20 +62,9 @@ class TransactionHistoryScreenState
                         SizedBox(height: 18.h),
                         _buildFundingAccountCard(context),
                         SizedBox(height: 26.h),
-                        _buildMonthTrans(context),
-                        SizedBox(height: 14.h),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.only(left: 16.h),
-                            child: Text(
-                              "Recent Transactions",
-                              style: CustomTextStyles.bodySmallErrorContainer,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
+                        _buildTransactionsSection(context),
                         _buildTrans(context),
+                        SizedBox(height: 24.h),
                       ],
                     ),
                   ),
@@ -179,48 +166,16 @@ class TransactionHistoryScreenState
   }
 
   // Section Widget
-  Widget _buildMonthTrans(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final monthTransList = ref
-                .watch(transHistoryNotifier)
-                .transactionHistoryModelObj
-                ?.monthTransList ??
-            [];
-        if (monthTransList.isEmpty) return const SizedBox.shrink();
-
-        return SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: 16.h),
-                child: Text(
-                  "Transactions",
-                  style: CustomTextStyles.bodySmallErrorContainer,
-                ),
-              ),
-              SizedBox(height: 12.h),
-              ListView.separated(
-                padding: EdgeInsets.zero,
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  MonthTransItemModel model = monthTransList[index];
-                  return MonthTransItemWidget(
-                    model,
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return SizedBox(height: 8.h);
-                },
-                itemCount: monthTransList.length,
-              )
-            ],
-          ),
-        );
-      },
+  Widget _buildTransactionsSection(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: EdgeInsets.only(left: 16.h),
+        child: Text(
+          "Transactions",
+          style: CustomTextStyles.bodySmallErrorContainer,
+        ),
+      ),
     );
   }
 
@@ -246,12 +201,28 @@ class TransactionHistoryScreenState
           );
         }
 
+        final displayList = transactionList.isNotEmpty
+            ? transactionList
+            : (ref
+                    .watch(transHistoryNotifier)
+                    .transactionHistoryModelObj
+                    ?.monthTransList
+                    .map((item) => TransactionItemModel(
+                          transStatus: item.transStatus,
+                          transDate: item.transDate,
+                          transTime: item.transTime,
+                          amount: item.amount,
+                          status: item.status,
+                        ))
+                    .toList() ??
+                const []);
+
         return ListView.separated(
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemBuilder: (context, index) {
-            TransactionItemModel model = transactionList[index];
+            TransactionItemModel model = displayList[index];
             return TransactionItemWidget(
               model,
             );
@@ -266,7 +237,7 @@ class TransactionHistoryScreenState
               ),
             );
           },
-          itemCount: transactionList.length,
+          itemCount: displayList.length,
         );
       },
     );

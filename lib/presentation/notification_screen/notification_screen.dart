@@ -34,12 +34,13 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
       extendBodyBehindAppBar: false,
       backgroundColor: theme.colorScheme.onPrimary,
       appBar: _buildAppbar(context),
-      body: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.only(left: 16.h, top: 20.h, right: 16.h),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [_buildNotification(context)],
+      body: RefreshIndicator(
+        onRefresh: () =>
+            ref.read(notificationNotifier.notifier).refreshNotifications(),
+        child: Container(
+          width: double.maxFinite,
+          padding: EdgeInsets.only(left: 16.h, top: 20.h, right: 16.h),
+          child: _buildNotification(context),
         ),
       ),
     );
@@ -65,21 +66,23 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
 
   // Section Widget
   Widget _buildNotification(BuildContext context) {
-    return Expanded(
-      child: Consumer(
-        builder: (context, ref, _) {
-          final state = ref.watch(notificationNotifier);
-          if (state.isLoading) {
-            return const Center(
-              child: MovrLoadingIndicator(
-                label: 'Loading notifications...',
-              ),
-            );
-          }
+    return Consumer(
+      builder: (context, ref, _) {
+        final state = ref.watch(notificationNotifier);
+        if (state.isLoading) {
+          return const Center(
+            child: MovrLoadingIndicator(
+              label: 'Loading notifications...',
+            ),
+          );
+        }
 
-          if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-            return Center(
-              child: Padding(
+        if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(height: 140.h),
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.h),
                 child: Text(
                   state.errorMessage!,
@@ -87,40 +90,45 @@ class NotificationScreenState extends ConsumerState<NotificationScreen> {
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
-            );
-          }
+            ],
+          );
+        }
 
-          final items = state.notificationModelObj?.listItemList ??
-              const <ListItemModel>[];
-          if (items.isEmpty) {
-            return Center(
-              child: Text(
+        final items =
+            state.notificationModelObj?.listItemList ?? const <ListItemModel>[];
+        if (items.isEmpty) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(height: 140.h),
+              Text(
                 "No notifications yet.",
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-            );
-          }
+            ],
+          );
+        }
 
-          return ListView.separated(
-              padding: EdgeInsets.only(bottom: 24.h),
-              physics: BouncingScrollPhysics(),
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                ListItemModel model = items[index];
-                return ListItemWidget(
-                  model,
-                  onTap: () => _openNotification(context, model),
-                );
-              },
-              separatorBuilder: (context, index) {
-                return SizedBox(
-                  height: 18.h,
-                );
-              },
-              itemCount: items.length);
-        },
-      ),
+        return ListView.separated(
+            padding: EdgeInsets.only(bottom: 24.h),
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            itemBuilder: (context, index) {
+              ListItemModel model = items[index];
+              return ListItemWidget(
+                model,
+                onTap: () => _openNotification(context, model),
+              );
+            },
+            separatorBuilder: (context, index) {
+              return SizedBox(
+                height: 14.h,
+              );
+            },
+            itemCount: items.length);
+      },
     );
   }
 
