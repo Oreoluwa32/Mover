@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<section class="tracking" data-api="{{ api_url }}" data-maps-key="{{ maps_key }}">
+  <aside class="tracking-panel">
+    <div class="tabs">
+      <button class="tab is-active" type="button">Movers (<span id="moverCount">{{ live_count }}</span>)</button>
+      <button class="tab" type="button">Flagged (0)</button>
+    </div>
+    <label class="tracking-label">Search Mover</label>
+    <div class="tracking-search">
+      <input type="text" id="moverSearch" placeholder="Search mover" autocomplete="off">
+      <button class="btn btn--primary" type="button" id="trackBtn">Track</button>
+    </div>
+    <div class="chips">
+      <button class="chip is-active" type="button">All</button>
+      <button class="chip" type="button">Heading to pickup</button>
+      <button class="chip" type="button">Reached pickup</button>
+      <button class="chip" type="button">Journey started</button>
+      <button class="chip" type="button">Destination</button>
+    </div>
+    <div class="mover-list" id="moverList">
+      <p class="muted tracking-empty">Loading live movers…</p>
+    </div>
+  </aside>
+  <div class="tracking-map">
+    {% if maps_key %}
+      <div id="map" class="map"></div>
+    {% else %}
+      <div class="map map--fallback">
+        <p>Set <code>GOOGLE_MAPS_BROWSER_KEY</code> to display the live map.<br>Live movers are listed on the left.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% load static %}
+<script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+{% if maps_key %}
+<script async src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=MovrTrackingInit"></script>
+{% else %}
+<script>window.MovrDashboard && window.MovrDashboard.initTracking(false);</script>
+{% endif %}
+{% endblock %}

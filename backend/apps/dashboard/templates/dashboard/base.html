@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title|default:"Dashboard" }} · Movr Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4-9 4 6 3-8 4 11"/></svg>
+        </span>
+        <span class="brand-name">Movr</span>
+      </div>
+      <nav class="nav">
+        {% with active=active_nav %}
+        <a class="nav-item {% if active == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard:index' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item {% if active == 'live_tracking' %}is-active{% endif %}" href="{% url 'dashboard:live_tracking' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+          <span>Live Tracking</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'rides' %}is-active{% endif %}" href="{% url 'dashboard:rides' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l1.5-4.5A2 2 0 018.4 7h7.2a2 2 0 011.9 1.5L19 13"/><path d="M4 13h16v4H4z"/><circle cx="7.5" cy="17.5" r="1.3"/><circle cx="16.5" cy="17.5" r="1.3"/></svg>
+          <span>Rides</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'delivery' %}is-active{% endif %}" href="{% url 'dashboard:delivery' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>
+          <span>Delivery</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'users' %}is-active{% endif %}" href="{% url 'dashboard:users' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0111 0"/><path d="M16 6.5a3 3 0 010 6M21 19a5 5 0 00-4-4.9"/></svg>
+          <span>Users</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'analytics' %}is-active{% endif %}" href="{% url 'dashboard:analytics' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          <span>Analytics</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'kyc' %}is-active{% endif %}" href="{% url 'dashboard:kyc' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+          <span>KYC</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'transactions' %}is-active{% endif %}" href="{% url 'dashboard:transactions' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3M20 17H7l3 3"/></svg>
+          <span>Transactions</span><i class="chevron"></i>
+        </a>
+        <a class="nav-item {% if active == 'chat_support' %}is-active{% endif %}" href="{% url 'dashboard:chat_support' %}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3z"/></svg>
+          <span>Chat Support</span><i class="chevron"></i>
+        </a>
+        {% endwith %}
+      </nav>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-spacer"></div>
+        <div class="topbar-actions">
+          <button class="icon-btn" type="button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          </button>
+          <div class="user-chip">
+            <span class="avatar">{{ request.user.get_full_name|default:request.user.email|slice:":1"|upper }}</span>
+            <span class="user-name">{{ request.user.get_full_name|default:request.user.email }}</span>
+          </div>
+          <a class="logout" href="{% url 'admin:logout' %}">Sign out</a>
+        </div>
+      </header>
+
+      <main class="content">
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}
+        </div>
+        {% endif %}
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">{{ page_title }}</h1>
+            {% if page_subtitle %}<p class="page-subtitle">{{ page_subtitle }}</p>{% endif %}
+          </div>
+          <div class="page-actions">{% block actions %}{% endblock %}</div>
+        </div>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

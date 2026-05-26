@@ -1,0 +1,20 @@
+<form method="get" class="toolbar">
+  <label class="search">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+    <input type="text" name="q" value="{{ search }}" placeholder="Search" autocomplete="off">
+  </label>
+  <div class="toolbar-right">
+    {% if status_choices %}
+    <select name="status" class="select" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      {% for val, label in status_choices.items %}
+        <option value="{{ val }}" {% if val == status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    <button class="btn btn--ghost" type="submit">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+      Filters
+    </button>
+  </div>
+</form>

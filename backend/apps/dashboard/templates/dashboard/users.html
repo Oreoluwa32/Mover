@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<section class="panel panel--table">
+  {% include "dashboard/_toolbar.html" %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th><th>Email</th><th>Phone Number</th><th>Verification</th>
+          <th>Last Login</th><th>Wallet Balance</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        {% with u=row.user %}
+        <tr>
+          <td>
+            <div class="cell-user">
+              {% if u.profile.avatar_url %}<img class="avatar avatar--img" src="{{ u.profile.avatar_url }}" alt="">
+              {% else %}<span class="avatar">{{ u.get_full_name|default:u.email|slice:":1"|upper }}</span>{% endif %}
+              <span>{{ u.get_full_name|default:"—" }}</span>
+            </div>
+          </td>
+          <td class="muted">{{ u.email }}</td>
+          <td class="muted">{{ u.phone_number|default:"—" }}</td>
+          <td>
+            <span class="verify {% if u.kyc_record.status == 'verified' %}verify--ok{% endif %}">&#10003; KYC</span>
+            <span class="verify {% if u.verified_vehicles %}verify--ok{% endif %}">&#10003; Vehicle</span>
+          </td>
+          <td class="muted">{% if u.last_login %}{{ u.last_login|date:"M j, Y H:i" }}{% else %}Never{% endif %}</td>
+          <td>&#8358;{{ u.wallet.balance|default:0|floatformat:2|intcomma }}</td>
+          <td>{% include "dashboard/_pill.html" with value=row.status %}</td>
+          <td class="cell-actions"><a class="kebab" href="{% url 'admin:accounts_user_change' u.id %}" title="Open in admin">&#8942;</a></td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr><td colspan="8" class="empty">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "dashboard/_pagination.html" %}
+</section>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block actions %}
+<form method="get" class="period-form">
+  <select name="period" class="select" onchange="this.form.submit()">
+    {% for key, meta in periods.items %}
+      <option value="{{ key }}" {% if key == period.key %}selected{% endif %}>{{ meta.0 }}</option>
+    {% endfor %}
+  </select>
+</form>
+<a class="btn btn--ghost" href="?period={{ period.key }}&export=csv">Export</a>
+{% endblock %}
+
+{% block content %}
+<section class="stat-grid">
+  {% with c=cards %}
+  <article class="stat-card"><p class="stat-label">Total Users</p><p class="stat-value">{{ c.total_users|intcomma }}</p></article>
+  <article class="stat-card"><p class="stat-label">Total Wallet Balance</p><p class="stat-value">&#8358;{{ c.total_wallet_balance|floatformat:0|intcomma }}</p></article>
+  <article class="stat-card">
+    <p class="stat-label">Earnings</p>
+    <p class="stat-value">&#8358;{{ c.earnings|floatformat:0|intcomma }}
+      {% if c.earnings_growth is not None %}<span class="trend {% if c.earnings_growth >= 0 %}trend--up{% else %}trend--down{% endif %}">{% if c.earnings_growth >= 0 %}&#9650;{% else %}&#9660;{% endif %} {{ c.earnings_growth }}%</span>{% endif %}
+    </p>
+  </article>
+  <article class="stat-card"><p class="stat-label">Active Routes</p><p class="stat-value">{{ c.active_routes|intcomma }}</p></article>
+  <article class="stat-card"><p class="stat-label">Total Routes</p><p class="stat-value">{{ c.total_routes|intcomma }}</p></article>
+  <article class="stat-card"><p class="stat-label">Active Ride Sharing</p><p class="stat-value">{{ c.active_ride_sharing|intcomma }}</p></article>
+  <article class="stat-card"><p class="stat-label">Active Delivery</p><p class="stat-value">{{ c.active_delivery|intcomma }}</p></article>
+  <article class="stat-card"><p class="stat-label">Cancelled Trips</p><p class="stat-value">{{ c.cancelled_trips|intcomma }}</p></article>
+  {% endwith %}
+</section>
+
+<section class="panel-row">
+  <article class="panel panel--wide">
+    <div class="panel-head">
+      <div><h2 class="panel-title">Trips</h2><p class="panel-subtitle">Ride sharing vs delivery over the period</p></div>
+      <div class="legend">
+        <span class="legend-item"><i class="dot dot--purple"></i> Ride Sharing</span>
+        <span class="legend-item"><i class="dot dot--orange"></i> Delivery</span>
+      </div>
+    </div>
+    <div class="chart"><canvas id="tripsChart" height="260"></canvas></div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Active Routes</h2><p class="panel-subtitle">For delivery and ride sharing</p></div></div>
+    <div class="chart chart--donut"><canvas id="routesChart" height="220"></canvas></div>
+    <div class="legend legend--center">
+      <span class="legend-item"><i class="dot dot--purple"></i> Ride Sharing</span>
+      <span class="legend-item"><i class="dot dot--orange"></i> Delivery</span>
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><div><h2 class="panel-title">Revenue Growth</h2><p class="panel-subtitle">Total revenue by month</p></div></div>
+  <div class="chart"><canvas id="revenueChart" height="240"></canvas></div>
+</section>
+
+{{ trips_series|json_script:"trips-data" }}
+{{ routes_split|json_script:"routes-data" }}
+{{ revenue_series|json_script:"revenue-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+{% load static %}
+<script src="{% static 'dashboard/js/dashboard.js' %}"></script>
+<script>window.MovrDashboard && window.MovrDashboard.initCharts();</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<section class="panel panel--table">
+  {% include "dashboard/_toolbar.html" %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Requester</th><th>Route</th><th>Scheduled</th><th>Weight</th><th>Insured</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for d in page %}
+        <tr>
+          <td>{{ d.requester.get_full_name|default:d.requester.email }}</td>
+          <td class="muted">{{ d.pickup_name }} &rarr; {{ d.dropoff_name }}</td>
+          <td class="muted">{{ d.scheduled_time|date:"M j, Y H:i" }}</td>
+          <td>{{ d.weight_kg|floatformat:1 }} kg</td>
+          <td>{% if d.insurance_opted %}&#8358;{{ d.insured_value|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
+          <td>{% include "dashboard/_pill.html" with value=d.status %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">No delivery requests found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "dashboard/_pagination.html" %}
+</section>
+{% endblock %}

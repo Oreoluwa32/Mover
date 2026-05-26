@@ -25,6 +25,7 @@ admin.site.index_title = "Operations dashboard"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("dashboard/", include("apps.dashboard.urls")),
     path("health/", healthcheck),
     path("wallet/", LegacyWalletView.as_view()),
     path("toggle-is-live/<uuid:travel_plan_id>/", LegacyToggleLiveStatusView.as_view()),

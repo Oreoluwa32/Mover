@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
@@ -97,6 +98,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.mobility",
     "apps.payments",
+    "apps.dashboard",
 ]
 
 MIDDLEWARE = [
@@ -269,6 +271,9 @@ MONNIFY_BASE_URL = os.getenv(
     "MONNIFY_BASE_URL",
     "https://api.monnify.com" if IS_PRODUCTION_LIKE else "https://sandbox.monnify.com",
 )
+# Browser-restricted Google Maps JS key used by the admin Live Tracking map.
+# If empty, Live Tracking degrades gracefully to a list-only view.
+GOOGLE_MAPS_BROWSER_KEY = os.getenv("GOOGLE_MAPS_BROWSER_KEY", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "avatars")

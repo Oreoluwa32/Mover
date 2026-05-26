@@ -1,0 +1,43 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<section class="panel panel--table">
+  {% include "dashboard/_toolbar.html" %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>{% if can_view_pii %}<th>BVN</th><th>NIN</th>{% endif %}
+          <th>Documents</th><th>Submitted</th><th>Status</th><th>Review</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in page %}
+        <tr>
+          <td>{{ rec.user.email }}</td>
+          {% if can_view_pii %}<td class="muted">{{ rec.bvn|default:"—" }}</td><td class="muted">{{ rec.nin|default:"—" }}</td>{% endif %}
+          <td>
+            {% if rec.id_document_url %}<a class="link" href="{{ rec.id_document_url }}" target="_blank" rel="noopener">ID</a>{% endif %}
+            {% if rec.selfie_url %}<a class="link" href="{{ rec.selfie_url }}" target="_blank" rel="noopener">Selfie</a>{% endif %}
+            {% if not rec.id_document_url and not rec.selfie_url %}<span class="muted">None</span>{% endif %}
+          </td>
+          <td class="muted">{{ rec.submitted_at|date:"M j, Y" }}</td>
+          <td>{% include "dashboard/_pill.html" with value=rec.status %}</td>
+          <td>
+            <form method="post" action="{% url 'dashboard:kyc_action' rec.pk %}?{{ request.GET.urlencode }}" class="review-form">
+              {% csrf_token %}
+              <input type="text" name="notes" value="{{ rec.reviewer_notes }}" placeholder="Notes" class="input input--sm">
+              <button class="btn btn--sm btn--ok" name="action" value="approve">Approve</button>
+              <button class="btn btn--sm btn--danger" name="action" value="reject">Reject</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="{% if can_view_pii %}7{% else %}5{% endif %}" class="empty">No KYC submissions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "dashboard/_pagination.html" %}
+</section>
+{% endblock %}
