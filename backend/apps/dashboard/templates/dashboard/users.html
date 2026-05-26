@@ -32,7 +32,26 @@
           <td class="muted">{% if u.last_login %}{{ u.last_login|date:"M j, Y H:i" }}{% else %}Never{% endif %}</td>
           <td>&#8358;{{ u.wallet.balance|default:0|floatformat:2|intcomma }}</td>
           <td>{% include "dashboard/_pill.html" with value=row.status %}</td>
-          <td class="cell-actions"><a class="kebab" href="{% url 'admin:accounts_user_change' u.id %}" title="Open in admin">&#8942;</a></td>
+          <td class="cell-actions">
+            <details class="menu">
+              <summary class="kebab" title="Actions">&#8942;</summary>
+              <div class="menu-list">
+                <form method="post" action="{% url 'dashboard:user_action' u.id %}?{{ request.GET.urlencode }}">
+                  {% csrf_token %}
+                  {% if u.is_active %}
+                  <button class="menu-item menu-item--danger" name="action" value="suspend">Suspend user</button>
+                  {% else %}
+                  <button class="menu-item menu-item--ok" name="action" value="activate">Activate user</button>
+                  {% endif %}
+                  {% if u.kyc_record.status == 'verified' %}
+                  <button class="menu-item" name="action" value="reset_kyc">Reset KYC to pending</button>
+                  {% else %}
+                  <button class="menu-item menu-item--ok" name="action" value="verify_kyc">Mark KYC verified</button>
+                  {% endif %}
+                </form>
+              </div>
+            </details>
+          </td>
         </tr>
         {% endwith %}
         {% empty %}

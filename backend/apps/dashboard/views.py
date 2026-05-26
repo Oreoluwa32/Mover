@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from apps.accounts.models import KycRecord
+from apps.accounts.models import KycRecord, User
 from apps.mobility.models import TrackingEvent, TrackingSession
 
 from . import metrics, selectors
@@ -70,6 +70,40 @@ def users(request):
         "base_qs": _querystring(request),
     }
     return render(request, "dashboard/users.html", context)
+
+
+@staff_member_required
+@require_POST
+def user_action(request, pk: int):
+    user = get_object_or_404(User, pk=pk)
+    action = request.POST.get("action")
+    if action == "suspend":
+        if user == request.user or user.is_superuser:
+            messages.error(request, "You can't suspend this account.")
+        else:
+            user.is_active = False
+            user.save(update_fields=["is_active", "updated_at"])
+            messages.warning(request, f"{user.email} suspended.")
+    elif action == "activate":
+        user.is_active = True
+        user.save(update_fields=["is_active", "updated_at"])
+        messages.success(request, f"{user.email} activated.")
+    elif action == "verify_kyc":
+        record, _ = KycRecord.objects.get_or_create(user=user)
+        record.status = KycRecord.Status.VERIFIED
+        record.save(update_fields=["status", "updated_at"])
+        messages.success(request, f"KYC for {user.email} marked verified.")
+    elif action == "reset_kyc":
+        record = getattr(user, "kyc_record", None)
+        if record is None:
+            messages.error(request, f"{user.email} has no KYC record.")
+        else:
+            record.status = KycRecord.Status.PENDING
+            record.save(update_fields=["status", "updated_at"])
+            messages.info(request, f"KYC for {user.email} reset to pending.")
+    else:
+        messages.error(request, "Unknown user action.")
+    return redirect(f"{reverse('dashboard:users')}?{request.GET.urlencode()}")
 
 
 @staff_member_required
