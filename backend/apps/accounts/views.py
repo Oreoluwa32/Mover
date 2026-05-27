@@ -416,7 +416,7 @@ class PasswordResetOpenView(APIView):
         deep_link = build_password_reset_url(uid=uid, token=token)
         escaped_deep_link = html.escape(deep_link, quote=True)
 
-        html = f"""
+        html_doc = f"""
         <!doctype html>
         <html lang="en">
           <head>
@@ -477,7 +477,7 @@ class PasswordResetOpenView(APIView):
           </body>
         </html>
         """
-        return HttpResponse(html)
+        return HttpResponse(html_doc)
 
 
 class MeView(APIView):

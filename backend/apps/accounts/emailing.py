@@ -103,7 +103,7 @@ def send_password_reset_email(
     safe_reset_url = html.escape(reset_url, quote=True)
     safe_reset_open_url = html.escape(reset_open_url, quote=True)
     subject = "Reset your Movr password"
-    html = f"""
+    html_body = f"""
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;">
       <h2 style="margin-bottom:8px;">Reset your password</h2>
       <p>Hello {greeting_name},</p>
@@ -134,7 +134,7 @@ def send_password_reset_email(
     _send_resend_email(
         to_email=to_email,
         subject=subject,
-        html=html,
+        html=html_body,
         text=text,
         category="password_reset",
         error_cls=PasswordResetEmailError,
@@ -150,7 +150,7 @@ def send_email_verification_email(
 ) -> None:
     greeting_name = html.escape(recipient_name.strip() or "there")
     subject = "Verify your Movr email"
-    html = f"""
+    html_body = f"""
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;">
       <h2 style="margin-bottom:8px;">Verify your email</h2>
       <p>Hello {greeting_name},</p>
@@ -174,7 +174,7 @@ def send_email_verification_email(
     _send_resend_email(
         to_email=to_email,
         subject=subject,
-        html=html,
+        html=html_body,
         text=text,
         category="email_verification",
         error_cls=EmailVerificationError,
