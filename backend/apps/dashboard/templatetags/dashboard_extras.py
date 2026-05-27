@@ -3,9 +3,24 @@ from django import template
 register = template.Library()
 
 _TONES = {
-    "green": {"active", "verified", "completed", "delivered", "success", "accepted", "live"},
+    "green": {
+        "active",
+        "verified",
+        "completed",
+        "delivered",
+        "success",
+        "accepted",
+        "live",
+    },
     "amber": {"pending", "in_review", "open", "proposed", "draft"},
-    "blue": {"matched", "in_progress", "in_transit", "picked_up", "published", "acknowledged"},
+    "blue": {
+        "matched",
+        "in_progress",
+        "in_transit",
+        "picked_up",
+        "published",
+        "acknowledged",
+    },
     "red": {"suspended", "rejected", "cancelled", "failed", "damaged", "sos"},
     "gray": {"inactive", "idle", "ended", "paused"},
 }

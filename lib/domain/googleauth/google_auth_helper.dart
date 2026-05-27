@@ -1,5 +1,6 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:movr/core/config/app_environment.dart';
 import 'dart:convert';
 
 class GoogleAuthHelper {
@@ -29,7 +30,7 @@ class GoogleAuthHelper {
       }
 
       final response = await http.post(
-        Uri.parse('https://movr-api.onrender.com/api/v1/auth/google-signin'),
+        Uri.parse('${AppEnvironment.apiBaseUrl}/api/v1/auth/google-signin'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           'id_token': idToken,

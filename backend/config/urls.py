@@ -31,9 +31,18 @@ urlpatterns = [
     path("toggle-is-live/<uuid:travel_plan_id>/", LegacyToggleLiveStatusView.as_view()),
     path("api/v1/user/live-status", LiveStatusView.as_view()),
     path("api/paystack/initialize-transaction", LegacyPaystackInitializeView.as_view()),
-    path("api/paystack/verify-transaction/<str:reference>", LegacyPaystackVerifyView.as_view()),
-    path("api/v1/merchant/transactions/init-transaction", LegacyMonnifyInitializeView.as_view()),
-    path("api/v1/merchant/transactions/verify/<str:reference>", LegacyMonnifyVerifyView.as_view()),
+    path(
+        "api/paystack/verify-transaction/<str:reference>",
+        LegacyPaystackVerifyView.as_view(),
+    ),
+    path(
+        "api/v1/merchant/transactions/init-transaction",
+        LegacyMonnifyInitializeView.as_view(),
+    ),
+    path(
+        "api/v1/merchant/transactions/verify/<str:reference>",
+        LegacyMonnifyVerifyView.as_view(),
+    ),
     path("api/", include("config.api_urls")),
     path("api/v1/", include("config.api_urls")),
     re_path(

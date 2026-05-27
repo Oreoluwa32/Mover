@@ -60,7 +60,13 @@ def _load_response_body(response) -> dict[str, Any]:
     return json.loads(raw_body)
 
 
-def _monnify_request(method: str, path: str, *, token: str | None = None, payload: dict[str, Any] | None = None):
+def _monnify_request(
+    method: str,
+    path: str,
+    *,
+    token: str | None = None,
+    payload: dict[str, Any] | None = None,
+):
     ensure_monnify_config()
     url = urljoin(get_monnify_base_url(), path.lstrip("/"))
     headers = _json_headers()
@@ -81,7 +87,9 @@ def _monnify_request(method: str, path: str, *, token: str | None = None, payloa
         except json.JSONDecodeError:
             payload = {"responseMessage": body or exc.reason}
 
-        message = payload.get("responseMessage") or payload.get("message") or str(exc.reason)
+        message = (
+            payload.get("responseMessage") or payload.get("message") or str(exc.reason)
+        )
         if exc.code < 500:
             raise ValidationError(message)
         raise MonnifyServiceError(message) from exc
@@ -91,7 +99,9 @@ def _monnify_request(method: str, path: str, *, token: str | None = None, payloa
 
 def get_access_token() -> str:
     ensure_monnify_config()
-    auth_pair = f"{settings.MONNIFY_API_KEY}:{settings.MONNIFY_SECRET_KEY}".encode("utf-8")
+    auth_pair = f"{settings.MONNIFY_API_KEY}:{settings.MONNIFY_SECRET_KEY}".encode(
+        "utf-8"
+    )
     authorization = base64.b64encode(auth_pair).decode("utf-8")
     url = urljoin(get_monnify_base_url(), "api/v1/auth/login")
     request = Request(
@@ -108,7 +118,9 @@ def get_access_token() -> str:
             payload = _load_response_body(response)
     except HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
-        raise MonnifyServiceError(f"Monnify login failed: {body or exc.reason}") from exc
+        raise MonnifyServiceError(
+            f"Monnify login failed: {body or exc.reason}"
+        ) from exc
     except URLError as exc:
         raise MonnifyServiceError(f"Could not reach Monnify: {exc.reason}") from exc
 

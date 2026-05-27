@@ -40,7 +40,13 @@ class WalletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ["balance", "available_balance", "currency", "funding_account", "transactions"]
+        fields = [
+            "balance",
+            "available_balance",
+            "currency",
+            "funding_account",
+            "transactions",
+        ]
 
     def get_funding_account(self, obj):
         funding_account = getattr(obj, "monnify_account", None)
@@ -52,7 +58,9 @@ class WalletSerializer(serializers.ModelSerializer):
 class PaymentInitializeSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=12, decimal_places=2)
     description = serializers.CharField(required=False, allow_blank=True, default="")
-    related_type = serializers.CharField(required=False, allow_blank=True, default="deposit")
+    related_type = serializers.CharField(
+        required=False, allow_blank=True, default="deposit"
+    )
     email = serializers.EmailField(required=False)
     reference = serializers.CharField(required=False, allow_blank=True)
     channels = serializers.ListField(child=serializers.CharField(), required=False)

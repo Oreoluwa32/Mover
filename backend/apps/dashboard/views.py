@@ -191,7 +191,9 @@ def delivery(request):
 
 @staff_member_required
 def live_tracking(request):
-    live_count = TrackingSession.objects.filter(status=TrackingSession.Status.LIVE).count()
+    live_count = TrackingSession.objects.filter(
+        status=TrackingSession.Status.LIVE
+    ).count()
     context = {
         "active_nav": "live_tracking",
         "page_title": "Live Tracking",

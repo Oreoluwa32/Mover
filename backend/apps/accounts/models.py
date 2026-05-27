@@ -41,8 +41,12 @@ class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=20, blank=True)
-    account_type = models.CharField(max_length=16, choices=AccountType.choices, default=AccountType.BOTH)
-    auth_provider = models.CharField(max_length=16, choices=AuthProvider.choices, default=AuthProvider.EMAIL)
+    account_type = models.CharField(
+        max_length=16, choices=AccountType.choices, default=AccountType.BOTH
+    )
+    auth_provider = models.CharField(
+        max_length=16, choices=AuthProvider.choices, default=AuthProvider.EMAIL
+    )
     is_phone_verified = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
     home_city = models.CharField(max_length=120, blank=True)
@@ -108,12 +112,16 @@ class KycRecord(models.Model):
         VERIFIED = "verified", "Verified"
         REJECTED = "rejected", "Rejected"
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="kyc_record")
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="kyc_record"
+    )
     bvn = models.CharField(max_length=11, blank=True)
     nin = models.CharField(max_length=11, blank=True)
     id_document_url = models.URLField(blank=True)
     selfie_url = models.URLField(blank=True)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.PENDING
+    )
     reviewer_notes = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -7,8 +7,11 @@ from collections.abc import Mapping
 from django.http import QueryDict
 from rest_framework.parsers import DataAndFiles, FormParser, JSONParser, MultiPartParser
 from rest_framework.renderers import JSONRenderer
-from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle, UserRateThrottle
-
+from rest_framework.throttling import (
+    AnonRateThrottle,
+    ScopedRateThrottle,
+    UserRateThrottle,
+)
 
 _DISALLOWED_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]")
 
@@ -48,19 +51,25 @@ def sanitize_payload(value):
 
 class SanitizedJSONParser(JSONParser):
     def parse(self, stream, media_type=None, parser_context=None):
-        parsed = super().parse(stream, media_type=media_type, parser_context=parser_context)
+        parsed = super().parse(
+            stream, media_type=media_type, parser_context=parser_context
+        )
         return sanitize_payload(parsed)
 
 
 class SanitizedFormParser(FormParser):
     def parse(self, stream, media_type=None, parser_context=None):
-        parsed = super().parse(stream, media_type=media_type, parser_context=parser_context)
+        parsed = super().parse(
+            stream, media_type=media_type, parser_context=parser_context
+        )
         return sanitize_payload(parsed)
 
 
 class SanitizedMultiPartParser(MultiPartParser):
     def parse(self, stream, media_type=None, parser_context=None):
-        parsed = super().parse(stream, media_type=media_type, parser_context=parser_context)
+        parsed = super().parse(
+            stream, media_type=media_type, parser_context=parser_context
+        )
         return DataAndFiles(
             sanitize_payload(parsed.data),
             parsed.files,

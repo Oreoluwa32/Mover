@@ -159,7 +159,9 @@ def _normalize_vehicle_metadata_value(value: str) -> str:
     return value
 
 
-def _store_vehicle_document_uploads(request, metadata: dict[str, str]) -> dict[str, str]:
+def _store_vehicle_document_uploads(
+    request, metadata: dict[str, str]
+) -> dict[str, str]:
     uploaded_metadata = dict(metadata)
     for field_name in VEHICLE_DOCUMENT_FIELDS:
         uploaded_file = request.FILES.get(field_name)
@@ -199,7 +201,9 @@ class RegisterView(APIView):
 
     def post(self, request):
         email = (request.data.get("email") or "").strip()
-        existing_user = User.objects.filter(email__iexact=email).first() if email else None
+        existing_user = (
+            User.objects.filter(email__iexact=email).first() if email else None
+        )
         if existing_user:
             if existing_user.is_email_verified:
                 return response.Response(
@@ -252,7 +256,12 @@ class LoginView(APIView):
         email = (request.data.get("email") or "").strip()
         password = request.data.get("password") or ""
         user = User.objects.filter(email__iexact=email).first() if email else None
-        if user and user.check_password(password) and user.is_active and not user.is_email_verified:
+        if (
+            user
+            and user.check_password(password)
+            and user.is_active
+            and not user.is_email_verified
+        ):
             try:
                 _dispatch_email_verification(user)
             except EmailVerificationError as exc:
@@ -360,7 +369,9 @@ class EmailVerificationConfirmView(APIView):
         if user.is_email_verified:
             return response.Response({"detail": "Email already verified."})
 
-        verification = user.email_verification_codes.filter(consumed_at__isnull=True).first()
+        verification = user.email_verification_codes.filter(
+            consumed_at__isnull=True
+        ).first()
         if not verification or verification.is_expired or verification.code != code:
             return response.Response(
                 {"detail": "Invalid or expired verification code."},
@@ -494,7 +505,11 @@ class MeView(APIView):
 
 
 class ProfileView(APIView):
-    parser_classes = (SanitizedJSONParser, SanitizedFormParser, SanitizedMultiPartParser)
+    parser_classes = (
+        SanitizedJSONParser,
+        SanitizedFormParser,
+        SanitizedMultiPartParser,
+    )
 
     def get(self, request):
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -525,7 +540,9 @@ class ProfileView(APIView):
         request.user.first_name = data.get("first_name", request.user.first_name)
         request.user.last_name = data.get("last_name", request.user.last_name)
         request.user.phone_number = data.get("phone_number", request.user.phone_number)
-        request.user.save(update_fields=["first_name", "last_name", "phone_number", "updated_at"])
+        request.user.save(
+            update_fields=["first_name", "last_name", "phone_number", "updated_at"]
+        )
 
         avatar_file = request.FILES.get("avatar")
         avatar_url = data.get("avatar_url")
@@ -588,7 +605,11 @@ class ProfileView(APIView):
 
 class VehicleViewSet(viewsets.ModelViewSet):
     serializer_class = VehicleSerializer
-    parser_classes = (SanitizedJSONParser, SanitizedFormParser, SanitizedMultiPartParser)
+    parser_classes = (
+        SanitizedJSONParser,
+        SanitizedFormParser,
+        SanitizedMultiPartParser,
+    )
 
     def get_queryset(self):
         return Vehicle.objects.filter(owner=self.request.user).order_by("-created_at")
@@ -596,7 +617,9 @@ class VehicleViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
-    def _build_vehicle_payload(self, request, instance: Vehicle | None = None) -> dict[str, object]:
+    def _build_vehicle_payload(
+        self, request, instance: Vehicle | None = None
+    ) -> dict[str, object]:
         payload: dict[str, object] = {}
         for key in (
             "vehicle_type",
@@ -685,7 +708,11 @@ class KycRecordView(APIView):
 
 class LiveStatusView(APIView):
     def get(self, request):
-        active_plan = request.user.travel_plans.filter(is_live=True).order_by("-updated_at").first()
+        active_plan = (
+            request.user.travel_plans.filter(is_live=True)
+            .order_by("-updated_at")
+            .first()
+        )
         return response.Response(
             {
                 "status": True,

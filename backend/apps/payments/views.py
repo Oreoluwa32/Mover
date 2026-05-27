@@ -92,19 +92,29 @@ def _build_reserved_account_payload(wallet: Wallet) -> dict:
     return payload
 
 
-def _upsert_reserved_account(wallet: Wallet, response_body: dict) -> MonnifyReservedAccount:
+def _upsert_reserved_account(
+    wallet: Wallet, response_body: dict
+) -> MonnifyReservedAccount:
     reserved_account, _ = MonnifyReservedAccount.objects.get_or_create(
         wallet=wallet,
         defaults={
-            "account_reference": response_body.get("accountReference", _stable_monnify_account_reference(wallet)),
-            "account_name": response_body.get("accountName", f"Movr {wallet.user.email}"),
+            "account_reference": response_body.get(
+                "accountReference", _stable_monnify_account_reference(wallet)
+            ),
+            "account_name": response_body.get(
+                "accountName", f"Movr {wallet.user.email}"
+            ),
             "customer_email": response_body.get("customerEmail", wallet.user.email),
-            "customer_name": response_body.get("customerName", _display_name_for_user(wallet.user)),
+            "customer_name": response_body.get(
+                "customerName", _display_name_for_user(wallet.user)
+            ),
             "currency_code": response_body.get("currencyCode", wallet.currency),
         },
     )
     if not reserved_account.account_reference:
-        reserved_account.account_reference = response_body.get("accountReference", _stable_monnify_account_reference(wallet))
+        reserved_account.account_reference = response_body.get(
+            "accountReference", _stable_monnify_account_reference(wallet)
+        )
     reserved_account.sync_from_response(response_body)
     reserved_account.save()
     return reserved_account
@@ -122,9 +132,14 @@ def _ensure_reserved_account(wallet: Wallet) -> MonnifyReservedAccount:
         response_body = monnify_payload.get("responseBody") or {}
     except ValidationError as exc:
         error_text = str(exc.detail)
-        if "same reference" not in error_text.lower() and "existing active reserved account" not in error_text.lower():
+        if (
+            "same reference" not in error_text.lower()
+            and "existing active reserved account" not in error_text.lower()
+        ):
             raise
-        response_body = (get_reserved_account(account_reference) or {}).get("responseBody") or {}
+        response_body = (get_reserved_account(account_reference) or {}).get(
+            "responseBody"
+        ) or {}
 
     if not response_body:
         raise ValidationError("Monnify did not return reserved account details.")
@@ -224,7 +239,9 @@ def _sync_reserved_account_transactions(
 
 
 def _build_mock_checkout_url(request, reference: str) -> str:
-    return request.build_absolute_uri(reverse("payment-checkout", kwargs={"reference": reference}))
+    return request.build_absolute_uri(
+        reverse("payment-checkout", kwargs={"reference": reference})
+    )
 
 
 def _legacy_verify_payload(transaction: WalletTransaction) -> dict:
@@ -236,7 +253,9 @@ def _legacy_verify_payload(transaction: WalletTransaction) -> dict:
         "receipt_number": str(transaction.id),
         "amount": int(transaction.amount * Decimal("100")),
         "message": transaction.description,
-        "gateway_response": transaction.gateway_response.get("message", transaction.status),
+        "gateway_response": transaction.gateway_response.get(
+            "message", transaction.status
+        ),
         "paid_at": transaction.updated_at.isoformat(),
         "created_at": transaction.created_at.isoformat(),
         "channel": "mock_checkout",
@@ -257,7 +276,9 @@ class WalletView(APIView):
         if funding_account and funding_account.account_reference:
             _sync_reserved_account_transactions(funding_account)
         wallet_data = WalletSerializer(wallet).data
-        wallet_data["transactions"] = WalletTransactionSerializer(wallet.transactions.order_by("-created_at")[:50], many=True).data
+        wallet_data["transactions"] = WalletTransactionSerializer(
+            wallet.transactions.order_by("-created_at")[:50], many=True
+        ).data
         return response.Response(wallet_data)
 
 
@@ -336,7 +357,9 @@ class TransactionHistoryView(APIView):
             {
                 "status": True,
                 "count": transactions.count(),
-                "results": WalletTransactionSerializer(transactions[:100], many=True).data,
+                "results": WalletTransactionSerializer(
+                    transactions[:100], many=True
+                ).data,
             }
         )
 
@@ -367,7 +390,9 @@ class PaymentInitializeView(APIView):
                 "data": {
                     "reference": transaction.reference,
                     "access_code": transaction.reference,
-                    "authorization_url": _build_mock_checkout_url(request, transaction.reference),
+                    "authorization_url": _build_mock_checkout_url(
+                        request, transaction.reference
+                    ),
                 },
             }
         )
@@ -388,7 +413,9 @@ class PaymentCheckoutView(APIView):
         elif result == "cancelled":
             transaction.mark_failed()
 
-        success_url = f"{request.path}?result=successful&reference={transaction.reference}"
+        success_url = (
+            f"{request.path}?result=successful&reference={transaction.reference}"
+        )
         cancel_url = f"{request.path}?result=cancelled"
         html = f"""
         <html>
@@ -409,7 +436,11 @@ class PaymentVerifyView(APIView):
     throttle_scope = "payments"
 
     def post(self, request):
-        transaction = get_object_or_404(WalletTransaction, reference=request.data.get("reference"), wallet__user=request.user)
+        transaction = get_object_or_404(
+            WalletTransaction,
+            reference=request.data.get("reference"),
+            wallet__user=request.user,
+        )
         return response.Response(
             {
                 "status": True,
@@ -431,9 +462,19 @@ class LegacyPaystackInitializeView(APIView):
     def post(self, request):
         serializer = PaymentInitializeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        wallet = request.user.wallet if request.user and request.user.is_authenticated else Wallet.objects.first()
+        wallet = (
+            request.user.wallet
+            if request.user and request.user.is_authenticated
+            else Wallet.objects.first()
+        )
         if wallet is None:
-            return response.Response({"status": False, "message": "Create a user before testing legacy payments."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {
+                    "status": False,
+                    "message": "Create a user before testing legacy payments.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         reference = serializer.validated_data.get("reference") or uuid.uuid4().hex[:16]
         transaction = WalletTransaction.objects.create(
             wallet=wallet,
@@ -451,7 +492,9 @@ class LegacyPaystackInitializeView(APIView):
                 "status": True,
                 "message": "Initialized successfully.",
                 "data": {
-                    "authorization_url": _build_mock_checkout_url(request, transaction.reference),
+                    "authorization_url": _build_mock_checkout_url(
+                        request, transaction.reference
+                    ),
                     "access_code": transaction.reference,
                     "reference": transaction.reference,
                 },
@@ -465,7 +508,13 @@ class LegacyPaystackVerifyView(APIView):
 
     def get(self, _request, reference):
         transaction = get_object_or_404(WalletTransaction, reference=reference)
-        return response.Response({"status": True, "message": "Verification complete.", "data": _legacy_verify_payload(transaction)})
+        return response.Response(
+            {
+                "status": True,
+                "message": "Verification complete.",
+                "data": _legacy_verify_payload(transaction),
+            }
+        )
 
 
 class LegacyMonnifyInitializeView(LegacyPaystackInitializeView):
@@ -487,7 +536,9 @@ class LegacyMonnifyVerifyView(APIView):
 
     def get(self, _request, reference):
         transaction = get_object_or_404(WalletTransaction, reference=reference)
-        return response.Response({"status": transaction.status == WalletTransaction.Status.SUCCESS})
+        return response.Response(
+            {"status": transaction.status == WalletTransaction.Status.SUCCESS}
+        )
 
 
 class MonnifyWebhookView(APIView):
@@ -504,13 +555,21 @@ class MonnifyWebhookView(APIView):
             hashlib.sha512,
         ).hexdigest()
 
-        if not provided_signature or not hmac.compare_digest(provided_signature.lower(), expected_signature.lower()):
-            return response.Response({"status": False, "message": "Invalid webhook signature."}, status=status.HTTP_401_UNAUTHORIZED)
+        if not provided_signature or not hmac.compare_digest(
+            provided_signature.lower(), expected_signature.lower()
+        ):
+            return response.Response(
+                {"status": False, "message": "Invalid webhook signature."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
         try:
             payload = json.loads(raw_body.decode("utf-8"))
         except json.JSONDecodeError:
-            return response.Response({"status": False, "message": "Invalid JSON payload."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"status": False, "message": "Invalid JSON payload."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         event_type = payload.get("eventType")
         event_data = payload.get("eventData") or {}
@@ -524,15 +583,29 @@ class MonnifyWebhookView(APIView):
 
         account_reference = product.get("reference")
         if not account_reference:
-            return response.Response({"status": False, "message": "Reserved account reference missing."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"status": False, "message": "Reserved account reference missing."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        funding_account = MonnifyReservedAccount.objects.filter(account_reference=account_reference).select_related("wallet").first()
+        funding_account = (
+            MonnifyReservedAccount.objects.filter(account_reference=account_reference)
+            .select_related("wallet")
+            .first()
+        )
         if funding_account is None:
-            return response.Response({"status": True, "message": "Funding account not found locally."})
+            return response.Response(
+                {"status": True, "message": "Funding account not found locally."}
+            )
 
-        transaction_reference = event_data.get("transactionReference") or event_data.get("paymentReference")
+        transaction_reference = event_data.get(
+            "transactionReference"
+        ) or event_data.get("paymentReference")
         if not transaction_reference:
-            return response.Response({"status": False, "message": "Transaction reference missing."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"status": False, "message": "Transaction reference missing."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         _record_reserved_account_credit(funding_account, event_data)
 
@@ -555,7 +628,10 @@ class WithdrawalInitializeView(APIView):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
         amount = serializer.validated_data["amount"]
         if wallet.available_balance < amount:
-            return response.Response({"status": False, "message": "Insufficient wallet balance."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"status": False, "message": "Insufficient wallet balance."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         reference = uuid.uuid4().hex[:16]
         transaction = WalletTransaction.objects.create(
@@ -575,11 +651,28 @@ class WithdrawalInitializeView(APIView):
             defaults={
                 "account_name": serializer.validated_data["account_name"],
                 "bank_code": serializer.validated_data["bank_code"],
-                "bank_name": next((bank["name"] for bank in SUPPORTED_BANKS if bank["code"] == serializer.validated_data["bank_code"]), "Bank"),
+                "bank_name": next(
+                    (
+                        bank["name"]
+                        for bank in SUPPORTED_BANKS
+                        if bank["code"] == serializer.validated_data["bank_code"]
+                    ),
+                    "Bank",
+                ),
                 "is_default": True,
             },
         )
-        return response.Response({"status": True, "message": "Withdrawal initialized.", "data": {"reference": transaction.reference, "transfer_code": transaction.reference}}, status=status.HTTP_201_CREATED)
+        return response.Response(
+            {
+                "status": True,
+                "message": "Withdrawal initialized.",
+                "data": {
+                    "reference": transaction.reference,
+                    "transfer_code": transaction.reference,
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class WithdrawalCompleteView(APIView):
@@ -593,13 +686,27 @@ class WithdrawalCompleteView(APIView):
             transaction_type=WalletTransaction.Type.WITHDRAWAL,
         )
         if transaction.status == WalletTransaction.Status.SUCCESS:
-            return response.Response({"status": True, "message": "Withdrawal already completed."})
+            return response.Response(
+                {"status": True, "message": "Withdrawal already completed."}
+            )
         if transaction.wallet.available_balance < transaction.amount:
             transaction.mark_failed()
-            return response.Response({"status": False, "message": "Insufficient wallet balance."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"status": False, "message": "Insufficient wallet balance."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         transaction.mark_successful()
-        return response.Response({"status": True, "message": "Withdrawal completed.", "data": {"reference": transaction.reference, "status": transaction.status}})
+        return response.Response(
+            {
+                "status": True,
+                "message": "Withdrawal completed.",
+                "data": {
+                    "reference": transaction.reference,
+                    "status": transaction.status,
+                },
+            }
+        )
 
 
 class BankAccountListView(APIView):
@@ -607,4 +714,6 @@ class BankAccountListView(APIView):
 
     def get(self, request):
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
-        return response.Response(SavedBankAccountSerializer(wallet.bank_accounts.all(), many=True).data)
+        return response.Response(
+            SavedBankAccountSerializer(wallet.bank_accounts.all(), many=True).data
+        )

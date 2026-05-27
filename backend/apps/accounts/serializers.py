@@ -84,7 +84,11 @@ class UserSerializer(serializers.ModelSerializer):
             return avatar_url or ""
 
     def get_home_away_label(self, obj):
-        if obj.home_city and obj.current_city and obj.home_city.lower() != obj.current_city.lower():
+        if (
+            obj.home_city
+            and obj.current_city
+            and obj.home_city.lower() != obj.current_city.lower()
+        ):
             return "away"
         return "home"
 

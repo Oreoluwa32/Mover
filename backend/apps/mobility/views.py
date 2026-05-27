@@ -11,7 +11,18 @@ from rest_framework.views import APIView
 
 from config.api_security import sanitize_string
 from apps.accounts.verification import is_fully_verified_user
-from .models import DeliveryRequest, EmergencyAlert, RideRequest, TaskIncidentReport, TaskMessage, TaskReview, TrackingEvent, TrackingSession, TravelMatch, TravelPlan
+from .models import (
+    DeliveryRequest,
+    EmergencyAlert,
+    RideRequest,
+    TaskIncidentReport,
+    TaskMessage,
+    TaskReview,
+    TrackingEvent,
+    TrackingSession,
+    TravelMatch,
+    TravelPlan,
+)
 from .serializers import (
     DeliveryRequestSerializer,
     EmergencyAlertSerializer,
@@ -24,7 +35,6 @@ from .serializers import (
     TravelMatchSerializer,
     TravelPlanSerializer,
 )
-
 
 REQUEST_EXPIRY_WINDOW = timedelta(hours=3)
 ACCEPTED_MATCH_EXPIRY_WINDOW = timedelta(hours=12)
@@ -52,7 +62,9 @@ def _expire_stale_requests(request_model, *, match_field: str):
     if not request_ids:
         return
 
-    stale_requests.update(status=request_model.Status.CANCELLED, updated_at=timezone.now())
+    stale_requests.update(
+        status=request_model.Status.CANCELLED, updated_at=timezone.now()
+    )
     TravelMatch.objects.filter(
         **{f"{match_field}_id__in": request_ids},
         status__in=[TravelMatch.Status.PROPOSED, TravelMatch.Status.REJECTED],
@@ -70,7 +82,9 @@ def _reset_request_after_match_cancel(match: TravelMatch):
             .order_by("-created_at")
             .first()
         )
-        match.ride_request.matched_plan = sibling_offer.travel_plan if sibling_offer else None
+        match.ride_request.matched_plan = (
+            sibling_offer.travel_plan if sibling_offer else None
+        )
         match.ride_request.status = (
             RideRequest.Status.MATCHED if sibling_offer else RideRequest.Status.OPEN
         )
@@ -87,11 +101,17 @@ def _reset_request_after_match_cancel(match: TravelMatch):
             .order_by("-created_at")
             .first()
         )
-        match.delivery_request.matched_plan = sibling_offer.travel_plan if sibling_offer else None
-        match.delivery_request.status = (
-            DeliveryRequest.Status.MATCHED if sibling_offer else DeliveryRequest.Status.OPEN
+        match.delivery_request.matched_plan = (
+            sibling_offer.travel_plan if sibling_offer else None
         )
-        match.delivery_request.save(update_fields=["matched_plan", "status", "updated_at"])
+        match.delivery_request.status = (
+            DeliveryRequest.Status.MATCHED
+            if sibling_offer
+            else DeliveryRequest.Status.OPEN
+        )
+        match.delivery_request.save(
+            update_fields=["matched_plan", "status", "updated_at"]
+        )
 
 
 def _cancel_match(match: TravelMatch):
@@ -167,15 +187,19 @@ def _cancel_request_and_siblings(
 
 def _expire_stale_accepted_matches():
     expiry_cutoff = timezone.now() - ACCEPTED_MATCH_EXPIRY_WINDOW
-    stale_matches = TravelMatch.objects.select_related(
-        "ride_request",
-        "delivery_request",
-        "travel_plan",
-    ).filter(
-        status=TravelMatch.Status.ACCEPTED,
-    ).filter(
-        Q(ride_request__scheduled_time__lte=expiry_cutoff)
-        | Q(delivery_request__scheduled_time__lte=expiry_cutoff)
+    stale_matches = (
+        TravelMatch.objects.select_related(
+            "ride_request",
+            "delivery_request",
+            "travel_plan",
+        )
+        .filter(
+            status=TravelMatch.Status.ACCEPTED,
+        )
+        .filter(
+            Q(ride_request__scheduled_time__lte=expiry_cutoff)
+            | Q(delivery_request__scheduled_time__lte=expiry_cutoff)
+        )
     )
 
     for stale_match in stale_matches:
@@ -250,9 +274,15 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action in {"destroy", "update", "partial_update", "toggle_live"}:
-            return TravelPlan.objects.select_related("created_by").filter(created_by=self.request.user)
+            return TravelPlan.objects.select_related("created_by").filter(
+                created_by=self.request.user
+            )
 
-        queryset = TravelPlan.objects.select_related("created_by").all().order_by("-departure_time")
+        queryset = (
+            TravelPlan.objects.select_related("created_by")
+            .all()
+            .order_by("-departure_time")
+        )
         if self.request.query_params.get("mine") == "true":
             queryset = queryset.filter(created_by=self.request.user)
         else:
@@ -262,7 +292,9 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
             queryset = _filter_plans_for_fully_verified_creators(queryset)
 
         origin = sanitize_string(self.request.query_params.get("origin") or "")
-        destination = sanitize_string(self.request.query_params.get("destination") or "")
+        destination = sanitize_string(
+            self.request.query_params.get("destination") or ""
+        )
         plan_type = sanitize_string(self.request.query_params.get("plan_type") or "")
         date = sanitize_string(self.request.query_params.get("date") or "")
         if origin:
@@ -276,7 +308,10 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user, status=self.request.data.get("status", TravelPlan.Status.PUBLISHED))
+        serializer.save(
+            created_by=self.request.user,
+            status=self.request.data.get("status", TravelPlan.Status.PUBLISHED),
+        )
 
     @action(detail=True, methods=["post"])
     def toggle_live(self, request, pk=None):
@@ -290,7 +325,12 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
         travel_plan.save(update_fields=["is_live", "status", "updated_at"])
         TrackingSession.objects.get_or_create(travel_plan=travel_plan)
         return response.Response(
-            {"status": True, "message": "Live tracking updated.", "is_live": travel_plan.is_live, "travel_plan_id": str(travel_plan.id)}
+            {
+                "status": True,
+                "message": "Live tracking updated.",
+                "is_live": travel_plan.is_live,
+                "travel_plan_id": str(travel_plan.id),
+            }
         )
 
 
@@ -299,12 +339,16 @@ class RideRequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         _expire_stale_requests(RideRequest, match_field="ride_request")
-        queryset = RideRequest.objects.select_related("matched_plan", "requester").order_by("-created_at")
+        queryset = RideRequest.objects.select_related(
+            "matched_plan", "requester"
+        ).order_by("-created_at")
         if self.request.query_params.get("discover") == "true":
             if not is_fully_verified_user(self.request.user):
                 return queryset.none()
             return (
-                queryset.filter(status__in=[RideRequest.Status.OPEN, RideRequest.Status.MATCHED])
+                queryset.filter(
+                    status__in=[RideRequest.Status.OPEN, RideRequest.Status.MATCHED]
+                )
                 .exclude(requester=self.request.user)
                 .exclude(travelmatch__status=TravelMatch.Status.ACCEPTED)
                 .distinct()
@@ -328,12 +372,22 @@ class RideRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def bid(self, request, pk=None):
-        ride_request = self.get_queryset().model.objects.filter(id=pk).exclude(requester=request.user).first()
+        ride_request = (
+            self.get_queryset()
+            .model.objects.filter(id=pk)
+            .exclude(requester=request.user)
+            .first()
+        )
         if not ride_request:
-            return response.Response({"detail": "Ride request not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Ride request not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         if ride_request.status == RideRequest.Status.CANCELLED:
-            return response.Response({"detail": "This ride request is no longer available."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"detail": "This ride request is no longer available."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if TravelMatch.objects.filter(
             ride_request=ride_request,
@@ -355,7 +409,10 @@ class RideRequestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        agreed_price = request.data.get("agreed_price") or travel_plan.price_per_seat * ride_request.seats_requested
+        agreed_price = (
+            request.data.get("agreed_price")
+            or travel_plan.price_per_seat * ride_request.seats_requested
+        )
         travel_match, _ = TravelMatch.objects.update_or_create(
             travel_plan=travel_plan,
             ride_request=ride_request,
@@ -381,12 +438,19 @@ class DeliveryRequestViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         _expire_stale_requests(DeliveryRequest, match_field="delivery_request")
-        queryset = DeliveryRequest.objects.select_related("matched_plan", "requester").order_by("-created_at")
+        queryset = DeliveryRequest.objects.select_related(
+            "matched_plan", "requester"
+        ).order_by("-created_at")
         if self.request.query_params.get("discover") == "true":
             if not is_fully_verified_user(self.request.user):
                 return queryset.none()
             return (
-                queryset.filter(status__in=[DeliveryRequest.Status.OPEN, DeliveryRequest.Status.MATCHED])
+                queryset.filter(
+                    status__in=[
+                        DeliveryRequest.Status.OPEN,
+                        DeliveryRequest.Status.MATCHED,
+                    ]
+                )
                 .exclude(requester=self.request.user)
                 .exclude(travelmatch__status=TravelMatch.Status.ACCEPTED)
                 .distinct()
@@ -404,25 +468,40 @@ class DeliveryRequestViewSet(viewsets.ModelViewSet):
                 travel_plan=matched_plan,
                 delivery_request=instance,
                 match_type=TravelMatch.MatchType.DELIVERY,
-                agreed_price=max(matched_plan.price_per_seat, instance.insured_value * 0.01),
+                agreed_price=max(
+                    matched_plan.price_per_seat, instance.insured_value * 0.01
+                ),
                 status=TravelMatch.Status.PROPOSED,
             )
 
     @action(detail=True, methods=["post"])
     def bid(self, request, pk=None):
-        delivery_request = self.get_queryset().model.objects.filter(id=pk).exclude(requester=request.user).first()
+        delivery_request = (
+            self.get_queryset()
+            .model.objects.filter(id=pk)
+            .exclude(requester=request.user)
+            .first()
+        )
         if not delivery_request:
-            return response.Response({"detail": "Delivery request not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Delivery request not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if delivery_request.status == DeliveryRequest.Status.CANCELLED:
-            return response.Response({"detail": "This delivery request is no longer available."}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(
+                {"detail": "This delivery request is no longer available."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if TravelMatch.objects.filter(
             delivery_request=delivery_request,
             status=TravelMatch.Status.ACCEPTED,
         ).exists():
             return response.Response(
-                {"detail": "A mover has already been selected for this delivery request."},
+                {
+                    "detail": "A mover has already been selected for this delivery request."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -437,7 +516,10 @@ class DeliveryRequestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        base_price = max(float(travel_plan.price_per_seat), float(delivery_request.insured_value) * 0.01)
+        base_price = max(
+            float(travel_plan.price_per_seat),
+            float(delivery_request.insured_value) * 0.01,
+        )
         agreed_price = request.data.get("agreed_price") or base_price
         travel_match, _ = TravelMatch.objects.update_or_create(
             travel_plan=travel_plan,
@@ -464,18 +546,22 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         _expire_stale_accepted_matches()
-        return TravelMatch.objects.select_related(
-            "travel_plan",
-            "travel_plan__created_by",
-            "ride_request",
-            "ride_request__requester",
-            "delivery_request",
-            "delivery_request__requester",
-        ).filter(
-            Q(travel_plan__created_by=self.request.user)
-            | Q(ride_request__requester=self.request.user)
-            | Q(delivery_request__requester=self.request.user)
-        ).order_by("-created_at")
+        return (
+            TravelMatch.objects.select_related(
+                "travel_plan",
+                "travel_plan__created_by",
+                "ride_request",
+                "ride_request__requester",
+                "delivery_request",
+                "delivery_request__requester",
+            )
+            .filter(
+                Q(travel_plan__created_by=self.request.user)
+                | Q(ride_request__requester=self.request.user)
+                | Q(delivery_request__requester=self.request.user)
+            )
+            .order_by("-created_at")
+        )
 
     def _resolve_participants(self, match: TravelMatch):
         ride_request = match.ride_request
@@ -492,7 +578,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def accept(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match:
-            return response.Response({"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         ride_request = match.ride_request
         delivery_request = match.delivery_request
@@ -522,7 +610,11 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
         elif delivery_request is not None:
             sibling_matches = sibling_matches.filter(delivery_request=delivery_request)
 
-        if sibling_matches.exclude(pk=match.pk).filter(status=TravelMatch.Status.ACCEPTED).exists():
+        if (
+            sibling_matches.exclude(pk=match.pk)
+            .filter(status=TravelMatch.Status.ACCEPTED)
+            .exists()
+        ):
             return response.Response(
                 {"detail": "A mover has already been selected for this request."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -542,12 +634,16 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
             if ride_request is not None:
                 ride_request.matched_plan = match.travel_plan
                 ride_request.status = RideRequest.Status.MATCHED
-                ride_request.save(update_fields=["matched_plan", "status", "updated_at"])
+                ride_request.save(
+                    update_fields=["matched_plan", "status", "updated_at"]
+                )
 
             if delivery_request is not None:
                 delivery_request.matched_plan = match.travel_plan
                 delivery_request.status = DeliveryRequest.Status.MATCHED
-                delivery_request.save(update_fields=["matched_plan", "status", "updated_at"])
+                delivery_request.save(
+                    update_fields=["matched_plan", "status", "updated_at"]
+                )
 
         match.refresh_from_db()
         return response.Response(TravelMatchSerializer(match).data)
@@ -556,7 +652,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def cancel(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match:
-            return response.Response({"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         ride_request = match.ride_request
         delivery_request = match.delivery_request
@@ -566,7 +664,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
 
         if not is_mover and not is_requester:
             return response.Response(
-                {"detail": "Only the assigned mover or requester can cancel this task."},
+                {
+                    "detail": "Only the assigned mover or requester can cancel this task."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -614,7 +714,10 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def confirm_pickup(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match or match.delivery_request is None:
-            return response.Response({"detail": "Delivery match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Delivery match not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if match.travel_plan.created_by != request.user:
             return response.Response(
@@ -649,7 +752,10 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def confirm_delivery(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match or match.delivery_request is None:
-            return response.Response({"detail": "Delivery match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Delivery match not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if match.travel_plan.created_by != request.user:
             return response.Response(
@@ -687,7 +793,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def start_ride(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match or match.ride_request is None:
-            return response.Response({"detail": "Ride match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Ride match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         if match.travel_plan.created_by != request.user:
             return response.Response(
@@ -715,7 +823,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def end_ride(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match or match.ride_request is None:
-            return response.Response({"detail": "Ride match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Ride match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         if match.travel_plan.created_by != request.user:
             return response.Response(
@@ -743,7 +853,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def review(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match:
-            return response.Response({"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         if match.status != TravelMatch.Status.COMPLETED:
             return response.Response(
@@ -787,7 +899,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def messages(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match:
-            return response.Response({"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         requester, mover = self._resolve_participants(match)
         if request.user not in {requester, mover}:
@@ -821,7 +935,9 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
     def report(self, request, pk=None):
         match = self.get_queryset().filter(pk=pk).first()
         if not match:
-            return response.Response({"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"detail": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         requester, mover = self._resolve_participants(match)
         if request.user not in {requester, mover}:
@@ -865,15 +981,21 @@ class TrackingSessionViewSet(viewsets.ReadOnlyModelViewSet):
         session = self.get_object()
         serializer = TrackingEventSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        event = TrackingEvent.objects.create(session=session, actor=request.user, **serializer.validated_data)
-        return response.Response(TrackingEventSerializer(event).data, status=status.HTTP_201_CREATED)
+        event = TrackingEvent.objects.create(
+            session=session, actor=request.user, **serializer.validated_data
+        )
+        return response.Response(
+            TrackingEventSerializer(event).data, status=status.HTTP_201_CREATED
+        )
 
 
 class EmergencyAlertViewSet(viewsets.ModelViewSet):
     serializer_class = EmergencyAlertSerializer
 
     def get_queryset(self):
-        return EmergencyAlert.objects.filter(user=self.request.user).order_by("-created_at")
+        return EmergencyAlert.objects.filter(user=self.request.user).order_by(
+            "-created_at"
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -883,14 +1005,23 @@ class MobilityDashboardView(APIView):
     def get(self, request):
         return response.Response(
             {
-                "published_travel_plans": request.user.travel_plans.filter(status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS]).count(),
+                "published_travel_plans": request.user.travel_plans.filter(
+                    status__in=[
+                        TravelPlan.Status.PUBLISHED,
+                        TravelPlan.Status.IN_PROGRESS,
+                    ]
+                ).count(),
                 "ride_requests": request.user.ride_requests.count(),
                 "delivery_requests": request.user.delivery_requests.count(),
                 "active_matches": TravelMatch.objects.filter(
                     Q(travel_plan__created_by=request.user)
                     | Q(ride_request__requester=request.user)
                     | Q(delivery_request__requester=request.user),
-                    status__in=[TravelMatch.Status.PROPOSED, TravelMatch.Status.ACCEPTED, TravelMatch.Status.ACTIVE],
+                    status__in=[
+                        TravelMatch.Status.PROPOSED,
+                        TravelMatch.Status.ACCEPTED,
+                        TravelMatch.Status.ACTIVE,
+                    ],
                 ).count(),
                 "live_routes": request.user.travel_plans.filter(is_live=True).count(),
             }
@@ -899,9 +1030,14 @@ class MobilityDashboardView(APIView):
 
 class LegacyToggleLiveStatusView(APIView):
     def post(self, request, travel_plan_id):
-        travel_plan = TravelPlan.objects.filter(id=travel_plan_id, created_by=request.user).first()
+        travel_plan = TravelPlan.objects.filter(
+            id=travel_plan_id, created_by=request.user
+        ).first()
         if not travel_plan:
-            return response.Response({"status": False, "message": "Travel plan not found."}, status=status.HTTP_404_NOT_FOUND)
+            return response.Response(
+                {"status": False, "message": "Travel plan not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         is_live = bool(request.data.get("is_live", False))
         travel_plan.is_live = is_live
@@ -911,4 +1047,10 @@ class LegacyToggleLiveStatusView(APIView):
             travel_plan.status = TravelPlan.Status.PUBLISHED
         travel_plan.save(update_fields=["is_live", "status", "updated_at"])
         TrackingSession.objects.get_or_create(travel_plan=travel_plan)
-        return response.Response({"status": True, "message": "Live status updated successfully.", "is_live": travel_plan.is_live})
+        return response.Response(
+            {
+                "status": True,
+                "message": "Live status updated successfully.",
+                "is_live": travel_plan.is_live,
+            }
+        )

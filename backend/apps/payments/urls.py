@@ -30,10 +30,23 @@ urlpatterns = [
     path("bank-accounts/", BankAccountListView.as_view()),
     path("withdrawal/initialize", WithdrawalInitializeView.as_view()),
     path("withdrawal/complete", WithdrawalCompleteView.as_view()),
-    path("checkout/<str:reference>/", PaymentCheckoutView.as_view(), name="payment-checkout"),
+    path(
+        "checkout/<str:reference>/",
+        PaymentCheckoutView.as_view(),
+        name="payment-checkout",
+    ),
     path("paystack/initialize-transaction", LegacyPaystackInitializeView.as_view()),
-    path("paystack/verify-transaction/<str:reference>", LegacyPaystackVerifyView.as_view()),
-    path("v1/merchant/transactions/init-transaction", LegacyMonnifyInitializeView.as_view()),
-    path("v1/merchant/transactions/verify/<str:reference>", LegacyMonnifyVerifyView.as_view()),
+    path(
+        "paystack/verify-transaction/<str:reference>",
+        LegacyPaystackVerifyView.as_view(),
+    ),
+    path(
+        "v1/merchant/transactions/init-transaction",
+        LegacyMonnifyInitializeView.as_view(),
+    ),
+    path(
+        "v1/merchant/transactions/verify/<str:reference>",
+        LegacyMonnifyVerifyView.as_view(),
+    ),
     path("monnify/webhook", MonnifyWebhookView.as_view()),
 ]

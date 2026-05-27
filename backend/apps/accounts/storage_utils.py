@@ -79,7 +79,9 @@ def upload_file_to_supabase(
     if (
         content_type
         and content_type != "application/octet-stream"
-        and not any(content_type.startswith(prefix) for prefix in allowed_content_prefixes)
+        and not any(
+            content_type.startswith(prefix) for prefix in allowed_content_prefixes
+        )
     ):
         raise ValueError(invalid_type_message)
 

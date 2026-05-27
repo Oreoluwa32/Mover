@@ -83,7 +83,10 @@ class UserAdmin(DjangoUserAdmin):
     readonly_fields = ("created_at", "updated_at", "last_login", "date_joined")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal information", {"fields": ("first_name", "last_name", "phone_number")}),
+        (
+            "Personal information",
+            {"fields": ("first_name", "last_name", "phone_number")},
+        ),
         (
             "Movr profile",
             {
@@ -97,8 +100,22 @@ class UserAdmin(DjangoUserAdmin):
                 )
             },
         ),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        ("Important dates", {"fields": ("last_login", "date_joined", "created_at", "updated_at")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        (
+            "Important dates",
+            {"fields": ("last_login", "date_joined", "created_at", "updated_at")},
+        ),
     )
     add_fieldsets = (
         (
@@ -123,7 +140,12 @@ class UserAdmin(DjangoUserAdmin):
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "gender", "address", "created_at", "updated_at")
-    search_fields = ("user__email", "emergency_contact_name", "emergency_contact_phone", "address")
+    search_fields = (
+        "user__email",
+        "emergency_contact_name",
+        "emergency_contact_phone",
+        "address",
+    )
     raw_id_fields = ("user",)
     readonly_fields = ("created_at", "updated_at")
 
@@ -240,7 +262,10 @@ class VehicleAdmin(admin.ModelAdmin):
             rows.append(
                 f'<li>{label}: <a href="{url}" target="_blank" rel="noopener noreferrer">open file</a></li>'
             )
-        return format_html("<ul style='margin:0;padding-left:18px;'>{}</ul>", format_html("".join(rows)))
+        return format_html(
+            "<ul style='margin:0;padding-left:18px;'>{}</ul>",
+            format_html("".join(rows)),
+        )
 
     @admin.display(description="Vehicle photo")
     def vehicle_photo_preview(self, obj: Vehicle):
@@ -269,7 +294,11 @@ class VehicleAdmin(admin.ModelAdmin):
             vehicle.is_verified = False
             vehicle.save(update_fields=["metadata", "is_verified"])
             updated += 1
-        self.message_user(request, f"{updated} vehicle submission(s) marked as pending review.", level=messages.SUCCESS)
+        self.message_user(
+            request,
+            f"{updated} vehicle submission(s) marked as pending review.",
+            level=messages.SUCCESS,
+        )
 
     @admin.action(description="Approve selected vehicle documents")
     def approve_vehicle_documents(self, request, queryset):
@@ -281,7 +310,11 @@ class VehicleAdmin(admin.ModelAdmin):
             vehicle.is_verified = True
             vehicle.save(update_fields=["metadata", "is_verified"])
             updated += 1
-        self.message_user(request, f"{updated} vehicle submission(s) approved.", level=messages.SUCCESS)
+        self.message_user(
+            request,
+            f"{updated} vehicle submission(s) approved.",
+            level=messages.SUCCESS,
+        )
 
     @admin.action(description="Reject selected vehicle documents")
     def reject_vehicle_documents(self, request, queryset):
@@ -290,12 +323,18 @@ class VehicleAdmin(admin.ModelAdmin):
             metadata = _vehicle_metadata(vehicle)
             metadata["review_status"] = "rejected"
             if not metadata.get("reviewer_notes"):
-                metadata["reviewer_notes"] = "Vehicle documents were rejected during admin review."
+                metadata["reviewer_notes"] = (
+                    "Vehicle documents were rejected during admin review."
+                )
             vehicle.metadata = metadata
             vehicle.is_verified = False
             vehicle.save(update_fields=["metadata", "is_verified"])
             updated += 1
-        self.message_user(request, f"{updated} vehicle submission(s) rejected.", level=messages.WARNING)
+        self.message_user(
+            request,
+            f"{updated} vehicle submission(s) rejected.",
+            level=messages.WARNING,
+        )
 
     def _vehicle_review_status(self, obj: Vehicle) -> str:
         metadata = _vehicle_metadata(obj)
@@ -307,7 +346,9 @@ class VehicleAdmin(admin.ModelAdmin):
         metadata = _vehicle_metadata(obj)
         url = _resolve_vehicle_asset_url(metadata.get(key))
         if not url:
-            return format_html("<span style='color:#888;'>{} not uploaded.</span>", label)
+            return format_html(
+                "<span style='color:#888;'>{} not uploaded.</span>", label
+            )
         return format_html(
             '<div style="display:flex;flex-direction:column;gap:8px;">'
             '<a href="{0}" target="_blank" rel="noopener noreferrer">Open {1}</a>'
@@ -398,21 +439,35 @@ class KycRecordAdmin(admin.ModelAdmin):
     @admin.action(description="Mark selected KYC submissions as pending review")
     def mark_kyc_pending(self, request, queryset):
         updated = queryset.update(status=KycRecord.Status.PENDING, reviewer_notes="")
-        self.message_user(request, f"{updated} identification submission(s) marked as pending review.", level=messages.SUCCESS)
+        self.message_user(
+            request,
+            f"{updated} identification submission(s) marked as pending review.",
+            level=messages.SUCCESS,
+        )
 
     @admin.action(description="Approve selected KYC submissions")
     def approve_kyc(self, request, queryset):
         updated = queryset.update(status=KycRecord.Status.VERIFIED)
-        self.message_user(request, f"{updated} identification submission(s) approved.", level=messages.SUCCESS)
+        self.message_user(
+            request,
+            f"{updated} identification submission(s) approved.",
+            level=messages.SUCCESS,
+        )
 
     @admin.action(description="Reject selected KYC submissions")
     def reject_kyc(self, request, queryset):
         updated = queryset.update(status=KycRecord.Status.REJECTED)
-        self.message_user(request, f"{updated} identification submission(s) rejected.", level=messages.WARNING)
+        self.message_user(
+            request,
+            f"{updated} identification submission(s) rejected.",
+            level=messages.WARNING,
+        )
 
     def _kyc_document_preview(self, url: str | None, label: str):
         if not url:
-            return format_html("<span style='color:#888;'>{} not uploaded.</span>", label)
+            return format_html(
+                "<span style='color:#888;'>{} not uploaded.</span>", label
+            )
         return format_html(
             '<div style="display:flex;flex-direction:column;gap:8px;">'
             '<a href="{0}" target="_blank" rel="noopener noreferrer">Open {1}</a>'

@@ -41,12 +41,15 @@ class KycActionTests(TestCase):
     def setUp(self):
         self.staff = User.objects.create_user("staff@movr.test", "pw", is_staff=True)
         self.subject = User.objects.create_user("kyc@movr.test", "pw")
-        self.record = KycRecord.objects.create(user=self.subject, status=KycRecord.Status.PENDING)
+        self.record = KycRecord.objects.create(
+            user=self.subject, status=KycRecord.Status.PENDING
+        )
         self.client.force_login(self.staff)
 
     def test_approve(self):
         resp = self.client.post(
-            reverse("dashboard:kyc_action", args=[self.record.pk]), {"action": "approve", "notes": "ok"}
+            reverse("dashboard:kyc_action", args=[self.record.pk]),
+            {"action": "approve", "notes": "ok"},
         )
         self.assertEqual(resp.status_code, 302)
         self.record.refresh_from_db()
@@ -54,25 +57,76 @@ class KycActionTests(TestCase):
         self.assertEqual(self.record.reviewer_notes, "ok")
 
     def test_reject(self):
-        self.client.post(reverse("dashboard:kyc_action", args=[self.record.pk]), {"action": "reject"})
+        self.client.post(
+            reverse("dashboard:kyc_action", args=[self.record.pk]), {"action": "reject"}
+        )
         self.record.refresh_from_db()
         self.assertEqual(self.record.status, KycRecord.Status.REJECTED)
+
+
+class UserActionTests(TestCase):
+    def setUp(self):
+        self.staff = User.objects.create_user("staff@movr.test", "pw", is_staff=True)
+        self.subject = User.objects.create_user("target@movr.test", "pw")
+        self.client.force_login(self.staff)
+
+    def _post(self, user, action):
+        return self.client.post(
+            reverse("dashboard:user_action", args=[user.pk]), {"action": action}
+        )
+
+    def test_suspend_and_activate(self):
+        resp = self._post(self.subject, "suspend")
+        self.assertEqual(resp.status_code, 302)
+        self.subject.refresh_from_db()
+        self.assertFalse(self.subject.is_active)
+
+        self._post(self.subject, "activate")
+        self.subject.refresh_from_db()
+        self.assertTrue(self.subject.is_active)
+
+    def test_verify_kyc_creates_record(self):
+        self.assertFalse(hasattr(self.subject, "kyc_record"))
+        self._post(self.subject, "verify_kyc")
+        record = KycRecord.objects.get(user=self.subject)
+        self.assertEqual(record.status, KycRecord.Status.VERIFIED)
+
+    def test_reset_kyc(self):
+        KycRecord.objects.create(user=self.subject, status=KycRecord.Status.VERIFIED)
+        self._post(self.subject, "reset_kyc")
+        record = KycRecord.objects.get(user=self.subject)
+        self.assertEqual(record.status, KycRecord.Status.PENDING)
+
+    def test_cannot_suspend_superuser(self):
+        target = User.objects.create_superuser("super@movr.test", "pw")
+        self._post(target, "suspend")
+        target.refresh_from_db()
+        self.assertTrue(target.is_active)
 
 
 class MetricsTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("m@movr.test", "pw")
         WalletTransaction.objects.create(
-            wallet=self.user.wallet, transaction_type=WalletTransaction.Type.DEPOSIT,
-            status=WalletTransaction.Status.SUCCESS, amount=Decimal("5000"), reference="t1",
+            wallet=self.user.wallet,
+            transaction_type=WalletTransaction.Type.DEPOSIT,
+            status=WalletTransaction.Status.SUCCESS,
+            amount=Decimal("5000"),
+            reference="t1",
         )
         plan = TravelPlan.objects.create(
-            created_by=self.user, title="r", status=TravelPlan.Status.PUBLISHED,
-            origin_name="a", destination_name="b", departure_time=timezone.now(),
+            created_by=self.user,
+            title="r",
+            status=TravelPlan.Status.PUBLISHED,
+            origin_name="a",
+            destination_name="b",
+            departure_time=timezone.now(),
         )
         TravelMatch.objects.create(
-            travel_plan=plan, match_type=TravelMatch.MatchType.RIDE,
-            status=TravelMatch.Status.ACTIVE, agreed_price=Decimal("100"),
+            travel_plan=plan,
+            match_type=TravelMatch.MatchType.RIDE,
+            status=TravelMatch.Status.ACTIVE,
+            agreed_price=Decimal("100"),
         )
 
     def test_stat_cards(self):

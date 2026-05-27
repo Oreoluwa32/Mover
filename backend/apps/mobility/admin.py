@@ -16,7 +16,16 @@ from .models import (
 
 @admin.register(TravelPlan)
 class TravelPlanAdmin(admin.ModelAdmin):
-    list_display = ("title", "created_by", "plan_type", "status", "origin_name", "destination_name", "departure_time", "is_live")
+    list_display = (
+        "title",
+        "created_by",
+        "plan_type",
+        "status",
+        "origin_name",
+        "destination_name",
+        "departure_time",
+        "is_live",
+    )
     list_filter = ("plan_type", "status", "is_live", "vehicle_type")
     search_fields = ("title", "created_by__email", "origin_name", "destination_name")
     raw_id_fields = ("created_by",)
@@ -26,9 +35,23 @@ class TravelPlanAdmin(admin.ModelAdmin):
 
 @admin.register(RideRequest)
 class RideRequestAdmin(admin.ModelAdmin):
-    list_display = ("requester", "status", "origin_name", "destination_name", "scheduled_time", "seats_requested", "created_at")
+    list_display = (
+        "requester",
+        "status",
+        "origin_name",
+        "destination_name",
+        "scheduled_time",
+        "seats_requested",
+        "created_at",
+    )
     list_filter = ("status", "scheduled_time")
-    search_fields = ("requester__email", "origin_name", "destination_name", "note", "cancelled_reason")
+    search_fields = (
+        "requester__email",
+        "origin_name",
+        "destination_name",
+        "note",
+        "cancelled_reason",
+    )
     raw_id_fields = ("requester", "matched_plan", "cancelled_by")
     readonly_fields = ("created_at", "updated_at", "cancelled_at")
     date_hierarchy = "scheduled_time"
@@ -36,9 +59,23 @@ class RideRequestAdmin(admin.ModelAdmin):
 
 @admin.register(DeliveryRequest)
 class DeliveryRequestAdmin(admin.ModelAdmin):
-    list_display = ("requester", "status", "pickup_name", "dropoff_name", "scheduled_time", "weight_kg", "insurance_opted")
+    list_display = (
+        "requester",
+        "status",
+        "pickup_name",
+        "dropoff_name",
+        "scheduled_time",
+        "weight_kg",
+        "insurance_opted",
+    )
     list_filter = ("status", "insurance_opted", "scheduled_time")
-    search_fields = ("requester__email", "pickup_name", "dropoff_name", "package_description", "cancelled_reason")
+    search_fields = (
+        "requester__email",
+        "pickup_name",
+        "dropoff_name",
+        "package_description",
+        "cancelled_reason",
+    )
     raw_id_fields = ("requester", "matched_plan", "cancelled_by")
     readonly_fields = ("created_at", "updated_at", "cancelled_at")
     date_hierarchy = "scheduled_time"
@@ -99,7 +136,14 @@ class TrackingSessionAdmin(admin.ModelAdmin):
 
 @admin.register(TrackingEvent)
 class TrackingEventAdmin(admin.ModelAdmin):
-    list_display = ("session", "actor", "event_type", "latitude", "longitude", "created_at")
+    list_display = (
+        "session",
+        "actor",
+        "event_type",
+        "latitude",
+        "longitude",
+        "created_at",
+    )
     list_filter = ("event_type",)
     search_fields = ("actor__email", "note")
     raw_id_fields = ("session", "actor")

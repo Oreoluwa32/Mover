@@ -7,13 +7,19 @@ User = get_user_model()
 
 class PaymentApiTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="wallet@movr.app", password="StrongPass123")
+        self.user = User.objects.create_user(
+            email="wallet@movr.app",
+            password="StrongPass123",
+            is_email_verified=True,
+        )
         login = self.client.post(
             "/api/auth/login/",
             {"email": "wallet@movr.app", "password": "StrongPass123"},
             format="json",
         )
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['tokens']['access']}")
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {login.data['tokens']['access']}"
+        )
 
     def test_initialize_and_verify_payment(self):
         init_response = self.client.post(

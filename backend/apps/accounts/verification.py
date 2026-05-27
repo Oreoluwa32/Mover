@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .models import KycRecord, User, Vehicle
 
-
 VEHICLE_DOCUMENT_FIELDS = (
     "vehicle_photo",
     "driver_license",
@@ -35,7 +34,10 @@ def has_verified_government_identification(user: User) -> bool:
 
 def has_vehicle_documents(vehicle: Vehicle) -> bool:
     metadata = vehicle.metadata if isinstance(vehicle.metadata, dict) else {}
-    return all(bool(str(metadata.get(field) or "").strip()) for field in VEHICLE_DOCUMENT_FIELDS)
+    return all(
+        bool(str(metadata.get(field) or "").strip())
+        for field in VEHICLE_DOCUMENT_FIELDS
+    )
 
 
 def has_verified_vehicle_identification(user: User) -> bool:

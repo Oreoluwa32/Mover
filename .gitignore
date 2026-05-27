@@ -54,6 +54,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Dev scratch artifacts (root-level)
+/analysis_output.txt
+/analyze_result.txt
+/flutter_0*.png
+/Screenshot_*.png
+
 # Environment and secrets
 .env
 .env.local

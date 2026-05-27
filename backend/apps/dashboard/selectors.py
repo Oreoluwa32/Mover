@@ -1,4 +1,5 @@
 """Queryset builders for the dashboard tables (search / filter / paginate)."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -46,7 +47,9 @@ def user_status(user: User, cutoff=None) -> str:
 def users_queryset(search: str = "", status: str = "") -> QuerySet[User]:
     qs = (
         User.objects.select_related("profile", "kyc_record", "wallet")
-        .annotate(verified_vehicles=Count("vehicles", filter=Q(vehicles__is_verified=True)))
+        .annotate(
+            verified_vehicles=Count("vehicles", filter=Q(vehicles__is_verified=True))
+        )
         .order_by("-date_joined")
     )
     if search:
@@ -63,9 +66,11 @@ def users_queryset(search: str = "", status: str = "") -> QuerySet[User]:
     elif status == UserStatus.IN_REVIEW:
         qs = qs.filter(is_active=True, kyc_record__status=KycRecord.Status.PENDING)
     elif status == UserStatus.INACTIVE:
-        qs = qs.filter(is_active=True).filter(
-            Q(last_login__isnull=True) | Q(last_login__lt=cutoff)
-        ).exclude(kyc_record__status=KycRecord.Status.PENDING)
+        qs = (
+            qs.filter(is_active=True)
+            .filter(Q(last_login__isnull=True) | Q(last_login__lt=cutoff))
+            .exclude(kyc_record__status=KycRecord.Status.PENDING)
+        )
     elif status == UserStatus.ACTIVE:
         qs = qs.filter(is_active=True, last_login__gte=cutoff).exclude(
             kyc_record__status=KycRecord.Status.PENDING
@@ -77,7 +82,9 @@ def kyc_queryset(search: str = "", status: str = "") -> QuerySet[KycRecord]:
     qs = KycRecord.objects.select_related("user").order_by("-submitted_at")
     if search:
         qs = qs.filter(
-            Q(user__email__icontains=search) | Q(bvn__icontains=search) | Q(nin__icontains=search)
+            Q(user__email__icontains=search)
+            | Q(bvn__icontains=search)
+            | Q(nin__icontains=search)
         )
     if status in dict(KycRecord.Status.choices):
         qs = qs.filter(status=status)
@@ -85,9 +92,9 @@ def kyc_queryset(search: str = "", status: str = "") -> QuerySet[KycRecord]:
 
 
 def rides_queryset(search: str = "", status: str = "") -> QuerySet[RideRequest]:
-    qs = RideRequest.objects.select_related("requester", "matched_plan", "matched_plan__created_by").order_by(
-        "-created_at"
-    )
+    qs = RideRequest.objects.select_related(
+        "requester", "matched_plan", "matched_plan__created_by"
+    ).order_by("-created_at")
     if search:
         qs = qs.filter(
             Q(requester__email__icontains=search)

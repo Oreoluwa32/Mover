@@ -10,7 +10,9 @@ from django.dispatch import receiver
 
 
 class Wallet(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="wallet")
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="wallet"
+    )
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     available_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     currency = models.CharField(max_length=8, default="NGN")
@@ -28,7 +30,9 @@ class Wallet(models.Model):
 
 
 class MonnifyReservedAccount(models.Model):
-    wallet = models.OneToOneField(Wallet, on_delete=models.CASCADE, related_name="monnify_account")
+    wallet = models.OneToOneField(
+        Wallet, on_delete=models.CASCADE, related_name="monnify_account"
+    )
     account_reference = models.CharField(max_length=64, unique=True)
     reservation_reference = models.CharField(max_length=64, blank=True)
     account_name = models.CharField(max_length=120)
@@ -79,9 +83,13 @@ class WalletTransaction(models.Model):
         CANCELLED = "cancelled", "Cancelled"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="transactions")
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.CASCADE, related_name="transactions"
+    )
     transaction_type = models.CharField(max_length=24, choices=Type.choices)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.PENDING
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     reference = models.CharField(max_length=64, unique=True)
     description = models.CharField(max_length=255, blank=True)
@@ -108,7 +116,9 @@ class WalletTransaction(models.Model):
 
 
 class SavedBankAccount(models.Model):
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="bank_accounts")
+    wallet = models.ForeignKey(
+        Wallet, on_delete=models.CASCADE, related_name="bank_accounts"
+    )
     account_name = models.CharField(max_length=120)
     account_number = models.CharField(max_length=20)
     bank_code = models.CharField(max_length=16)

@@ -15,8 +15,6 @@ from config.jwt_auth import QueryStringJWTAuthMiddleware
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
-        "websocket": QueryStringJWTAuthMiddleware(
-            URLRouter(websocket_urlpatterns)
-        ),
+        "websocket": QueryStringJWTAuthMiddleware(URLRouter(websocket_urlpatterns)),
     }
 )

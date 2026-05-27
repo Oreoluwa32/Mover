@@ -5,12 +5,19 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from unittest.mock import patch
 
+from apps.accounts.emailing import (
+    send_email_verification_email,
+    send_password_reset_email,
+)
+
 User = get_user_model()
 
 
 class AuthenticationTests(APITestCase):
     @patch("apps.accounts.views.send_email_verification_email")
-    def test_register_requires_email_verification_before_login(self, mock_send_email_verification_email):
+    def test_register_requires_email_verification_before_login(
+        self, mock_send_email_verification_email
+    ):
         register_response = self.client.post(
             "/api/auth/register/",
             {
@@ -71,7 +78,9 @@ class AuthenticationTests(APITestCase):
         self.assertIn("access", login_response.data["tokens"])
 
     @patch("apps.accounts.views.send_password_reset_email")
-    def test_forgot_password_returns_generic_success(self, mock_send_password_reset_email):
+    def test_forgot_password_returns_generic_success(
+        self, mock_send_password_reset_email
+    ):
         user = User.objects.create_user(
             email="tester@movr.app",
             password="StrongPass123",
@@ -107,3 +116,31 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
         self.assertTrue(user.check_password("NewStrongPass123"))
+
+
+class EmailingFunctionTests(APITestCase):
+    """Exercise the real email builders (mock only the network sender)."""
+
+    @patch("apps.accounts.emailing._send_resend_email")
+    def test_verification_email_builds_html(self, mock_send):
+        send_email_verification_email(
+            to_email="user@movr.app",
+            recipient_name="Ada Driver",
+            verification_code="1234",
+        )
+        mock_send.assert_called_once()
+        html_body = mock_send.call_args.kwargs["html"]
+        self.assertIn("1234", html_body)
+        self.assertIn("Ada Driver", html_body)
+
+    @patch("apps.accounts.emailing._send_resend_email")
+    def test_password_reset_email_builds_html(self, mock_send):
+        send_password_reset_email(
+            to_email="user@movr.app",
+            recipient_name="Ada Driver",
+            reset_url="movr://reset?token=abc",
+            reset_open_url="https://movr.app/reset?token=abc",
+        )
+        mock_send.assert_called_once()
+        html_body = mock_send.call_args.kwargs["html"]
+        self.assertIn("https://movr.app/reset", html_body)

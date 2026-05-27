@@ -9,7 +9,18 @@ from apps.accounts.storage_utils import (
     StorageConfigurationError,
     resolve_supabase_asset_url,
 )
-from .models import DeliveryRequest, EmergencyAlert, RideRequest, TaskIncidentReport, TaskMessage, TaskReview, TrackingEvent, TrackingSession, TravelMatch, TravelPlan
+from .models import (
+    DeliveryRequest,
+    EmergencyAlert,
+    RideRequest,
+    TaskIncidentReport,
+    TaskMessage,
+    TaskReview,
+    TrackingEvent,
+    TrackingSession,
+    TravelMatch,
+    TravelPlan,
+)
 
 User = get_user_model()
 
@@ -59,7 +70,11 @@ class UserSummarySerializer(serializers.ModelSerializer):
             return avatar_url or ""
 
     def get_home_away_label(self, obj):
-        if obj.home_city and obj.current_city and obj.home_city.lower() != obj.current_city.lower():
+        if (
+            obj.home_city
+            and obj.current_city
+            and obj.home_city.lower() != obj.current_city.lower()
+        ):
             return "away"
         return "home"
 
@@ -105,7 +120,13 @@ class DeliveryRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryRequest
         fields = "__all__"
-        read_only_fields = ["requester", "status", "created_at", "updated_at", "damage_report"]
+        read_only_fields = [
+            "requester",
+            "status",
+            "created_at",
+            "updated_at",
+            "damage_report",
+        ]
 
 
 class TravelMatchSerializer(serializers.ModelSerializer):
@@ -136,7 +157,15 @@ class TrackingSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TrackingSession
-        fields = ["id", "travel_plan", "status", "started_at", "ended_at", "updated_at", "events"]
+        fields = [
+            "id",
+            "travel_plan",
+            "status",
+            "started_at",
+            "ended_at",
+            "updated_at",
+            "events",
+        ]
 
 
 class EmergencyAlertSerializer(serializers.ModelSerializer):

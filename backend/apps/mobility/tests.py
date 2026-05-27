@@ -8,13 +8,19 @@ User = get_user_model()
 
 class MobilityApiTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="driver@movr.app", password="StrongPass123")
+        self.user = User.objects.create_user(
+            email="driver@movr.app",
+            password="StrongPass123",
+            is_email_verified=True,
+        )
         login = self.client.post(
             "/api/auth/login/",
             {"email": "driver@movr.app", "password": "StrongPass123"},
             format="json",
         )
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['tokens']['access']}")
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {login.data['tokens']['access']}"
+        )
 
     def test_create_travel_plan_and_toggle_live(self):
         create_response = self.client.post(

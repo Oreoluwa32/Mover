@@ -58,8 +58,16 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
         return {
             "id": str(tracking_event.id),
             "event_type": tracking_event.event_type,
-            "latitude": float(tracking_event.latitude) if tracking_event.latitude is not None else None,
-            "longitude": float(tracking_event.longitude) if tracking_event.longitude is not None else None,
+            "latitude": (
+                float(tracking_event.latitude)
+                if tracking_event.latitude is not None
+                else None
+            ),
+            "longitude": (
+                float(tracking_event.longitude)
+                if tracking_event.longitude is not None
+                else None
+            ),
             "note": tracking_event.note,
             "payload": tracking_event.payload,
             "created_at": tracking_event.created_at.isoformat(),

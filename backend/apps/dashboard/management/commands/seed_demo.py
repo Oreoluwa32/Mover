@@ -3,6 +3,7 @@
 Usage: python manage.py seed_demo [--users 30]
 Safe to re-run; it appends a fresh batch of demo records each time.
 """
+
 from __future__ import annotations
 
 import random
@@ -24,8 +25,40 @@ from apps.mobility.models import (
 from apps.payments.models import Wallet, WalletTransaction
 
 LAGOS = (6.5244, 3.3792)
-FIRST = ["Victor", "Jacob", "Robert", "Annette", "Wade", "Leslie", "Devon", "Courtney", "Adaeze", "Jenny", "Jerome", "Ralph", "Albert", "Moyiwa", "Dominion"]
-LAST = ["Ikechukwu", "Jones", "Fox", "Black", "Warren", "Alexander", "Lane", "Henry", "Princess", "Wilson", "Bell", "Edwards", "Flores", "Adekunle", "Adeyemi"]
+FIRST = [
+    "Victor",
+    "Jacob",
+    "Robert",
+    "Annette",
+    "Wade",
+    "Leslie",
+    "Devon",
+    "Courtney",
+    "Adaeze",
+    "Jenny",
+    "Jerome",
+    "Ralph",
+    "Albert",
+    "Moyiwa",
+    "Dominion",
+]
+LAST = [
+    "Ikechukwu",
+    "Jones",
+    "Fox",
+    "Black",
+    "Warren",
+    "Alexander",
+    "Lane",
+    "Henry",
+    "Princess",
+    "Wilson",
+    "Bell",
+    "Edwards",
+    "Flores",
+    "Adekunle",
+    "Adeyemi",
+]
 
 
 class Command(BaseCommand):
@@ -53,13 +86,16 @@ class Command(BaseCommand):
                 is_active=random.random() > 0.12,
             )
             User.objects.filter(pk=user.pk).update(
-                last_login=now - timedelta(days=random.choice([0, 1, 3, 8, 45, 90]))
-                if random.random() > 0.2
-                else None
+                last_login=(
+                    now - timedelta(days=random.choice([0, 1, 3, 8, 45, 90]))
+                    if random.random() > 0.2
+                    else None
+                )
             )
             UserProfile.objects.get_or_create(user=user)
             Wallet.objects.filter(user=user).update(
-                balance=Decimal(random.randint(0, 9000)), available_balance=Decimal(random.randint(0, 9000))
+                balance=Decimal(random.randint(0, 9000)),
+                available_balance=Decimal(random.randint(0, 9000)),
             )
             if random.random() > 0.3:
                 KycRecord.objects.create(
@@ -70,8 +106,13 @@ class Command(BaseCommand):
                 )
             if random.random() > 0.5:
                 Vehicle.objects.create(
-                    owner=user, vehicle_type=random.choice([c[0] for c in Vehicle.VehicleType.choices]),
-                    make="Toyota", model="Corolla", plate_number=f"LAG-{random.randint(100, 999)}",
+                    owner=user,
+                    vehicle_type=random.choice(
+                        [c[0] for c in Vehicle.VehicleType.choices]
+                    ),
+                    make="Toyota",
+                    model="Corolla",
+                    plate_number=f"LAG-{random.randint(100, 999)}",
                     is_verified=random.random() > 0.4,
                 )
             users.append(user)
@@ -96,39 +137,61 @@ class Command(BaseCommand):
         for _ in range(40):
             creator = random.choice(users)
             plan = TravelPlan.objects.create(
-                created_by=creator, title="Lagos route",
+                created_by=creator,
+                title="Lagos route",
                 plan_type=random.choice([c[0] for c in TravelPlan.PlanType.choices]),
                 status=random.choice(statuses),
-                origin_name="Ikeja", destination_name="Lekki",
+                origin_name="Ikeja",
+                destination_name="Lekki",
                 departure_time=now + timedelta(hours=random.randint(1, 72)),
                 is_live=random.random() > 0.7,
             )
             if plan.is_live:
-                session = TrackingSession.objects.create(travel_plan=plan, status=TrackingSession.Status.LIVE, started_at=now)
+                session = TrackingSession.objects.create(
+                    travel_plan=plan, status=TrackingSession.Status.LIVE, started_at=now
+                )
                 TrackingEvent.objects.create(
-                    session=session, actor=creator, event_type=TrackingEvent.EventType.LOCATION,
-                    latitude=Decimal(str(round(LAGOS[0] + random.uniform(-0.08, 0.08), 6))),
-                    longitude=Decimal(str(round(LAGOS[1] + random.uniform(-0.08, 0.08), 6))),
+                    session=session,
+                    actor=creator,
+                    event_type=TrackingEvent.EventType.LOCATION,
+                    latitude=Decimal(
+                        str(round(LAGOS[0] + random.uniform(-0.08, 0.08), 6))
+                    ),
+                    longitude=Decimal(
+                        str(round(LAGOS[1] + random.uniform(-0.08, 0.08), 6))
+                    ),
                 )
 
             requester = random.choice(users)
             ride = RideRequest.objects.create(
-                requester=requester, origin_name="Yaba", destination_name="VI",
+                requester=requester,
+                origin_name="Yaba",
+                destination_name="VI",
                 scheduled_time=now + timedelta(hours=random.randint(1, 48)),
                 status=random.choice([c[0] for c in RideRequest.Status.choices]),
             )
             DeliveryRequest.objects.create(
-                requester=requester, pickup_name="Surulere", dropoff_name="Ajah",
+                requester=requester,
+                pickup_name="Surulere",
+                dropoff_name="Ajah",
                 scheduled_time=now + timedelta(hours=random.randint(1, 48)),
-                package_description="Parcel", weight_kg=Decimal("3.5"),
+                package_description="Parcel",
+                weight_kg=Decimal("3.5"),
                 status=random.choice([c[0] for c in DeliveryRequest.Status.choices]),
             )
             match = TravelMatch.objects.create(
-                travel_plan=plan, ride_request=ride,
+                travel_plan=plan,
+                ride_request=ride,
                 match_type=random.choice([c[0] for c in TravelMatch.MatchType.choices]),
                 agreed_price=Decimal(random.randint(1000, 50000)),
                 status=random.choice([c[0] for c in TravelMatch.Status.choices]),
             )
-            TravelMatch.objects.filter(pk=match.pk).update(created_at=now - timedelta(days=random.randint(0, 6)))
+            TravelMatch.objects.filter(pk=match.pk).update(
+                created_at=now - timedelta(days=random.randint(0, 6))
+            )
 
-        self.stdout.write(self.style.SUCCESS(f"Seeded {n} demo users plus plans, matches, transactions and tracking sessions."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Seeded {n} demo users plus plans, matches, transactions and tracking sessions."
+            )
+        )

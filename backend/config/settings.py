@@ -70,17 +70,33 @@ if DEBUG and "*" not in ALLOWED_HOSTS:
 
 if IS_PRODUCTION_LIKE:
     if DEBUG:
-        raise ImproperlyConfigured("DJANGO_DEBUG must be false outside local development.")
-    if SECRET_KEY in {"", DEV_SECRET_KEY, "change-this-to-a-random-string-in-production"}:
-        raise ImproperlyConfigured("Set a unique DJANGO_SECRET_KEY before deploying Movr.")
+        raise ImproperlyConfigured(
+            "DJANGO_DEBUG must be false outside local development."
+        )
+    if SECRET_KEY in {
+        "",
+        DEV_SECRET_KEY,
+        "change-this-to-a-random-string-in-production",
+    }:
+        raise ImproperlyConfigured(
+            "Set a unique DJANGO_SECRET_KEY before deploying Movr."
+        )
     if not ALLOWED_HOSTS:
-        raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS is required outside local development.")
+        raise ImproperlyConfigured(
+            "DJANGO_ALLOWED_HOSTS is required outside local development."
+        )
     if "*" in ALLOWED_HOSTS:
-        raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS must not contain '*' outside local development.")
+        raise ImproperlyConfigured(
+            "DJANGO_ALLOWED_HOSTS must not contain '*' outside local development."
+        )
     if "*" in CORS_ALLOWED_ORIGINS:
-        raise ImproperlyConfigured("CORS_ALLOWED_ORIGINS must list exact origins outside local development.")
+        raise ImproperlyConfigured(
+            "CORS_ALLOWED_ORIGINS must list exact origins outside local development."
+        )
     if "*" in CSRF_TRUSTED_ORIGINS:
-        raise ImproperlyConfigured("CSRF_TRUSTED_ORIGINS must list exact origins outside local development.")
+        raise ImproperlyConfigured(
+            "CSRF_TRUSTED_ORIGINS must list exact origins outside local development."
+        )
 
 INSTALLED_APPS = [
     "daphne",
@@ -166,7 +182,9 @@ DATABASES["default"]["CONN_HEALTH_CHECKS"] = DATABASE_CONN_MAX_AGE > 0
 AUTH_USER_MODEL = "accounts.User"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
 ]
 
@@ -186,17 +204,13 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PARSER_CLASSES": (
         "config.api_security.SanitizedJSONParser",
         "config.api_security.SanitizedFormParser",
         "config.api_security.SanitizedMultiPartParser",
     ),
-    "DEFAULT_RENDERER_CLASSES": (
-        "config.api_security.SanitizedJSONRenderer",
-    ),
+    "DEFAULT_RENDERER_CLASSES": ("config.api_security.SanitizedJSONRenderer",),
     "DEFAULT_THROTTLE_CLASSES": (
         "config.api_security.MovrAnonRateThrottle",
         "config.api_security.MovrUserRateThrottle",

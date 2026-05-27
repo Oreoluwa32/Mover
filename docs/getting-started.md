@@ -44,7 +44,7 @@ Movr/
 
 The project keeps a shared example config at:
 
-- [`.env.example`](C:/Users/oreol/Documents/Projects/Movr/.env.example)
+- [`.env.example`](../.env.example)
 
 Important variables include:
 

@@ -3,6 +3,7 @@
 All counting/summing happens in the database. Functions return plain Python
 numbers so they can be rendered in templates or JSON-serialized for charts.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -25,8 +26,29 @@ PERIODS = {
 }
 DEFAULT_PERIOD = "30d"
 
-WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+WEEKDAY_LABELS = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+]
+MONTH_LABELS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+]
 
 EARNING_TYPES = [WalletTransaction.Type.DEPOSIT, WalletTransaction.Type.SUBSCRIPTION]
 _ZERO_MONEY = Coalesce(Sum("amount"), Value(Decimal("0")), output_field=DecimalField())
@@ -79,21 +101,31 @@ def stat_cards(period: Period) -> dict:
     active_route_statuses = [TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS]
     cancelled_trips = (
         RideRequest.objects.filter(status=RideRequest.Status.CANCELLED).count()
-        + DeliveryRequest.objects.filter(status=DeliveryRequest.Status.CANCELLED).count()
+        + DeliveryRequest.objects.filter(
+            status=DeliveryRequest.Status.CANCELLED
+        ).count()
     )
 
     return {
         "total_users": User.objects.count(),
-        "total_wallet_balance": Wallet.objects.aggregate(total=Coalesce(Sum("balance"), Value(Decimal("0")), output_field=DecimalField()))["total"],
+        "total_wallet_balance": Wallet.objects.aggregate(
+            total=Coalesce(
+                Sum("balance"), Value(Decimal("0")), output_field=DecimalField()
+            )
+        )["total"],
         "earnings": earnings,
         "earnings_growth": _growth_pct(earnings, prev_earnings),
-        "active_routes": TravelPlan.objects.filter(status__in=active_route_statuses).count(),
+        "active_routes": TravelPlan.objects.filter(
+            status__in=active_route_statuses
+        ).count(),
         "total_routes": TravelPlan.objects.count(),
         "active_ride_sharing": TravelMatch.objects.filter(
             match_type=TravelMatch.MatchType.RIDE,
             status__in=[TravelMatch.Status.ACCEPTED, TravelMatch.Status.ACTIVE],
         ).count(),
-        "active_delivery": DeliveryRequest.objects.filter(status=DeliveryRequest.Status.IN_TRANSIT).count(),
+        "active_delivery": DeliveryRequest.objects.filter(
+            status=DeliveryRequest.Status.IN_TRANSIT
+        ).count(),
         "cancelled_trips": cancelled_trips,
     }
 
@@ -101,7 +133,9 @@ def stat_cards(period: Period) -> dict:
 def trips_weekday_series(period: Period) -> dict:
     """Ride-sharing vs delivery matches bucketed by weekday over the period."""
     rows = (
-        TravelMatch.objects.filter(created_at__gte=period.start, created_at__lt=period.end)
+        TravelMatch.objects.filter(
+            created_at__gte=period.start, created_at__lt=period.end
+        )
         .annotate(weekday=ExtractWeekDay("created_at"))
         .values("weekday", "match_type")
         .annotate(total=Count("id"))
@@ -121,7 +155,9 @@ def trips_weekday_series(period: Period) -> dict:
 
 def routes_split() -> dict:
     counts = dict(
-        TravelMatch.objects.values_list("match_type").annotate(total=Count("id")).values_list("match_type", "total")
+        TravelMatch.objects.values_list("match_type")
+        .annotate(total=Count("id"))
+        .values_list("match_type", "total")
     )
     ride = counts.get(TravelMatch.MatchType.RIDE, 0)
     delivery = counts.get(TravelMatch.MatchType.DELIVERY, 0)
@@ -131,7 +167,9 @@ def routes_split() -> dict:
 def revenue_monthly_series(months: int = 12) -> dict:
     """Successful earnings summed by calendar month for the trailing `months`."""
     now = timezone.now()
-    start = (now - timedelta(days=31 * (months - 1))).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    start = (now - timedelta(days=31 * (months - 1))).replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )
     rows = (
         WalletTransaction.objects.filter(
             status=WalletTransaction.Status.SUCCESS,
@@ -143,7 +181,11 @@ def revenue_monthly_series(months: int = 12) -> dict:
         .annotate(total=_ZERO_MONEY)
         .order_by("month")
     )
-    totals = {row["month"].strftime("%Y-%m"): float(row["total"]) for row in rows if row["month"]}
+    totals = {
+        row["month"].strftime("%Y-%m"): float(row["total"])
+        for row in rows
+        if row["month"]
+    }
 
     labels: list[str] = []
     values: list[float] = []

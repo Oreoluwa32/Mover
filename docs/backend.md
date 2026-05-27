@@ -107,8 +107,8 @@ Key routes:
 
 Top-level URL wiring:
 
-- [config/urls.py](C:/Users/oreol/Documents/Projects/Movr/backend/config/urls.py)
-- [config/api_urls.py](C:/Users/oreol/Documents/Projects/Movr/backend/config/api_urls.py)
+- [config/urls.py](../backend/config/urls.py)
+- [config/api_urls.py](../backend/config/api_urls.py)
 
 The backend exposes both:
 
