@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from django.db.models import Q
 from django.utils import timezone
+
+from config.jwt_auth import JWT_SUBPROTOCOL
 
 from .models import TrackingEvent, TrackingSession, TravelPlan
 
@@ -17,8 +20,28 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
             await self.close(code=4401)
             return
 
+        if not await self._user_can_access_plan(user, self.travel_plan_id):
+            await self.close(code=4403)
+            return
+
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
+        subprotocol = (
+            JWT_SUBPROTOCOL
+            if JWT_SUBPROTOCOL in (self.scope.get("subprotocols") or [])
+            else None
+        )
+        await self.accept(subprotocol=subprotocol)
+
+    @database_sync_to_async
+    def _user_can_access_plan(self, user, travel_plan_id) -> bool:
+        return TravelPlan.objects.filter(
+            Q(id=travel_plan_id)
+            & (
+                Q(created_by=user)
+                | Q(matches__ride_request__requester=user)
+                | Q(matches__delivery_request__requester=user)
+            )
+        ).exists()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)

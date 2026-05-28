@@ -37,11 +37,14 @@ class MobilityRealtimeService {
       throw Exception('Authentication token not found.');
     }
 
-    final uri = Uri.parse(
-      '$_wsBaseUrl/ws/tracking/$travelPlanId/?token=${Uri.encodeQueryComponent(token)}',
-    );
+    final uri = Uri.parse('$_wsBaseUrl/ws/tracking/$travelPlanId/');
 
-    final socket = await WebSocket.connect(uri.toString());
+    // Carry the JWT in the Sec-WebSocket-Protocol header instead of the URL
+    // so it doesn't end up in proxy/server access logs.
+    final socket = await WebSocket.connect(
+      uri.toString(),
+      protocols: ['movr.jwt', token],
+    );
     _socket = socket;
     _connectedTravelPlanId = travelPlanId;
 
