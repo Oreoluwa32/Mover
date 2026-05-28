@@ -42,10 +42,15 @@ ACCEPTED_MATCH_EXPIRY_WINDOW = timedelta(hours=12)
 
 
 def _filter_plans_for_fully_verified_creators(queryset):
+    # is_fully_verified_user walks created_by.kyc_record (OneToOne reverse)
+    # and created_by.vehicles (reverse FK). Without these select/prefetch
+    # hints each plan row issues two extra queries per attribute access,
+    # turning the matching helpers into an N+1 trap.
+    materialized = queryset.select_related(
+        "created_by", "created_by__kyc_record"
+    ).prefetch_related("created_by__vehicles")
     eligible_plan_ids = [
-        plan.id
-        for plan in queryset.select_related("created_by")
-        if is_fully_verified_user(plan.created_by)
+        plan.id for plan in materialized if is_fully_verified_user(plan.created_by)
     ]
     return queryset.filter(id__in=eligible_plan_ids)
 
