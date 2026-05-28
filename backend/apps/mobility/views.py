@@ -295,8 +295,12 @@ class TravelPlanViewSet(viewsets.ModelViewSet):
                 created_by=self.request.user
             )
 
+        # Pre-fetch the creator's reviews so the embedded UserSummarySerializer
+        # can compute rating count/average from cache (saves ~2 queries per
+        # serialized plan).
         queryset = (
             TravelPlan.objects.select_related("created_by")
+            .prefetch_related("created_by__received_reviews")
             .all()
             .order_by("-departure_time")
         )

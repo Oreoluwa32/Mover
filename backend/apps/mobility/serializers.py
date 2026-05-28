@@ -79,9 +79,19 @@ class UserSummarySerializer(serializers.ModelSerializer):
         return "home"
 
     def get_rating_count(self, obj):
+        cache = getattr(obj, "_prefetched_objects_cache", None)
+        if cache is not None and "received_reviews" in cache:
+            return len(cache["received_reviews"])
         return obj.received_reviews.count()
 
     def get_average_rating(self, obj):
+        cache = getattr(obj, "_prefetched_objects_cache", None)
+        if cache is not None and "received_reviews" in cache:
+            reviews = cache["received_reviews"]
+            if not reviews:
+                return 0.0
+            total = sum(getattr(review, "rating", 0) for review in reviews)
+            return round(float(total) / len(reviews), 1)
         aggregate = obj.received_reviews.aggregate(value=Avg("rating"))
         return round(float(aggregate["value"] or 0), 1)
 
