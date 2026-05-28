@@ -280,6 +280,19 @@ if IS_PRODUCTION_LIKE:
 
 MOVR_FRONTEND_BASE_URL = os.getenv("MOVR_FRONTEND_BASE_URL", "https://movr.app")
 MOVR_DEFAULT_CURRENCY = os.getenv("MOVR_DEFAULT_CURRENCY", "NGN")
+
+# Symmetric key (Fernet) used to encrypt PII columns (KycRecord.bvn / .nin).
+# Comma-separated for rotation: first key encrypts new writes, later keys
+# decrypt legacy ciphertext. Production must set this explicitly; the dev
+# fallback is fine for local development only.
+_DEV_PII_KEY = "Z9d7r-aoxPGI20kLBQT-9_yK0jmqU2zN5MRDeEoXjLI="
+MOVR_PII_ENCRYPTION_KEY = os.getenv("MOVR_PII_ENCRYPTION_KEY", "")
+if IS_PRODUCTION_LIKE and not MOVR_PII_ENCRYPTION_KEY:
+    raise ImproperlyConfigured(
+        "MOVR_PII_ENCRYPTION_KEY is required outside local development."
+    )
+if not MOVR_PII_ENCRYPTION_KEY:
+    MOVR_PII_ENCRYPTION_KEY = _DEV_PII_KEY
 MOVR_PASSWORD_RESET_DEEP_LINK_BASE = os.getenv(
     "MOVR_PASSWORD_RESET_DEEP_LINK_BASE",
     "movr://reset-password",

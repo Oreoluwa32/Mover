@@ -189,6 +189,38 @@ class EmailVerificationLockoutTests(APITestCase):
         self.assertEqual(correct.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class PIIEncryptionTests(APITestCase):
+    """KycRecord.bvn / .nin are written as ciphertext but transparent to readers."""
+
+    def test_bvn_nin_stored_as_ciphertext(self):
+        from django.db import connection
+
+        from apps.accounts.encryption import PII_PREFIX
+        from apps.accounts.models import KycRecord
+
+        user = User.objects.create_user(email="pii@movr.app", password="StrongPass123")
+        record = KycRecord.objects.create(
+            user=user, bvn="12345678901", nin="98765432101"
+        )
+
+        # ORM round trip returns plaintext.
+        refreshed = KycRecord.objects.get(pk=record.pk)
+        self.assertEqual(refreshed.bvn, "12345678901")
+        self.assertEqual(refreshed.nin, "98765432101")
+
+        # Raw SQL confirms the column is encrypted at rest.
+        with connection.cursor() as cur:
+            cur.execute(
+                "SELECT bvn, nin FROM accounts_kycrecord WHERE id = %s",
+                [record.pk],
+            )
+            raw_bvn, raw_nin = cur.fetchone()
+        self.assertTrue(raw_bvn.startswith(PII_PREFIX))
+        self.assertTrue(raw_nin.startswith(PII_PREFIX))
+        self.assertNotIn("12345678901", raw_bvn)
+        self.assertNotIn("98765432101", raw_nin)
+
+
 class EmailingFunctionTests(APITestCase):
     """Exercise the real email builders (mock only the network sender)."""
 

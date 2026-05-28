@@ -5,6 +5,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
+from .encryption import EncryptedCharField
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -115,8 +117,10 @@ class KycRecord(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="kyc_record"
     )
-    bvn = models.CharField(max_length=11, blank=True)
-    nin = models.CharField(max_length=11, blank=True)
+    # Stored as ciphertext via EncryptedCharField; max_length is generous so
+    # the Fernet token (much longer than 11 chars) fits.
+    bvn = EncryptedCharField(max_length=255, blank=True)
+    nin = EncryptedCharField(max_length=255, blank=True)
     id_document_url = models.URLField(blank=True)
     selfie_url = models.URLField(blank=True)
     status = models.CharField(
