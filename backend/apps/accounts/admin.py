@@ -436,6 +436,49 @@ class KycRecordAdmin(admin.ModelAdmin):
     def selfie_preview(self, obj: KycRecord):
         return self._kyc_document_preview(obj.selfie_url, "Selfie")
 
+    @admin.display(description="BVN")
+    def bvn_masked(self, obj: KycRecord):
+        return self._mask_pii(obj.bvn)
+
+    @admin.display(description="NIN")
+    def nin_masked(self, obj: KycRecord):
+        return self._mask_pii(obj.nin)
+
+    @staticmethod
+    def _mask_pii(value: str) -> str:
+        if not value:
+            return "—"
+        return "•" * max(0, len(value) - 4) + value[-4:]
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return self.list_display
+        return tuple(
+            (
+                "bvn_masked"
+                if field == "bvn"
+                else "nin_masked" if field == "nin" else field
+            )
+            for field in self.list_display
+        )
+
+    def get_search_fields(self, request):
+        if request.user.is_superuser:
+            return self.search_fields
+        return tuple(
+            field for field in self.search_fields if field not in {"bvn", "nin"}
+        )
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            return fieldsets
+        redacted = []
+        for label, opts in fieldsets:
+            fields = tuple(f for f in opts.get("fields", ()) if f not in {"bvn", "nin"})
+            redacted.append((label, {**opts, "fields": fields}))
+        return tuple(redacted)
+
     @admin.action(description="Mark selected KYC submissions as pending review")
     def mark_kyc_pending(self, request, queryset):
         updated = queryset.update(status=KycRecord.Status.PENDING, reviewer_notes="")
