@@ -4,6 +4,7 @@ import 'package:location/location.dart';
 import '../../../core/app_export.dart';
 import '../../../core/utils/location_manager.dart';
 import '../../../data/models/selectionPopupModel/selection_popup_model.dart';
+import '../../../services/google_places_service_provider.dart';
 import '../models/add_route_one_item_model.dart';
 import '../models/add_route_one_model.dart';
 import 'places_autocomplete_notifier.dart';

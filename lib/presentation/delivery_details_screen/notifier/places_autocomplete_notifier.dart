@@ -1,12 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/utils/constants.dart';
 import '../../../services/google_places_service.dart';
+import '../../../services/google_places_service_provider.dart';
 import 'places_autocomplete_state.dart';
-
-final googlePlacesServiceProvider = Provider<GooglePlacesService>((ref) {
-  const apiKey = Constants.googlePlacesApiKey;
-  return GooglePlacesService(apiKey: apiKey);
-});
 
 final placesAutocompleteProvider =
     StateNotifierProvider<PlacesAutocompleteNotifier, PlacesAutocompleteState>(

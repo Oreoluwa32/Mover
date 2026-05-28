@@ -52,6 +52,13 @@ class PlaceDetails {
   }
 }
 
+class _CacheEntry<T> {
+  _CacheEntry(this.value, this.expiresAt);
+  final T value;
+  final DateTime expiresAt;
+  bool get isFresh => DateTime.now().isBefore(expiresAt);
+}
+
 class GooglePlacesService {
   final String apiKey;
   final Dio dio;
@@ -59,6 +66,14 @@ class GooglePlacesService {
   static const String _defaultCountryComponents = 'country:ng';
   static const String _defaultRegion = 'ng';
   static const String _defaultLanguage = 'en';
+  static const Duration _predictionsTtl = Duration(minutes: 5);
+  static const Duration _detailsTtl = Duration(minutes: 30);
+
+  // Small in-process caches so identical repeat queries (most often a user
+  // backspacing through the same prefix) don't fan out to billable Places
+  // API calls.
+  final Map<String, _CacheEntry<List<PlacePrediction>>> _predictionsCache = {};
+  final Map<String, _CacheEntry<PlaceDetails>> _detailsCache = {};
 
   GooglePlacesService({
     required this.apiKey,
@@ -79,6 +94,13 @@ class GooglePlacesService {
       final effectiveLanguage = (language == null || language.trim().isEmpty)
           ? _defaultLanguage
           : language.trim();
+
+      final cacheKey =
+          '$input|${sessionToken ?? ''}|$effectiveComponents|$effectiveLanguage';
+      final cached = _predictionsCache[cacheKey];
+      if (cached != null && cached.isFresh) {
+        return cached.value;
+      }
 
       final response = await dio.get(
         '$_baseUrl/autocomplete/json',
@@ -105,6 +127,8 @@ class GooglePlacesService {
                     (p) => PlacePrediction.fromJson(p as Map<String, dynamic>))
                 .toList() ??
             [];
+        _predictionsCache[cacheKey] =
+            _CacheEntry(predictions, DateTime.now().add(_predictionsTtl));
         return predictions;
       } else {
         throw Exception('Failed to fetch predictions: ${response.statusCode}');
@@ -123,6 +147,12 @@ class GooglePlacesService {
       final effectiveLanguage = (language == null || language.trim().isEmpty)
           ? _defaultLanguage
           : language.trim();
+
+      final cacheKey = '$placeId|$effectiveLanguage';
+      final cached = _detailsCache[cacheKey];
+      if (cached != null && cached.isFresh) {
+        return cached.value;
+      }
 
       final response = await dio.get(
         '$_baseUrl/details/json',
@@ -146,7 +176,10 @@ class GooglePlacesService {
 
         final result = data['result'] as Map<String, dynamic>?;
         if (result != null) {
-          return PlaceDetails.fromJson(result);
+          final details = PlaceDetails.fromJson(result);
+          _detailsCache[cacheKey] =
+              _CacheEntry(details, DateTime.now().add(_detailsTtl));
+          return details;
         } else {
           throw Exception('No result found');
         }

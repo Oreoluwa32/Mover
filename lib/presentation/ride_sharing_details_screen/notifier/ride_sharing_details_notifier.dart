@@ -5,6 +5,7 @@ import '../../../core/app_export.dart';
 import '../../../data/models/selectionPopupModel/selection_popup_model.dart';
 import '../../delivery_details_screen/notifier/places_autocomplete_notifier.dart';
 import '../../../services/google_places_service.dart';
+import '../../../services/google_places_service_provider.dart';
 import '../models/ride_sharing_details_model.dart';
 part 'ride_sharing_details_state.dart';
 

@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:location/location.dart';
 import '../../../core/app_export.dart';
 import '../../../services/google_places_service.dart';
+import '../../../services/google_places_service_provider.dart';
 import '../models/delivery_details_model.dart';
 import 'places_autocomplete_notifier.dart';
 part 'delivery_details_state.dart';
