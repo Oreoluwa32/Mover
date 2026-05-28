@@ -14,6 +14,7 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.travel_plan_id = self.scope["url_route"]["kwargs"]["travel_plan_id"]
         self.room_group_name = f"tracking_{self.travel_plan_id}"
+        self.session_id = None
         user = self.scope.get("user")
 
         if not user or not user.is_authenticated:
@@ -23,6 +24,10 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
         if not await self._user_can_access_plan(user, self.travel_plan_id):
             await self.close(code=4403)
             return
+
+        # Resolve the tracking session once at connect so subsequent
+        # receive_json calls only insert a TrackingEvent (1 query instead of 3).
+        self.session_id = await self._open_session(self.travel_plan_id)
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         subprotocol = (
@@ -43,6 +48,16 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
             )
         ).exists()
 
+    @database_sync_to_async
+    def _open_session(self, travel_plan_id):
+        travel_plan = TravelPlan.objects.get(id=travel_plan_id)
+        session, _ = TrackingSession.objects.get_or_create(travel_plan=travel_plan)
+        if session.status == TrackingSession.Status.IDLE:
+            session.status = TrackingSession.Status.LIVE
+            session.started_at = timezone.now()
+            session.save(update_fields=["status", "started_at", "updated_at"])
+        return session.id
+
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
@@ -62,15 +77,8 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
     @database_sync_to_async
     def _persist_event(self, content):
         user = self.scope["user"]
-        travel_plan = TravelPlan.objects.get(id=self.travel_plan_id)
-        session, _ = TrackingSession.objects.get_or_create(travel_plan=travel_plan)
-        if session.status == TrackingSession.Status.IDLE:
-            session.status = TrackingSession.Status.LIVE
-            session.started_at = timezone.now()
-            session.save(update_fields=["status", "started_at", "updated_at"])
-
         tracking_event = TrackingEvent.objects.create(
-            session=session,
+            session_id=self.session_id,
             actor=user,
             event_type=content.get("event_type", TrackingEvent.EventType.LOCATION),
             latitude=content.get("latitude"),

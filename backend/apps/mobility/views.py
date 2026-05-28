@@ -923,7 +923,11 @@ class TravelMatchViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         if request.method.lower() == "get":
-            messages = match.messages.select_related("sender").all()
+            messages = match.messages.select_related("sender").order_by("-created_at")
+            page = self.paginate_queryset(messages)
+            if page is not None:
+                serializer = TaskMessageSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
             return response.Response(TaskMessageSerializer(messages, many=True).data)
 
         body = (request.data.get("body") or "").strip()

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from django.core.cache import cache
 from django.db.models import Count, DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce, ExtractWeekDay, TruncMonth
 from django.utils import timezone
@@ -17,6 +18,8 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.mobility.models import DeliveryRequest, RideRequest, TravelMatch, TravelPlan
 from apps.payments.models import Wallet, WalletTransaction
+
+_STAT_CARDS_CACHE_TTL_SECONDS = 60
 
 PERIODS = {
     "7d": ("Last 7 Days", 7),
@@ -95,6 +98,16 @@ def _earnings(start: datetime, end: datetime) -> Decimal:
 
 
 def stat_cards(period: Period) -> dict:
+    # Each call would otherwise fire ~9 aggregates, hot on every dashboard
+    # render. Short TTL is enough to absorb refresh storms without making
+    # the numbers feel stale.
+    cache_key = (
+        f"dashboard:stat_cards:" f"{period.start.isoformat()}:{period.end.isoformat()}"
+    )
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     earnings = _earnings(period.start, period.end)
     prev_earnings = _earnings(period.prev_start, period.prev_end)
 
@@ -106,7 +119,7 @@ def stat_cards(period: Period) -> dict:
         ).count()
     )
 
-    return {
+    result = {
         "total_users": User.objects.count(),
         "total_wallet_balance": Wallet.objects.aggregate(
             total=Coalesce(
@@ -128,6 +141,8 @@ def stat_cards(period: Period) -> dict:
         ).count(),
         "cancelled_trips": cancelled_trips,
     }
+    cache.set(cache_key, result, timeout=_STAT_CARDS_CACHE_TTL_SECONDS)
+    return result
 
 
 def trips_weekday_series(period: Period) -> dict:
