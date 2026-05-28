@@ -144,6 +144,51 @@ class AuthenticationTests(APITestCase):
         self.assertTrue(user.check_password("NewStrongPass123"))
 
 
+class EmailVerificationLockoutTests(APITestCase):
+    """Brute-force protection for the verification code."""
+
+    def setUp(self):
+        # The DRF throttle cache persists across tests in the same process;
+        # clear it so this test exercises only the in-view lockout logic.
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def test_code_locks_after_too_many_wrong_attempts(self):
+        user = User.objects.create_user(
+            email="locktest@movr.app", password="StrongPass123"
+        )
+        # Seed an active code we know.
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.accounts.models import EmailVerificationCode
+
+        EmailVerificationCode.objects.create(
+            user=user,
+            code="111111",
+            expires_at=timezone.now() + timedelta(minutes=15),
+        )
+
+        # Five wrong tries should each return 400. The fifth try also locks
+        # the code, so even the correct code afterwards is rejected.
+        for _ in range(5):
+            wrong = self.client.post(
+                "/api/auth/email-verification/confirm/",
+                {"email": user.email, "code": "999999"},
+                format="json",
+            )
+            self.assertEqual(wrong.status_code, status.HTTP_400_BAD_REQUEST)
+
+        correct = self.client.post(
+            "/api/auth/email-verification/confirm/",
+            {"email": user.email, "code": "111111"},
+            format="json",
+        )
+        self.assertEqual(correct.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class EmailingFunctionTests(APITestCase):
     """Exercise the real email builders (mock only the network sender)."""
 

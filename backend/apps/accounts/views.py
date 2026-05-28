@@ -370,11 +370,28 @@ class EmailVerificationConfirmView(APIView):
         verification = user.email_verification_codes.filter(
             consumed_at__isnull=True
         ).first()
-        if not verification or verification.is_expired or verification.code != code:
-            return response.Response(
-                {"detail": "Invalid or expired verification code."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        invalid_response = response.Response(
+            {"detail": "Invalid or expired verification code."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+        if not verification or verification.is_expired:
+            return invalid_response
+
+        max_attempts = int(getattr(settings, "MOVR_EMAIL_VERIFICATION_MAX_ATTEMPTS", 5))
+        if verification.attempts >= max_attempts:
+            return invalid_response
+
+        if verification.code != code:
+            verification.attempts += 1
+            update_fields = ["attempts"]
+            if verification.attempts >= max_attempts:
+                # Lock the code so subsequent guesses can't reuse it even
+                # before it would otherwise expire.
+                verification.consumed_at = timezone.now()
+                update_fields.append("consumed_at")
+            verification.save(update_fields=update_fields)
+            return invalid_response
 
         verification.consumed_at = timezone.now()
         verification.save(update_fields=["consumed_at"])

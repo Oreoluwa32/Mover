@@ -35,7 +35,7 @@ def build_password_reset_url(*, uid: str, token: str) -> str:
 
 
 def generate_email_verification_code() -> str:
-    return f"{random.randint(0, 9999):04d}"
+    return f"{random.randint(0, 999999):06d}"
 
 
 def _send_resend_email(

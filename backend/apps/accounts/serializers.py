@@ -177,7 +177,7 @@ class EmailVerificationRequestSerializer(serializers.Serializer):
 
 class EmailVerificationConfirmSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    code = serializers.CharField(min_length=4, max_length=4)
+    code = serializers.CharField(min_length=6, max_length=6)
 
 
 class ResetPasswordConfirmSerializer(serializers.Serializer):
