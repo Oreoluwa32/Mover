@@ -78,7 +78,7 @@ def _monnify_request(
 
     request = Request(url, data=data, method=method.upper(), headers=headers)
     try:
-        with urlopen(request, timeout=30) as response:
+        with urlopen(request, timeout=10) as response:
             return _load_response_body(response)
     except HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -114,7 +114,7 @@ def get_access_token() -> str:
         },
     )
     try:
-        with urlopen(request, timeout=30) as response:
+        with urlopen(request, timeout=10) as response:
             payload = _load_response_body(response)
     except HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")

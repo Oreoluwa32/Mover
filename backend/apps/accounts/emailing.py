@@ -78,7 +78,7 @@ def _send_resend_email(
     )
 
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=10) as response:
             if response.status >= 400:
                 raise error_cls(
                     f"Resend rejected the email with status {response.status}."

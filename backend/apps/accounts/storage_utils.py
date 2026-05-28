@@ -106,7 +106,7 @@ def upload_file_to_supabase(
     )
 
     try:
-        with urlopen(upload_request, timeout=30) as upload_response:
+        with urlopen(upload_request, timeout=10) as upload_response:
             upload_response.read()
     except HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="ignore")
@@ -174,7 +174,7 @@ def resolve_supabase_asset_url(
     )
 
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=10) as response:
             body = json.loads(response.read().decode("utf-8"))
     except HTTPError as exc:
         error_body = exc.read().decode("utf-8", errors="ignore")

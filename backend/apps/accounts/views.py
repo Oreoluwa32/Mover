@@ -195,6 +195,20 @@ def _mark_vehicle_for_review(metadata: dict[str, str]) -> dict[str, str]:
     return pending_metadata
 
 
+def _uniform_register_response(email: str) -> response.Response:
+    # Same status code and body whether or not the email already had an
+    # account, so the endpoint cannot be used as an account-enumeration
+    # oracle.
+    return response.Response(
+        {
+            "detail": "Check your inbox to verify your email and finish setup.",
+            "email_verification_required": True,
+            "email": email,
+        },
+        status=status.HTTP_202_ACCEPTED,
+    )
+
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_scope = "auth"
@@ -204,27 +218,18 @@ class RegisterView(APIView):
         existing_user = (
             User.objects.filter(email__iexact=email).first() if email else None
         )
-        if existing_user:
-            if existing_user.is_email_verified:
-                return response.Response(
-                    {"detail": "An account with this email already exists."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            try:
-                _dispatch_email_verification(existing_user)
-            except EmailVerificationError as exc:
-                return response.Response(
-                    {"detail": str(exc)},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                )
-            return response.Response(
-                {
-                    "detail": "Your email is not verified yet. We sent a new verification code.",
-                    "email_verification_required": True,
-                    "email": existing_user.email,
-                },
-                status=status.HTTP_202_ACCEPTED,
-            )
+        if existing_user is not None:
+            if not existing_user.is_email_verified:
+                try:
+                    _dispatch_email_verification(existing_user)
+                except EmailVerificationError as exc:
+                    return response.Response(
+                        {"detail": str(exc)},
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    )
+            # Verified accounts get the same uniform response with no email
+            # sent; legitimate owners should log in instead.
+            return _uniform_register_response(email)
 
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -238,14 +243,7 @@ class RegisterView(APIView):
                 {"detail": str(exc)},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-        return response.Response(
-            {
-                "detail": "Account created. Verify your email to continue.",
-                "email_verification_required": True,
-                "email": user.email,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        return _uniform_register_response(user.email)
 
 
 class LoginView(APIView):

@@ -187,6 +187,8 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 LANGUAGE_CODE = "en-us"
@@ -268,6 +270,13 @@ CSRF_COOKIE_SECURE = not DEBUG
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+
+if IS_PRODUCTION_LIKE:
+    SECURE_SSL_REDIRECT = True
+    # Start with a short HSTS window when first enabling, then ratchet up.
+    SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 MOVR_FRONTEND_BASE_URL = os.getenv("MOVR_FRONTEND_BASE_URL", "https://movr.app")
 MOVR_DEFAULT_CURRENCY = os.getenv("MOVR_DEFAULT_CURRENCY", "NGN")

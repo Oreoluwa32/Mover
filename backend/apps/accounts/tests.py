@@ -29,7 +29,7 @@ class AuthenticationTests(APITestCase):
             },
             format="json",
         )
-        self.assertEqual(register_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(register_response.status_code, status.HTTP_202_ACCEPTED)
         self.assertTrue(register_response.data["email_verification_required"])
         mock_send_email_verification_email.assert_called_once()
 
@@ -43,6 +43,32 @@ class AuthenticationTests(APITestCase):
         )
         self.assertEqual(login_response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(login_response.data["code"], "email_verification_required")
+
+    @patch("apps.accounts.views.send_email_verification_email")
+    def test_register_with_verified_email_returns_uniform_response(
+        self, mock_send_email_verification_email
+    ):
+        # An already-verified account must not be revealed by register.
+        User.objects.create_user(
+            email="taken@movr.app",
+            password="StrongPass123",
+            is_email_verified=True,
+        )
+        register_response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "taken@movr.app",
+                "password": "StrongPass123",
+                "first_name": "Movr",
+                "last_name": "Tester",
+                "account_type": "both",
+            },
+            format="json",
+        )
+        self.assertEqual(register_response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertTrue(register_response.data["email_verification_required"])
+        # No verification email should be dispatched for a verified account.
+        mock_send_email_verification_email.assert_not_called()
 
     @patch("apps.accounts.views.send_email_verification_email")
     def test_verify_email_then_login(self, mock_send_email_verification_email):
