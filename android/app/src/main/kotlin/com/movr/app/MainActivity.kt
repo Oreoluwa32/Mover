@@ -1,4 +1,4 @@
-package com.example.movr
+package com.movr.app
 
 import io.flutter.embedding.android.FlutterActivity
 
