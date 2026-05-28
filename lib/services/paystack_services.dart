@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:movr/core/utils/keys.dart';
 import '../models/paystack_auth_response.dart';
@@ -13,6 +14,14 @@ class PaystackServices {
   /// The backend has Paystack secret key in its environment variables
   static const String _backendPaystackInitEndpoint = '/api/paystack/initialize-transaction';
   static const String _backendPaystackVerifyEndpoint = '/api/paystack/verify-transaction';
+
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await const FlutterSecureStorage().read(key: 'auth_token');
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
 
   /// Initialize transaction by calling BACKEND endpoint (NOT Paystack directly)
   /// 
@@ -43,11 +52,7 @@ class PaystackServices {
     try {
       final response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          // Optional: Add auth token if your backend requires it
-          // 'Authorization': 'Bearer $authToken',
-        },
+        headers: await _authHeaders(),
         body: jsonEncode(data),
       );
 
@@ -105,11 +110,7 @@ class PaystackServices {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          // Optional: Add auth token if your backend requires it
-          // 'Authorization': 'Bearer $authToken',
-        },
+        headers: await _authHeaders(),
       );
 
       if (response.statusCode == 200) {

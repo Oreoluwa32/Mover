@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:movr/core/utils/keys.dart';
 import '../models/monnify_auth_response.dart';
@@ -11,6 +12,14 @@ class MonnifyServices {
   /// The backend has Monnify secret key in its environment variables
   static const String _backendMonnifyInitEndpoint = '/api/v1/merchant/transactions/init-transaction';
   static const String _backendMonnifyVerifyEndpoint = '/api/v1/merchant/transactions/verify';
+
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await const FlutterSecureStorage().read(key: 'auth_token');
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
 
   /// Initialize transaction by calling BACKEND endpoint (NOT Monnify directly)
   /// 
@@ -41,11 +50,7 @@ class MonnifyServices {
     try {
       final response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          // Optional: Add auth token if your backend requires it
-          // 'Authorization': 'Bearer $authToken',
-        },
+        headers: await _authHeaders(),
         body: jsonEncode(data),
       ).timeout(
         const Duration(seconds: 15),
@@ -106,11 +111,7 @@ class MonnifyServices {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          // Optional: Add auth token if your backend requires it
-          // 'Authorization': 'Bearer $authToken',
-        },
+        headers: await _authHeaders(),
       );
 
       if (response.statusCode == 200) {

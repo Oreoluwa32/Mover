@@ -456,25 +456,13 @@ class PaymentVerifyView(APIView):
 
 
 class LegacyPaystackInitializeView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     throttle_scope = "payments"
 
     def post(self, request):
         serializer = PaymentInitializeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        wallet = (
-            request.user.wallet
-            if request.user and request.user.is_authenticated
-            else Wallet.objects.first()
-        )
-        if wallet is None:
-            return response.Response(
-                {
-                    "status": False,
-                    "message": "Create a user before testing legacy payments.",
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        wallet = request.user.wallet
         reference = serializer.validated_data.get("reference") or uuid.uuid4().hex[:16]
         transaction = WalletTransaction.objects.create(
             wallet=wallet,
@@ -503,11 +491,13 @@ class LegacyPaystackInitializeView(APIView):
 
 
 class LegacyPaystackVerifyView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     throttle_scope = "payments"
 
-    def get(self, _request, reference):
-        transaction = get_object_or_404(WalletTransaction, reference=reference)
+    def get(self, request, reference):
+        transaction = get_object_or_404(
+            WalletTransaction, reference=reference, wallet__user=request.user
+        )
         return response.Response(
             {
                 "status": True,
@@ -531,11 +521,13 @@ class LegacyMonnifyInitializeView(LegacyPaystackInitializeView):
 
 
 class LegacyMonnifyVerifyView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     throttle_scope = "payments"
 
-    def get(self, _request, reference):
-        transaction = get_object_or_404(WalletTransaction, reference=reference)
+    def get(self, request, reference):
+        transaction = get_object_or_404(
+            WalletTransaction, reference=reference, wallet__user=request.user
+        )
         return response.Response(
             {"status": transaction.status == WalletTransaction.Status.SUCCESS}
         )
