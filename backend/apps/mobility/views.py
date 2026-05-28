@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -49,7 +50,18 @@ def _filter_plans_for_fully_verified_creators(queryset):
     return queryset.filter(id__in=eligible_plan_ids)
 
 
+_EXPIRE_STALE_REQUESTS_TTL_SECONDS = 60
+
+
 def _expire_stale_requests(request_model, *, match_field: str):
+    # Debounce so the expiry sweep can't run on every list request and turn
+    # into a per-call write storm. Best-effort cleanup; OK to skip when the
+    # gate is held by another recent call.
+    cache_key = f"mobility:expire_stale:{request_model._meta.model_name}"
+    if cache.get(cache_key):
+        return
+    cache.set(cache_key, True, timeout=_EXPIRE_STALE_REQUESTS_TTL_SECONDS)
+
     expiry_cutoff = timezone.now() - REQUEST_EXPIRY_WINDOW
     stale_requests = request_model.objects.filter(
         status__in=[request_model.Status.OPEN, request_model.Status.MATCHED],

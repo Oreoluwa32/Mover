@@ -120,7 +120,7 @@ class KycRecord(models.Model):
     id_document_url = models.URLField(blank=True)
     selfie_url = models.URLField(blank=True)
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.PENDING
+        max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True
     )
     reviewer_notes = models.TextField(blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)

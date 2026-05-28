@@ -88,7 +88,7 @@ class WalletTransaction(models.Model):
     )
     transaction_type = models.CharField(max_length=24, choices=Type.choices)
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.PENDING
+        max_length=16, choices=Status.choices, default=Status.PENDING, db_index=True
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     reference = models.CharField(max_length=64, unique=True)

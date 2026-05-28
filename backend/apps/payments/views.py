@@ -7,6 +7,7 @@ import uuid
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -210,12 +211,24 @@ def _record_reserved_account_credit(
     return transaction, became_successful
 
 
+_MONNIFY_SYNC_TTL_SECONDS = 30
+
+
 def _sync_reserved_account_transactions(
     funding_account: MonnifyReservedAccount,
     *,
     page: int = 0,
     size: int = 20,
 ) -> int:
+    # Gate the Monnify call so wallet/funding-account reads don't fan out
+    # one outbound HTTPS request per call, which both hammers the worker
+    # pool and bumps the Monnify rate limit. Best-effort sync; the
+    # transaction list will catch up on the next eligible call.
+    cache_key = f"payments:monnify_sync:{funding_account.id}"
+    if cache.get(cache_key):
+        return 0
+    cache.set(cache_key, True, timeout=_MONNIFY_SYNC_TTL_SECONDS)
+
     try:
         payload = get_reserved_account_transactions(
             funding_account.account_reference,

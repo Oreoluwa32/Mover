@@ -28,7 +28,7 @@ class TravelPlan(models.Model):
         max_length=16, choices=PlanType.choices, default=PlanType.HYBRID
     )
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.DRAFT
+        max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True
     )
     origin_name = models.CharField(max_length=255)
     origin_latitude = models.DecimalField(
@@ -44,7 +44,7 @@ class TravelPlan(models.Model):
     destination_longitude = models.DecimalField(
         max_digits=9, decimal_places=6, null=True, blank=True
     )
-    departure_time = models.DateTimeField()
+    departure_time = models.DateTimeField(db_index=True)
     arrival_time = models.DateTimeField(null=True, blank=True)
     vehicle_type = models.CharField(max_length=32, blank=True)
     seats_available = models.PositiveSmallIntegerField(default=1)
@@ -95,7 +95,7 @@ class RideRequest(models.Model):
     seats_requested = models.PositiveSmallIntegerField(default=1)
     note = models.TextField(blank=True)
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.OPEN
+        max_length=16, choices=Status.choices, default=Status.OPEN, db_index=True
     )
     cancelled_reason = models.CharField(max_length=255, blank=True)
     cancelled_notes = models.TextField(blank=True)
@@ -154,7 +154,7 @@ class DeliveryRequest(models.Model):
     insurance_opted = models.BooleanField(default=False)
     damage_report = models.JSONField(default=dict, blank=True)
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.OPEN
+        max_length=16, choices=Status.choices, default=Status.OPEN, db_index=True
     )
     cancelled_reason = models.CharField(max_length=255, blank=True)
     cancelled_notes = models.TextField(blank=True)
@@ -196,7 +196,7 @@ class TravelMatch(models.Model):
     match_type = models.CharField(max_length=16, choices=MatchType.choices)
     agreed_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.PROPOSED
+        max_length=16, choices=Status.choices, default=Status.PROPOSED, db_index=True
     )
     cancelled_reason = models.CharField(max_length=255, blank=True)
     cancelled_notes = models.TextField(blank=True)
@@ -294,7 +294,7 @@ class TrackingSession(models.Model):
         TravelPlan, on_delete=models.CASCADE, related_name="tracking_session"
     )
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.IDLE
+        max_length=16, choices=Status.choices, default=Status.IDLE, db_index=True
     )
     started_at = models.DateTimeField(null=True, blank=True)
     ended_at = models.DateTimeField(null=True, blank=True)
@@ -354,6 +354,6 @@ class EmergencyAlert(models.Model):
     )
     message = models.CharField(max_length=255, blank=True)
     status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.OPEN
+        max_length=16, choices=Status.choices, default=Status.OPEN, db_index=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
