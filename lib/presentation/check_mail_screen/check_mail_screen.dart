@@ -51,8 +51,8 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
       AppToast.error("Please enter the verification code");
       return;
     }
-    if (otpCode.length != 4) {
-      AppToast.error("Please enter the 4-digit verification code");
+    if (otpCode.length != 6) {
+      AppToast.error("Please enter the 6-digit verification code");
       return;
     }
 
@@ -191,7 +191,7 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        "Enter the 4-digit verification code we sent to",
+                        "Enter the 6-digit verification code we sent to",
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyLarge,
                       ),
@@ -208,12 +208,12 @@ class CheckMailScreenState extends ConsumerState<CheckMailScreen> {
                         child: CustomPinCodeTextField(
                           context: context,
                           controller: otpController,
-                          length: 4,
+                          length: 6,
                           onChanged: (value) {
                             otpController?.text = value;
                           },
                           onCompleted: (value) {
-                            if (value.trim().length == 4) {
+                            if (value.trim().length == 6) {
                               _verifyOtp();
                             }
                           },
