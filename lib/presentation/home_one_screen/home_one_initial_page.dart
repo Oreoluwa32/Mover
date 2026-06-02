@@ -45,6 +45,13 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   LatLng? currentPosition;
   double userHeading = 0.0;
   ImageDescriptor customMarkerIcon = ImageDescriptor.defaultImage;
+
+  // Tracked so we can update markers in place instead of clearing and
+  // re-adding them on every position/heading tick (that pattern flickers
+  // visibly on the map).
+  Marker? _userMarker;
+  List<Marker> _routeOverlayMarkers = const [];
+
   DateTime? _lastRealtimeBroadcast;
   String? _liveTravelPlanId;
 
@@ -179,27 +186,32 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   }
 
   Future<void> _initializeLocationAndPolyline() async {
+    // Render the car marker from the SVG source at high physical resolution
+    // so it stays sharp on all DPRs. The previous code loaded a 44x31 PNG
+    // and let the Maps SDK stretch it to fill a logical 40dp slot, which
+    // showed as a blurry icon on 2x/3x phones.
     try {
-      final ByteData data =
-          await rootBundle.load(ImageConstant.imgCustomMarker);
-      final icon = await registerBitmapImage(
-        bitmap: data,
-        width: 40, // Set logical width for custom marker
-      );
-      customMarkerIcon = icon;
-    } catch (e) {
-      // Error loading custom marker from asset
-    }
-
-    try {
-      final bytes = await MapUtils.getBeamBytes(
-        width: 150,
+      final bytes = await MapUtils.rasterizeSvgForMarker(
+        'assets/images/img_custom_marker.svg',
+        logicalSize: const Size(40, 40),
       );
       if (bytes != null) {
         final icon = await registerBitmapImage(
           bitmap: ByteData.view(bytes.buffer),
-          width:
-              60, // Set logical width for beam marker (larger to accommodate the cone)
+          width: 40,
+        );
+        customMarkerIcon = icon;
+      }
+    } catch (_) {
+      // Fall back silently; customMarkerIcon stays as the default image.
+    }
+
+    try {
+      final bytes = await MapUtils.getBeamBytes(logicalWidth: 60);
+      if (bytes != null) {
+        final icon = await registerBitmapImage(
+          bitmap: ByteData.view(bytes.buffer),
+          width: 60,
         );
         customMarkerIcon = icon;
 
@@ -211,8 +223,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
           _updateMarkers(controller, force: true);
         }
       }
-    } catch (e) {
-      // Error loading custom marker
+    } catch (_) {
+      // Beam load failed; the car icon (if loaded above) remains in use.
     }
 
     try {
@@ -414,54 +426,73 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     );
   }
 
-  void _updateMarkers(
+  Future<void> _updateMarkers(
     GoogleNavigationViewController controller, {
     bool force = false,
-  }) {
+  }) async {
     if (!force && !_shouldRefreshUserMarker()) {
       return;
     }
 
     final homeState = ref.read(homeNotifier);
-    List<MarkerOptions> markerOptions = [];
-
-    if (currentPosition != null && !_shouldUseFloatingUserMarker()) {
-      markerOptions.add(
-        MarkerOptions(
-          position: currentPosition!,
-          rotation: _markerRotationForCurrentMode(),
-          anchor: const MarkerAnchor(u: 0.5, v: 0.5),
-          icon: customMarkerIcon,
-        ),
-      );
-    }
-
-    if (homeState.highlightRoute &&
+    final bool wantUserMarker =
+        currentPosition != null && !_shouldUseFloatingUserMarker();
+    final bool wantRouteOverlay = homeState.highlightRoute &&
         homeState.routeLocationLat != null &&
         homeState.routeLocationLng != null &&
         homeState.routeDestinationLat != null &&
-        homeState.routeDestinationLng != null) {
-      final source = LatLng(
-          latitude: homeState.routeLocationLat!,
-          longitude: homeState.routeLocationLng!);
-      final destination = LatLng(
-          latitude: homeState.routeDestinationLat!,
-          longitude: homeState.routeDestinationLng!);
+        homeState.routeDestinationLng != null;
 
-      markerOptions.add(
-        MarkerOptions(
-          position: source,
-        ),
+    // User marker: update in place when it already exists so the Maps SDK
+    // animates the position/rotation transition. The previous
+    // clearMarkers() + addMarkers() pattern made the marker disappear and
+    // reappear on every refresh tick, which read as a flicker / glitch
+    // during transit and on compass changes.
+    if (wantUserMarker) {
+      final options = MarkerOptions(
+        position: currentPosition!,
+        rotation: _markerRotationForCurrentMode(),
+        anchor: const MarkerAnchor(u: 0.5, v: 0.5),
+        icon: customMarkerIcon,
       );
-      markerOptions.add(
-        MarkerOptions(
-          position: destination,
-        ),
-      );
+      final existing = _userMarker;
+      if (existing == null) {
+        final added = await controller.addMarkers([options]);
+        if (added.isNotEmpty) {
+          _userMarker = added.first;
+        }
+      } else {
+        final updated = existing.copyWith(options: options);
+        final result = await controller.updateMarkers([updated]);
+        _userMarker =
+            (result.isNotEmpty ? result.first : null) ?? updated;
+      }
+    } else if (_userMarker != null) {
+      await controller.removeMarkers([_userMarker!]);
+      _userMarker = null;
     }
 
-    controller.clearMarkers();
-    controller.addMarkers(markerOptions);
+    // Route overlay markers only change when the highlighted route does, so
+    // add/remove them on transitions instead of touching them every tick.
+    if (wantRouteOverlay && _routeOverlayMarkers.isEmpty) {
+      final source = LatLng(
+        latitude: homeState.routeLocationLat!,
+        longitude: homeState.routeLocationLng!,
+      );
+      final destination = LatLng(
+        latitude: homeState.routeDestinationLat!,
+        longitude: homeState.routeDestinationLng!,
+      );
+      final added = await controller.addMarkers([
+        MarkerOptions(position: source),
+        MarkerOptions(position: destination),
+      ]);
+      _routeOverlayMarkers =
+          added.whereType<Marker>().toList(growable: false);
+    } else if (!wantRouteOverlay && _routeOverlayMarkers.isNotEmpty) {
+      await controller.removeMarkers(_routeOverlayMarkers);
+      _routeOverlayMarkers = const [];
+    }
 
     if (currentPosition != null) {
       _lastRenderedMarkerPosition = currentPosition;

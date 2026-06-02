@@ -7,52 +7,72 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapUtils {
-  static Future<BitmapDescriptor> bitmapDescriptorFromSvgAsset(
-    String assetName, [
-    Size size = const Size(48, 48),
-  ]) async {
+  // Marker bitmaps are rasterized at this multiple of their logical width
+  // so they stay sharp on phones up to 4x DPR. The Maps SDK then
+  // down-samples them at display time instead of stretching a tiny source.
+  static const double _markerOversample = 4.0;
+
+  /// Rasterize an SVG asset to PNG bytes sized for a marker of the given
+  /// logical size. The result is ready to feed to either
+  /// `BitmapDescriptor.bytes` (plain Maps) or `registerBitmapImage`
+  /// (Google Navigation SDK) - both accept a logical width separately,
+  /// so the over-sampled bytes give a sharp marker without stretching.
+  static Future<Uint8List?> rasterizeSvgForMarker(
+    String assetName, {
+    Size logicalSize = const Size(40, 40),
+    double oversample = _markerOversample,
+  }) async {
     try {
       final pictureInfo = await vg.loadPicture(SvgAssetLoader(assetName), null);
-      
-      final double width = size.width;
-      final double height = size.height;
+
+      final int physicalWidth = (logicalSize.width * oversample).round();
+      final int physicalHeight = (logicalSize.height * oversample).round();
 
       final ui.PictureRecorder recorder = ui.PictureRecorder();
       final ui.Canvas canvas = ui.Canvas(recorder);
-      
-      // Calculate scale to fit the desired size
-      final double scaleX = width / pictureInfo.size.width;
-      final double scaleY = height / pictureInfo.size.height;
-      
+
+      final double scaleX = physicalWidth / pictureInfo.size.width;
+      final double scaleY = physicalHeight / pictureInfo.size.height;
       canvas.scale(scaleX, scaleY);
       canvas.drawPicture(pictureInfo.picture);
 
       final image = await recorder.endRecording().toImage(
-        width.toInt(),
-        height.toInt(),
-      );
-      
+            physicalWidth,
+            physicalHeight,
+          );
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-      if (byteData == null) {
-        return BitmapDescriptor.defaultMarker;
-      }
-
-      return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
-    } catch (e) {
-      return BitmapDescriptor.defaultMarker;
+      return byteData?.buffer.asUint8List();
+    } catch (_) {
+      return null;
     }
   }
 
+  static Future<BitmapDescriptor> bitmapDescriptorFromSvgAsset(
+    String assetName, [
+    Size size = const Size(48, 48),
+  ]) async {
+    final bytes = await rasterizeSvgForMarker(assetName, logicalSize: size);
+    if (bytes == null) {
+      return BitmapDescriptor.defaultMarker;
+    }
+    return BitmapDescriptor.bytes(bytes, imagePixelRatio: _markerOversample);
+  }
+
+  /// Render the "live location" beam-and-dot bitmap. ``logicalWidth`` is
+  /// the on-screen size in dp; the result is oversampled so it stays
+  /// sharp on high-DPR devices.
   static Future<Uint8List?> getBeamBytes({
-    int width = 150,
+    int logicalWidth = 60,
+    double oversample = _markerOversample,
   }) async {
     try {
+      final int physicalWidth = (logicalWidth * oversample).round();
+      final double widthF = physicalWidth.toDouble();
       final ui.PictureRecorder recorder = ui.PictureRecorder();
       final ui.Canvas canvas = ui.Canvas(recorder);
-      
-      final double center = width / 2.0;
-      
+
+      final double center = widthF / 2.0;
+
       // 1. Draw the beam (view range)
       final Paint beamPaint = Paint()
         ..shader = ui.Gradient.linear(
@@ -67,20 +87,20 @@ class MapUtils {
       final Path beamPath = Path();
       beamPath.moveTo(center, center);
       // Create a triangle/cone shape for the view range (approx 60 degrees)
-      beamPath.lineTo(center - (width * 0.45), 0);
-      beamPath.lineTo(center + (width * 0.45), 0);
+      beamPath.lineTo(center - (widthF * 0.45), 0);
+      beamPath.lineTo(center + (widthF * 0.45), 0);
       beamPath.close();
-      
+
       canvas.drawPath(beamPath, beamPaint);
 
       // 2. Draw the Dot (Blue dot with white border and shadow)
-      final double whiteRadius = width * 0.18; // Slightly bigger
-      final double blueRadius = width * 0.12;
-      
+      final double whiteRadius = widthF * 0.18; // Slightly bigger
+      final double blueRadius = widthF * 0.12;
+
       // Draw Shadow
       final Paint shadowPaint = Paint()
         ..color = Colors.black.withValues(alpha: 0.2)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4 * oversample);
       canvas.drawCircle(Offset(center, center), whiteRadius, shadowPaint);
 
       // Draw White Border
@@ -95,29 +115,32 @@ class MapUtils {
         ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(center, center), blueRadius, bluePaint);
 
-      final ui.Image finalImage = await recorder.endRecording().toImage(width, width);
-      final ByteData? byteData = await finalImage.toByteData(format: ui.ImageByteFormat.png);
-      
+      final ui.Image finalImage =
+          await recorder.endRecording().toImage(physicalWidth, physicalWidth);
+      final ByteData? byteData =
+          await finalImage.toByteData(format: ui.ImageByteFormat.png);
+
       return byteData?.buffer.asUint8List();
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
   static Future<BitmapDescriptor> bitmapDescriptorWithBeam({
-    int width = 150,
+    int logicalWidth = 60,
   }) async {
-    final bytes = await getBeamBytes(width: width);
+    final bytes = await getBeamBytes(logicalWidth: logicalWidth);
     if (bytes == null) return BitmapDescriptor.defaultMarker;
-    return BitmapDescriptor.fromBytes(bytes);
+    return BitmapDescriptor.bytes(bytes, imagePixelRatio: _markerOversample);
   }
 
-  static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  static double calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
     var p = 0.017453292519943295;
     var c = cos;
-    var a = 0.5 - c((lat2 - lat1) * p) / 2 +
-        c(lat1 * p) * c(lat2 * p) *
-            (1 - c((lon2 - lon1) * p)) / 2;
+    var a = 0.5 -
+        c((lat2 - lat1) * p) / 2 +
+        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a));
   }
 }
