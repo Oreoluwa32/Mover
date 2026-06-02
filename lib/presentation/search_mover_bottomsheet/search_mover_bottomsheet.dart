@@ -6,7 +6,6 @@ import '../../core/app_export.dart';
 import '../../data/services/mobility_api_service.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
-import '../../widgets/movr_loading_indicator.dart';
 import '../home_one_screen/notifier/home_notifier.dart';
 
 class SearchMoverBottomsheet extends ConsumerStatefulWidget {
@@ -74,7 +73,7 @@ class SearchMoverBottomsheetState
         ? homeState.nearbyMovers
         : _nearbyMovers;
     final seenMovers = movers.length;
-    final isSearching = homeState.isSearchingNearbyMovers;
+    final bool hasMovers = seenMovers > 0;
 
     return Material(
       child: Container(
@@ -90,22 +89,10 @@ class SearchMoverBottomsheetState
             SizedBox(width: 50.h, child: const Divider()),
             SizedBox(height: 14.h),
             Text(
-              seenMovers > 0
-                  ? "Nearby movers found"
-                  : (isSearching ? "Searching for mover" : "Search complete"),
+              "Searching for mover",
               style: CustomTextStyles.titleMediumBlack900,
             ),
-            SizedBox(height: 18.h),
-            SizedBox(
-              width: double.maxFinite,
-              child: Divider(
-                color: appTheme.blueGray10001,
-                thickness: 3.h,
-              ),
-            ),
-            SizedBox(height: 24.h),
-            _buildSeenMovers(context, seenMovers),
-            SizedBox(height: 24.h),
+            SizedBox(height: 16.h),
             SizedBox(
               width: double.maxFinite,
               child: Divider(
@@ -113,30 +100,48 @@ class SearchMoverBottomsheetState
                 thickness: 1.h,
               ),
             ),
-            SizedBox(height: 22.h),
+            SizedBox(height: 18.h),
+            _buildSeenMovers(context, seenMovers),
+            SizedBox(height: 18.h),
+            SizedBox(
+              width: double.maxFinite,
+              child: Divider(
+                color: appTheme.gray20001,
+                thickness: 1.h,
+              ),
+            ),
+            SizedBox(height: 18.h),
             _buildLocationCard(
               context,
               pickupLocation: pickupLocation,
               destinationLocation: destinationLocation,
             ),
-            SizedBox(height: 18.h),
-            _buildNearbyMoverSection(context, movers),
-            SizedBox(height: 24.h),
+            SizedBox(height: 26.h),
             CustomElevatedButton(
-              text: "View Prices",
-              buttonStyle: CustomButtonStyles.fillPrimaryTL41,
-              onPressed: () {
-                NavigatorService.pushNamed(
-                  AppRoutes.hireMoverScreen,
-                  arguments: {
-                    'requestType': widget.requestType,
-                    'requestData': requestData,
-                    'nearbyMovers': movers,
-                  },
-                );
-              },
+              text: "View prices",
+              isDisabled: !hasMovers,
+              buttonStyle: hasMovers
+                  ? CustomButtonStyles.fillPrimaryTL41
+                  : _disabledViewPricesStyle,
+              buttonTextStyle: TextStyle(
+                color: hasMovers ? Colors.white : appTheme.gray600,
+                fontWeight: FontWeight.w600,
+                fontSize: 14.fSize,
+              ),
+              onPressed: hasMovers
+                  ? () {
+                      NavigatorService.pushNamed(
+                        AppRoutes.hireMoverScreen,
+                        arguments: {
+                          'requestType': widget.requestType,
+                          'requestData': requestData,
+                          'nearbyMovers': movers,
+                        },
+                      );
+                    }
+                  : null,
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: 20.h),
             GestureDetector(
               onTap: () async {
                 final routeId = requestData['id']?.toString() ?? '';
@@ -183,196 +188,44 @@ class SearchMoverBottomsheetState
     );
   }
 
+  ButtonStyle get _disabledViewPricesStyle => ElevatedButton.styleFrom(
+        backgroundColor: appTheme.gray10004,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6.h),
+        ),
+        elevation: 0,
+        padding: EdgeInsets.zero,
+      );
+
   Widget _buildSeenMovers(BuildContext context, int seenMovers) {
-    final isSearching = ref.watch(homeNotifier).isSearchingNearbyMovers;
     return SizedBox(
       width: double.maxFinite,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 50.h,
-            height: 50.h,
-            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 6.h),
             decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-              borderRadius: BorderRadiusStyle.roundedBorder24,
-              border: Border.all(
-                color: appTheme.gray400,
-                width: 1.h,
-              ),
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(6.h),
             ),
             child: Text(
               "$seenMovers",
               textAlign: TextAlign.center,
-              style: CustomTextStyles.titleMediumGray80001,
-            ),
-          ),
-          SizedBox(width: 8.h),
-          Expanded(
-            child: Text(
-              seenMovers > 0
-                  ? "Nearby movers are available for this route"
-                  : (isSearching
-                      ? "Movers are being searched around your route"
-                      : "Search stopped. View current prices or try again."),
-              style: CustomTextStyles.titleSmallBlack900,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNearbyMoverSection(
-    BuildContext context,
-    List<Map<String, dynamic>> movers,
-  ) {
-    final isSearching = ref.watch(homeNotifier).isSearchingNearbyMovers;
-    if (_isLoading) {
-      return Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.symmetric(vertical: 18.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadiusStyle.roundedBorder8,
-          border: Border.all(color: appTheme.gray20001, width: 1.h),
-        ),
-        child: Column(
-          children: [
-            MovrLoadingIndicator(
-              size: 44.h,
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              "Scanning nearby movers...",
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_errorMessage != null && _errorMessage!.isNotEmpty) {
-      return Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.all(14.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadiusStyle.roundedBorder8,
-          border: Border.all(color: appTheme.gray20001, width: 1.h),
-        ),
-        child: Text(
-          _errorMessage!,
-          style: theme.textTheme.bodySmall,
-        ),
-      );
-    }
-
-    if (movers.isEmpty) {
-      return Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.all(14.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadiusStyle.roundedBorder8,
-          border: Border.all(color: appTheme.gray20001, width: 1.h),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "No nearby movers yet",
-              style: CustomTextStyles.labelLargeBold,
-            ),
-            SizedBox(height: 6.h),
-            Text(
-              isSearching
-                  ? "We'll keep checking published routes around your pickup and destination."
-                  : "The nearby mover search has ended for now.",
-              style: theme.textTheme.bodySmall,
-            ),
-            if (_lastUpdatedAt != null) ...[
-              SizedBox(height: 8.h),
-              Text(
-                'Last checked ${_formatClock(_lastUpdatedAt!)}',
-                style: CustomTextStyles.bodySmallInterGray600,
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-
-    final moversToShow = movers.take(3).toList();
-    return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.all(14.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadiusStyle.roundedBorder8,
-        border: Border.all(color: appTheme.gray20001, width: 1.h),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Nearby Movers",
-            style: CustomTextStyles.labelLargeBold,
-          ),
-          SizedBox(height: 10.h),
-          ...moversToShow.map((mover) => _buildMoverRow(context, mover)),
-          if (_lastUpdatedAt != null) ...[
-            SizedBox(height: 8.h),
-            Text(
-              'Updated ${_formatClock(_lastUpdatedAt!)}',
-              style: CustomTextStyles.bodySmallInterGray600,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMoverRow(BuildContext context, Map<String, dynamic> mover) {
-    final createdBy = mover['created_by'] as Map<String, dynamic>? ?? const {};
-    final name = createdBy['full_name']?.toString() ?? 'Nearby mover';
-    final vehicleType =
-        mover['vehicle_type']?.toString().replaceAll('_', ' ') ?? 'vehicle';
-    final departure = mover['departure_time']?.toString();
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 34.h,
-            height: 34.h,
-            decoration: BoxDecoration(
-              color: appTheme.deepPurple50,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'M',
-                style: CustomTextStyles.labelLargePrimary,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.fSize,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
           SizedBox(width: 12.h),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: CustomTextStyles.labelLargeBold,
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  '${_titleCase(vehicleType)} - ${_formatDeparture(departure)}',
-                  style: CustomTextStyles.bodySmallInterGray600,
-                ),
-              ],
+            child: Text(
+              "Movers are going your direction",
+              style: CustomTextStyles.titleSmallBlack900,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -387,24 +240,16 @@ class SearchMoverBottomsheetState
   }) {
     return Container(
       width: double.maxFinite,
-      padding: EdgeInsets.all(16.h),
+      padding: EdgeInsets.all(14.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadiusStyle.roundedBorder8,
         border: Border.all(color: appTheme.gray20001, width: 1.h),
       ),
       child: Column(
         children: [
-          _buildLocationRow(
-            context,
-            title: "Pickup",
-            value: pickupLocation,
-          ),
+          _buildLocationRow(context, value: pickupLocation),
           SizedBox(height: 12.h),
-          _buildLocationRow(
-            context,
-            title: "Destination",
-            value: destinationLocation,
-          ),
+          _buildLocationRow(context, value: destinationLocation),
         ],
       ),
     );
@@ -412,14 +257,13 @@ class SearchMoverBottomsheetState
 
   Widget _buildLocationRow(
     BuildContext context, {
-    required String title,
     required String value,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: EdgeInsets.only(top: 4.h),
+          margin: EdgeInsets.only(top: 6.h),
           height: 8.h,
           width: 8.h,
           decoration: BoxDecoration(
@@ -429,19 +273,9 @@ class SearchMoverBottomsheetState
         ),
         SizedBox(width: 12.h),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: CustomTextStyles.labelLargeBold,
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                value,
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
+          child: Text(
+            value,
+            style: theme.textTheme.bodyMedium,
           ),
         ),
       ],
@@ -565,28 +399,5 @@ class SearchMoverBottomsheetState
         _isLoading = false;
       });
     }
-  }
-
-  String _formatClock(DateTime dateTime) {
-    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final suffix = dateTime.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $suffix';
-  }
-
-  String _formatDeparture(String? rawDate) {
-    final parsed = DateTime.tryParse(rawDate ?? '');
-    if (parsed == null) {
-      return 'Departure time pending';
-    }
-    return _formatClock(parsed.toLocal());
-  }
-
-  String _titleCase(String value) {
-    return value
-        .split(' ')
-        .where((word) => word.isNotEmpty)
-        .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
-        .join(' ');
   }
 }
