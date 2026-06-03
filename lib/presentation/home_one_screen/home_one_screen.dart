@@ -93,12 +93,7 @@ class HomeOneScreenState extends ConsumerState<HomeOneScreen> {
           AppBottomSheet.show(
             context: context,
             useRootNavigator: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(24.h),
-              ),
-            ),
-            clipBehavior: Clip.antiAlias,
+            backgroundColor: Colors.transparent,
             builder: (context) => SearchMoverBottomsheet(
               requestType: searchType,
               requestData: searchData,

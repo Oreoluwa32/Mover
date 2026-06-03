@@ -1736,12 +1736,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
               AppBottomSheet.show(
                 context: context,
                 useRootNavigator: true,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(24.h),
-                  ),
-                ),
-                clipBehavior: Clip.antiAlias,
+                backgroundColor: Colors.transparent,
                 builder: (context) => SearchMoverBottomsheet(
                   requestType: homeState.nearbyMoverSearchType,
                   requestData: searchData,
