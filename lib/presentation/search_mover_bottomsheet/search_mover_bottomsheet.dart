@@ -4,9 +4,23 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_export.dart';
 import '../../data/services/mobility_api_service.dart';
-import '../../theme/custom_button_style.dart';
 import '../../widgets/custom_elevated_button.dart';
 import '../home_one_screen/notifier/home_notifier.dart';
+
+// Design tokens taken directly from Figma node 569:10112 so the sheet
+// matches the spec without depending on the broader theme drifting.
+class _MoverSheetTokens {
+  static const Color primaryPurple = Color(0xFF6A1AD3);
+  static const Color haloPurple = Color(0xFFDDD4FF); // Blue/200
+  static const Color black950 = Color(0xFF262626);
+  static const Color black900 = Color(0xFF3D3D3D);
+  static const Color black800 = Color(0xFF414141);
+  static const Color black300 = Color(0xFFB0B0B0);
+  static const Color black200 = Color(0xFFD1D1D1);
+  static const Color black50 = Color(0xFFF6F6F6);
+  static const Color trackGray = Color(0xFFD9D9D9);
+  static const Color redPrimary = Color(0xFFE41212);
+}
 
 class SearchMoverBottomsheet extends ConsumerStatefulWidget {
   const SearchMoverBottomsheet({
@@ -81,66 +95,146 @@ class SearchMoverBottomsheetState
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildFloatingMoversIndicator(context, totalMovers: seenMovers),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(24.h)),
             child: Container(
               width: double.maxFinite,
-              padding: EdgeInsets.only(left: 16.h, top: 16.h, right: 16.h),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-                borderRadius: BorderRadiusStyle.customBorderTL24,
+              color: Colors.white,
+              padding: EdgeInsets.only(
+                left: 16.h,
+                right: 16.h,
+                top: 16.h,
+                bottom: 28.h,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(width: 50.h, child: const Divider()),
-                  SizedBox(height: 14.h),
-                  Text(
-                    "Searching for mover",
-                    style: CustomTextStyles.titleMediumBlack900,
-                  ),
-                  SizedBox(height: 18.h),
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: Divider(
-                      color: appTheme.gray20001,
-                      thickness: 1.h,
+                  // Drag handle: 50x4 grey rounded bar.
+                  Center(
+                    child: Container(
+                      width: 50.h,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: _MoverSheetTokens.black200,
+                        borderRadius: BorderRadius.circular(10.h),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 20.h),
-                  _buildSeenMovers(context, seenMovers),
-                  SizedBox(height: 20.h),
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: Divider(
-                      color: appTheme.gray20001,
-                      thickness: 1.h,
+                  SizedBox(height: 16.h),
+
+                  // Title.
+                  Center(
+                    child: Text(
+                      "Searching for mover",
+                      style: TextStyle(
+                        fontFamily: 'Mulish',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16.fSize,
+                        color: Colors.black,
+                        height: 1.2,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 22.h),
+                  SizedBox(height: 27.h),
+
+                  // Search progress track (grey).
+                  Container(
+                    height: 6.h,
+                    decoration: BoxDecoration(
+                      color: _MoverSheetTokens.trackGray,
+                      borderRadius: BorderRadius.circular(10.h),
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Count circle + "Movers have seen your request".
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 50.h,
+                        height: 50.h,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _MoverSheetTokens.black300,
+                            width: 1.h,
+                          ),
+                        ),
+                        child: Text(
+                          "$seenMovers",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Mulish',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16.fSize,
+                            color: _MoverSheetTokens.black900,
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 9.h),
+                      Expanded(
+                        child: Text(
+                          "Movers have seen your request",
+                          style: TextStyle(
+                            fontFamily: 'Mulish',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14.fSize,
+                            color: Colors.black,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Horizontal divider.
+                  Container(
+                    height: 1.h,
+                    color: const Color(0xFFE7E7E7),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Location pills.
                   _buildLocationPill(
-                    context,
                     address: pickupLocation,
                     isSelected: true,
                   ),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 8.h),
                   _buildLocationPill(
-                    context,
                     address: destinationLocation,
                     isSelected: false,
                   ),
-                  SizedBox(height: 28.h),
+                  SizedBox(height: 24.h),
+
+                  // View prices button.
                   CustomElevatedButton(
                     text: "View prices",
                     isDisabled: !hasMovers,
-                    buttonStyle: hasMovers
-                        ? CustomButtonStyles.fillPrimaryTL41
-                        : _disabledViewPricesStyle,
+                    height: 50.h,
+                    buttonStyle: ElevatedButton.styleFrom(
+                      backgroundColor: hasMovers
+                          ? _MoverSheetTokens.primaryPurple
+                          : _MoverSheetTokens.black200,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.h),
+                      ),
+                      elevation: 0,
+                      padding: EdgeInsets.zero,
+                    ),
                     buttonTextStyle: TextStyle(
-                      color: Colors.white,
+                      fontFamily: 'Mulish',
                       fontWeight: FontWeight.w600,
                       fontSize: 14.fSize,
+                      color: Colors.white,
+                      height: 1.2,
                     ),
                     onPressed: hasMovers
                         ? () {
@@ -155,47 +249,24 @@ class SearchMoverBottomsheetState
                           }
                         : null,
                   ),
-                  SizedBox(height: 20.h),
-                  GestureDetector(
-                    onTap: () async {
-                      final routeId = requestData['id']?.toString() ?? '';
+                  SizedBox(height: 24.h),
 
-                      try {
-                        if (routeId.isNotEmpty) {
-                          await _mobilityApiService.deleteTravelPlan(
-                            travelPlanId: routeId,
-                          );
-                        }
-                      } catch (error) {
-                        if (!context.mounted) {
-                          return;
-                        }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              _mobilityApiService.extractErrorMessage(error),
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      ref
-                          .read(homeNotifier.notifier)
-                          .stopNearbyMoverSearch(clearSearch: true);
-                      ref.read(homeNotifier.notifier).clearRouteHighlight();
-                      await ref.read(homeNotifier.notifier).loadPendingTask();
-                      if (!context.mounted) {
-                        return;
-                      }
-                      NavigatorService.goBack();
-                    },
-                    child: Text(
-                      "Cancel Request",
-                      style: CustomTextStyles.titleSmallRedA700Medium,
+                  // Cancel Request.
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _handleCancelRequest(context, requestData),
+                      child: Text(
+                        "Cancel Request",
+                        style: TextStyle(
+                          fontFamily: 'Mulish',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14.fSize,
+                          color: _MoverSheetTokens.redPrimary,
+                          height: 1.2,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 20.h),
                 ],
               ),
             ),
@@ -206,126 +277,80 @@ class SearchMoverBottomsheetState
   }
 
   /// Floating "<count> Movers are going your direction" pill that sits on
-  /// the map just above the rounded sheet. Lives inside the modal route so
-  /// it animates in with the sheet.
+  /// the (dimmed) map just above the rounded sheet.
   Widget _buildFloatingMoversIndicator(
     BuildContext context, {
     required int totalMovers,
   }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 18.h, vertical: 16.h),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.horizontal(
-                left: Radius.circular(4.h),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                "$totalMovers",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.fSize,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4.h),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x07292D32),
+            blurRadius: 4,
+            spreadRadius: 5,
+            offset: const Offset(0, 0),
           ),
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 16.h),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.horizontal(
-                  right: Radius.circular(4.h),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4.h),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                color: _MoverSheetTokens.primaryPurple,
+                padding:
+                    EdgeInsets.symmetric(horizontal: 10.h, vertical: 10.h),
+                alignment: Alignment.center,
+                child: Text(
+                  "$totalMovers",
+                  style: TextStyle(
+                    fontFamily: 'Mulish',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16.fSize,
+                    color: Colors.white,
+                    height: 1.2,
                   ),
-                ],
-              ),
-              child: Text(
-                "Movers are going your direction",
-                style: TextStyle(
-                  color: appTheme.black900,
-                  fontSize: 14.fSize,
-                  fontWeight: FontWeight.w500,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
+              Container(
+                color: Colors.white,
+                padding:
+                    EdgeInsets.symmetric(horizontal: 16.h, vertical: 16.h),
+                alignment: Alignment.center,
+                child: Text(
+                  "Movers are going your direction",
+                  style: TextStyle(
+                    fontFamily: 'Mulish',
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14.fSize,
+                    color: _MoverSheetTokens.black800,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  ButtonStyle get _disabledViewPricesStyle => ElevatedButton.styleFrom(
-        backgroundColor: appTheme.gray400,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6.h),
         ),
-        elevation: 0,
-        padding: EdgeInsets.zero,
-      );
-
-  Widget _buildSeenMovers(BuildContext context, int seenMovers) {
-    return SizedBox(
-      width: double.maxFinite,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 46.h,
-            height: 46.h,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: appTheme.gray400,
-                width: 1.h,
-              ),
-            ),
-            child: Text(
-              "$seenMovers",
-              textAlign: TextAlign.center,
-              style: CustomTextStyles.titleMediumGray80001,
-            ),
-          ),
-          SizedBox(width: 14.h),
-          Expanded(
-            child: Text(
-              "Movers have seen your request",
-              style: CustomTextStyles.titleSmallBlack900,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildLocationPill(
-    BuildContext context, {
+  Widget _buildLocationPill({
     required String address,
     required bool isSelected,
   }) {
     return Container(
-      width: double.maxFinite,
-      padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 14.h),
+      height: 50.h,
+      padding: EdgeInsets.symmetric(horizontal: 15.h),
       decoration: BoxDecoration(
-        color: appTheme.gray5001,
+        color: _MoverSheetTokens.black50,
         borderRadius: BorderRadius.circular(8.h),
       ),
       child: Row(
@@ -336,7 +361,13 @@ class SearchMoverBottomsheetState
           Expanded(
             child: Text(
               address,
-              style: theme.textTheme.bodyMedium,
+              style: TextStyle(
+                fontFamily: 'Mulish',
+                fontWeight: FontWeight.w400,
+                fontSize: 12.fSize,
+                color: _MoverSheetTokens.black950,
+                height: 1.2,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -347,38 +378,72 @@ class SearchMoverBottomsheetState
   }
 
   Widget _buildRadioDot({required bool isSelected}) {
-    final primary = theme.colorScheme.primary;
     if (isSelected) {
-      // Pickup style: filled inner dot with a light-purple outer halo,
-      // mirroring a selected radio button.
+      // Pickup style: filled purple inner over a light-purple halo.
       return Container(
-        width: 18.h,
-        height: 18.h,
-        decoration: BoxDecoration(
+        width: 24.h,
+        height: 24.h,
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: appTheme.deepPurple50,
+          color: _MoverSheetTokens.haloPurple,
         ),
         child: Center(
           child: Container(
-            width: 10.h,
-            height: 10.h,
-            decoration: BoxDecoration(
+            width: 12.h,
+            height: 12.h,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: primary,
+              color: _MoverSheetTokens.primaryPurple,
             ),
           ),
         ),
       );
     }
-    // Destination style: hollow ring (unselected radio).
+    // Destination style: hollow purple ring.
     return Container(
-      width: 18.h,
-      height: 18.h,
+      width: 24.h,
+      height: 24.h,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: primary, width: 2.h),
+        border: Border.all(
+          color: _MoverSheetTokens.primaryPurple,
+          width: 2.h,
+        ),
       ),
     );
+  }
+
+  Future<void> _handleCancelRequest(
+    BuildContext context,
+    Map<String, dynamic> requestData,
+  ) async {
+    final routeId = requestData['id']?.toString() ?? '';
+
+    try {
+      if (routeId.isNotEmpty) {
+        await _mobilityApiService.deleteTravelPlan(travelPlanId: routeId);
+      }
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _mobilityApiService.extractErrorMessage(error),
+          ),
+        ),
+      );
+      return;
+    }
+
+    ref.read(homeNotifier.notifier).stopNearbyMoverSearch(clearSearch: true);
+    ref.read(homeNotifier.notifier).clearRouteHighlight();
+    await ref.read(homeNotifier.notifier).loadPendingTask();
+    if (!context.mounted) {
+      return;
+    }
+    NavigatorService.goBack();
   }
 
   String _readLocation(
