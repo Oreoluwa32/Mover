@@ -21,6 +21,8 @@ automat==25.4.16
     # via twisted
 cbor2==6.1.1
     # via autobahn
+certifi==2026.6.17
+    # via requests
 cffi==2.0.0
     # via
     #   autobahn
@@ -31,11 +33,14 @@ channels==4.1.0
     #   channels-redis
 channels-redis==4.2.1
     # via -r requirements.in
+charset-normalizer==3.4.7
+    # via requests
 constantly==23.10.4
     # via twisted
 cryptography==48.0.0
     # via
     #   autobahn
+    #   google-auth
     #   pyopenssl
     #   service-identity
 daphne==4.1.2
@@ -58,6 +63,8 @@ djangorestframework==3.15.2
     #   djangorestframework-simplejwt
 djangorestframework-simplejwt==5.3.1
     # via -r requirements.in
+google-auth==2.55.1
+    # via -r requirements.in
 gunicorn==23.0.0
     # via -r requirements.in
 hyperlink==21.0.0
@@ -67,6 +74,7 @@ hyperlink==21.0.0
 idna==3.16
     # via
     #   hyperlink
+    #   requests
     #   twisted
 incremental==24.11.0
     # via twisted
@@ -89,7 +97,9 @@ pyasn1==0.6.3
     #   pyasn1-modules
     #   service-identity
 pyasn1-modules==0.4.2
-    # via service-identity
+    # via
+    #   google-auth
+    #   service-identity
 pycparser==3.0
     # via cffi
 pyjwt==2.13.0
@@ -100,6 +110,8 @@ python-dotenv==1.0.1
     # via -r requirements.in
 redis==7.4.0
     # via channels-redis
+requests==2.34.2
+    # via -r requirements.in
 service-identity==24.2.0
     # via twisted
 sqlparse==0.5.5
@@ -116,6 +128,8 @@ typing-extensions==4.15.0
     #   twisted
 ujson==5.12.1
     # via autobahn
+urllib3==2.7.0
+    # via requests
 whitenoise==6.7.0
     # via -r requirements.in
 zope-interface==8.5

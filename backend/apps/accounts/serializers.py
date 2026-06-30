@@ -180,6 +180,15 @@ class EmailVerificationConfirmSerializer(serializers.Serializer):
     code = serializers.CharField(min_length=6, max_length=6)
 
 
+class GoogleSignInSerializer(serializers.Serializer):
+    id_token = serializers.CharField(trim_whitespace=True)
+    # Optional client-supplied profile hints. We still prefer the verified
+    # claims from the Google ID token; these are fallbacks only.
+    email = serializers.EmailField(required=False, allow_blank=True)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+
+
 class ResetPasswordConfirmSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()

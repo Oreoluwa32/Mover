@@ -19,11 +19,22 @@ class AppEnvironment {
     defaultValue: 'pk_test_your_public_key_here',
   );
 
+  // OAuth 2.0 Web client ID. When set, GoogleSignIn requests an ID token
+  // with this client ID as the audience so the Movr backend can verify it
+  // via /api/v1/auth/google-signin/.
+  static const String _rawGoogleServerClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: '',
+  );
+
   static final String apiBaseUrl = _normalizeBaseUrl(_rawApiBaseUrl);
 
   static final String wsBaseUrl = _normalizeBaseUrl(_rawWsBaseUrl);
 
   static final String paystackPublicKey = _sanitize(_rawPaystackPublicKey);
+
+  static final String googleServerClientId =
+      _sanitize(_rawGoogleServerClientId);
 
   static String _normalizeBaseUrl(String value) {
     final sanitized = _sanitize(value);

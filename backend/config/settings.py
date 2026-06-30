@@ -313,6 +313,12 @@ MONNIFY_BASE_URL = os.getenv(
 # Browser-restricted Google Maps JS key used by the admin Live Tracking map.
 # If empty, Live Tracking degrades gracefully to a list-only view.
 GOOGLE_MAPS_BROWSER_KEY = os.getenv("GOOGLE_MAPS_BROWSER_KEY", "")
+
+# OAuth 2.0 Client IDs allowed as the audience of Google ID tokens posted to
+# /api/v1/auth/google-signin/. Comma-separated so multiple platforms (Android,
+# iOS, Web) can each present their own client ID. Leave empty to skip the
+# audience check (only safe in local dev).
+GOOGLE_OAUTH_CLIENT_IDS = _split_env("GOOGLE_OAUTH_CLIENT_IDS", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "avatars")

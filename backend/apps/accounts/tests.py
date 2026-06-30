@@ -247,3 +247,74 @@ class EmailingFunctionTests(APITestCase):
         mock_send.assert_called_once()
         html_body = mock_send.call_args.kwargs["html"]
         self.assertIn("https://movr.app/reset", html_body)
+
+
+class GoogleSignInTests(APITestCase):
+    """Exchange a Google ID token for Movr JWT credentials."""
+
+    GOOGLE_VERIFY_PATCH = "google.oauth2.id_token.verify_oauth2_token"
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def _post(self, payload):
+        return self.client.post("/api/auth/google-signin/", payload, format="json")
+
+    @patch(GOOGLE_VERIFY_PATCH)
+    def test_first_time_user_is_created_and_returned_with_tokens(self, mock_verify):
+        mock_verify.return_value = {
+            "email": "ada@example.com",
+            "email_verified": True,
+            "given_name": "Ada",
+            "family_name": "Driver",
+            "aud": "test-client-id",
+        }
+        response = self._post({"id_token": "fake-token"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data["tokens"])
+        self.assertIn("refresh", response.data["tokens"])
+        self.assertEqual(response.data["user"]["email"], "ada@example.com")
+
+        user = User.objects.get(email__iexact="ada@example.com")
+        self.assertTrue(user.is_email_verified)
+        self.assertEqual(user.auth_provider, "google")
+        self.assertEqual(user.first_name, "Ada")
+        self.assertEqual(user.last_name, "Driver")
+
+    @patch(GOOGLE_VERIFY_PATCH)
+    def test_existing_user_signs_in_and_gets_marked_verified(self, mock_verify):
+        existing = User.objects.create_user(
+            email="ada@example.com",
+            password="StrongPass123",
+            first_name="Ada",
+        )
+        self.assertFalse(existing.is_email_verified)
+
+        mock_verify.return_value = {
+            "email": "ADA@example.com",
+            "email_verified": True,
+            "given_name": "Ada",
+            "family_name": "Driver",
+        }
+        response = self._post({"id_token": "fake-token"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        existing.refresh_from_db()
+        self.assertTrue(existing.is_email_verified)
+        # Last name was empty and should be backfilled from the token claims.
+        self.assertEqual(existing.last_name, "Driver")
+
+    @patch(GOOGLE_VERIFY_PATCH, side_effect=ValueError("bad token"))
+    def test_invalid_token_returns_401(self, mock_verify):
+        response = self._post({"id_token": "junk"})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(User.objects.count(), 0)
+
+    @patch(GOOGLE_VERIFY_PATCH)
+    def test_token_without_email_returns_400(self, mock_verify):
+        mock_verify.return_value = {"email_verified": True}
+        response = self._post({"id_token": "fake-token"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(User.objects.count(), 0)

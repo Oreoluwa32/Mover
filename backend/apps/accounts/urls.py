@@ -5,6 +5,7 @@ from .views import (
     EmailVerificationConfirmView,
     EmailVerificationRequestView,
     ForgotPasswordView,
+    GoogleSignInView,
     KycRecordView,
     LiveStatusView,
     LoginView,
@@ -23,6 +24,7 @@ router.register("vehicles", VehicleViewSet, basename="vehicle")
 urlpatterns = [
     path("register/", RegisterView.as_view()),
     path("login/", LoginView.as_view()),
+    path("google-signin/", GoogleSignInView.as_view()),
     path("email-verification/request/", EmailVerificationRequestView.as_view()),
     path("email-verification/confirm/", EmailVerificationConfirmView.as_view()),
     path("password/forgot/", ForgotPasswordView.as_view()),

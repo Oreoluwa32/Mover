@@ -17,6 +17,7 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import permissions, response, status, viewsets
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from config.api_security import (
@@ -40,6 +41,7 @@ from .serializers import (
     EmailVerificationConfirmSerializer,
     EmailVerificationRequestSerializer,
     ForgotPasswordSerializer,
+    GoogleSignInSerializer,
     KycRecordSerializer,
     LoginSerializer,
     RegisterSerializer,
@@ -275,6 +277,131 @@ class LoginView(APIView):
             {
                 "user": UserSerializer(serializer.validated_data["user"]).data,
                 "tokens": serializer.validated_data["tokens"],
+            }
+        )
+
+
+class GoogleSignInView(APIView):
+    """Exchange a Google ID token for Movr JWT credentials.
+
+    The Flutter client signs in with Google Sign-In and posts the resulting
+    ID token here. We verify the token against Google, derive the user from
+    the verified claims (creating one on first sign-in) and return the same
+    {"user", "tokens"} shape as ``LoginView``.
+
+    Google has already verified the account's email, so we mark the user
+    as ``is_email_verified=True`` and skip the verification-code dance.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        # Imported inside the method so the rest of the auth surface keeps
+        # working even if the optional `google-auth` dependency isn't
+        # installed yet in some environment.
+        try:
+            from google.auth.transport import requests as google_requests
+            from google.oauth2 import id_token as google_id_token
+        except ImportError:
+            return response.Response(
+                {"detail": "Google sign-in is not configured on the server."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        serializer = GoogleSignInSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data["id_token"]
+
+        allowed_audiences = [
+            aud.strip()
+            for aud in getattr(settings, "GOOGLE_OAUTH_CLIENT_IDS", [])
+            if aud and aud.strip()
+        ]
+
+        try:
+            # Pass audience when we have one to enforce; otherwise verify
+            # against Google's keys only and check the audience ourselves.
+            if len(allowed_audiences) == 1:
+                idinfo = google_id_token.verify_oauth2_token(
+                    token,
+                    google_requests.Request(),
+                    allowed_audiences[0],
+                )
+            else:
+                idinfo = google_id_token.verify_oauth2_token(
+                    token, google_requests.Request()
+                )
+                if allowed_audiences and idinfo.get("aud") not in allowed_audiences:
+                    raise ValueError("ID token audience is not allowed.")
+        except ValueError:
+            return response.Response(
+                {"detail": "Invalid Google ID token."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        email = (idinfo.get("email") or "").strip().lower()
+        if not email:
+            return response.Response(
+                {"detail": "Google account is missing an email address."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Trust Google's email_verified claim; the Google account has
+        # already proven ownership.
+        email_verified = bool(idinfo.get("email_verified", True))
+        given_name = (
+            idinfo.get("given_name")
+            or serializer.validated_data.get("first_name")
+            or ""
+        )
+        family_name = (
+            idinfo.get("family_name")
+            or serializer.validated_data.get("last_name")
+            or ""
+        )
+
+        with transaction.atomic():
+            user = User.objects.filter(email__iexact=email).first()
+            if user is None:
+                user = User.objects.create(
+                    email=email,
+                    first_name=given_name,
+                    last_name=family_name,
+                    auth_provider=User.AuthProvider.GOOGLE,
+                    is_email_verified=email_verified,
+                )
+            else:
+                update_fields = []
+                if email_verified and not user.is_email_verified:
+                    user.is_email_verified = True
+                    update_fields.append("is_email_verified")
+                if not user.first_name and given_name:
+                    user.first_name = given_name
+                    update_fields.append("first_name")
+                if not user.last_name and family_name:
+                    user.last_name = family_name
+                    update_fields.append("last_name")
+                if update_fields:
+                    update_fields.append("updated_at")
+                    user.save(update_fields=update_fields)
+
+            UserProfile.objects.get_or_create(user=user)
+
+        if not user.is_active:
+            return response.Response(
+                {"detail": "This account is not active."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        refresh = RefreshToken.for_user(user)
+        return response.Response(
+            {
+                "user": UserSerializer(user).data,
+                "tokens": {
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
             }
         )
 
