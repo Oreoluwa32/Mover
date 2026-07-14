@@ -318,6 +318,46 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         _nearbySearchAnimationController.reset();
       }
     });
+    // Redraw the pickup->destination polyline whenever the highlighted-route
+    // state changes. Previously the route was only drawn inside
+    // onViewCreated, so creating an instant route while the map was already
+    // mounted (the common case: form -> back to home) left the highlight
+    // invisible until the map was recreated.
+    ref.listen(
+      homeNotifier.select(
+        (s) => (
+          s.highlightRoute,
+          s.routeLocationLat,
+          s.routeLocationLng,
+          s.routeDestinationLat,
+          s.routeDestinationLng,
+        ),
+      ),
+      (previous, next) {
+        final controller = _navigationViewController;
+        if (controller == null) {
+          // The onViewCreated hook will draw it once the map is ready.
+          return;
+        }
+        final (highlight, srcLat, srcLng, destLat, destLng) = next;
+        if (highlight &&
+            srcLat != null &&
+            srcLng != null &&
+            destLat != null &&
+            destLng != null) {
+          _loadAndDisplayRoute(
+            LatLng(latitude: srcLat, longitude: srcLng),
+            LatLng(latitude: destLat, longitude: destLng),
+            controller,
+          );
+        } else {
+          controller.clearPolylines();
+          polylines = [];
+          polylineCoordinates = [];
+          _updateMarkers(controller, force: true);
+        }
+      },
+    );
     ref.listen(homeNotifier.select((s) => s.pendingTaskData), (previous, next) {
       final homeState = ref.read(homeNotifier);
       if (!homeState.isLive || next == null) {
@@ -721,6 +761,10 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
         )
       ];
 
+      // Ensure back-to-back calls (e.g. onViewCreated + the highlight
+      // listener firing on route creation) don't leave stale polylines
+      // stacked on top of each other.
+      await controller.clearPolylines();
       controller.addPolylines(polylines);
       _updateMarkers(controller, force: true);
 
