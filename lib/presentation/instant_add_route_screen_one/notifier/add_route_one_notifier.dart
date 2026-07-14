@@ -54,6 +54,16 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
   final Ref _ref;
   AddRouteOneNotifier(this._ref, AddRouteOneState state) : super(state);
 
+  // Address strings that produced the current lat/lng values. Used at
+  // submit time to detect stale coords when the user has typed a new
+  // pickup/destination without picking from the autocomplete
+  // suggestions - the text field would show one thing while the stored
+  // coords still pointed at the previous selection (or worse, the
+  // device's GPS from the initial "current location" fetch).
+  String? _locationAnchorText;
+  String? _destinationAnchorText;
+  String? _stopAnchorText;
+
   void changeRadioButton(String value) {
     state = state.copyWith(radioGroup: value);
   }
@@ -97,6 +107,7 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
   }
 
   void setLocationCoordinates(double lat, double lng) {
+    _locationAnchorText = state.locationController?.text.trim();
     state = state.copyWith(
       locationLat: lat,
       locationLng: lng,
@@ -104,6 +115,7 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
   }
 
   void setDestinationCoordinates(double lat, double lng) {
+    _destinationAnchorText = state.destinationController?.text.trim();
     state = state.copyWith(
       destinationLat: lat,
       destinationLng: lng,
@@ -111,6 +123,7 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
   }
 
   void setStopCoordinates(double lat, double lng) {
+    _stopAnchorText = state.stopController?.text.trim();
     state = state.copyWith(
       stopLat: lat,
       stopLng: lng,
@@ -119,7 +132,8 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
 
   Future<void> fetchCurrentLocation() async {
     try {
-      bool hasPermission = await LocationManager.checkAndRequestLocationPermission();
+      bool hasPermission =
+          await LocationManager.checkAndRequestLocationPermission();
       if (!hasPermission) {
         return;
       }
@@ -136,6 +150,7 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
 
         if (address != null) {
           state.locationController?.text = address;
+          _locationAnchorText = address.trim();
           state = state.copyWith(
             locationLat: locationData.latitude,
             locationLng: locationData.longitude,
@@ -143,5 +158,69 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
         }
       }
     } catch (_) {}
+  }
+
+  /// Ensure the pickup, destination and (optional) stop coordinates match
+  /// the text currently in each field. Called before submitting the route
+  /// so a user who typed an address without picking from the autocomplete
+  /// suggestions still ends up with coordinates that actually match what
+  /// they typed (rather than the last-selected location or the phone's
+  /// GPS). Returns true when every non-empty field has fresh coords.
+  Future<bool> resolveCoordinatesIfNeeded() async {
+    final placesService = _ref.read(googlePlacesServiceProvider);
+    var ok = true;
+
+    final pickup = state.locationController?.text.trim() ?? '';
+    if (pickup.isNotEmpty &&
+        (_locationAnchorText != pickup ||
+            state.locationLat == null ||
+            state.locationLng == null)) {
+      final resolved = await placesService.getLatLngFromAddress(pickup);
+      if (resolved != null) {
+        _locationAnchorText = pickup;
+        state = state.copyWith(
+          locationLat: resolved.latitude,
+          locationLng: resolved.longitude,
+        );
+      } else {
+        ok = false;
+      }
+    }
+
+    final destination = state.destinationController?.text.trim() ?? '';
+    if (destination.isNotEmpty &&
+        (_destinationAnchorText != destination ||
+            state.destinationLat == null ||
+            state.destinationLng == null)) {
+      final resolved = await placesService.getLatLngFromAddress(destination);
+      if (resolved != null) {
+        _destinationAnchorText = destination;
+        state = state.copyWith(
+          destinationLat: resolved.latitude,
+          destinationLng: resolved.longitude,
+        );
+      } else {
+        ok = false;
+      }
+    }
+
+    final stop = state.stopController?.text.trim() ?? '';
+    if (stop.isNotEmpty &&
+        (_stopAnchorText != stop ||
+            state.stopLat == null ||
+            state.stopLng == null)) {
+      final resolved = await placesService.getLatLngFromAddress(stop);
+      if (resolved != null) {
+        _stopAnchorText = stop;
+        state = state.copyWith(
+          stopLat: resolved.latitude,
+          stopLng: resolved.longitude,
+        );
+      } else {
+        ok = false;
+      }
+    }
+
+    return ok;
   }
 }

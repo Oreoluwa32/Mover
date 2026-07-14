@@ -105,6 +105,23 @@ class AddRouteScreenOneState extends ConsumerState<AddRouteScreenOne> {
       return;
     }
 
+    // Reconcile stored coordinates with whatever is actually typed in the
+    // pickup / destination / stop fields. If the user typed a new address
+    // without tapping an autocomplete suggestion the stored lat/lng could
+    // still point at the previous selection (or the phone's GPS from the
+    // initial "current location" fetch), which is exactly what caused the
+    // route highlight to appear between the device's location and the
+    // destination instead of between the typed pickup and destination.
+    final coordsResolved = await ref
+        .read(addRouteOneNotifier.notifier)
+        .resolveCoordinatesIfNeeded();
+    if (!coordsResolved) {
+      AppToast.info(
+        "Couldn't resolve one of the addresses. Please pick a suggestion from the dropdown.",
+      );
+      return;
+    }
+
     final notifierState = ref.read(addRouteOneNotifier);
 
     // Validate that coordinates are selected

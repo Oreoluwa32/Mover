@@ -192,6 +192,47 @@ class GooglePlacesService {
     }
   }
 
+  /// Forward-geocode a typed address into coordinates. Returns null if the
+  /// address can't be resolved (empty query, unknown, quota, etc.). Callers
+  /// typically use this at form-submit time as a fallback when the user
+  /// typed a location without selecting from the autocomplete suggestions.
+  Future<PlaceDetails?> getLatLngFromAddress(String address) async {
+    final query = address.trim();
+    if (query.isEmpty) return null;
+    try {
+      final response = await dio.get(
+        'https://maps.googleapis.com/maps/api/geocode/json',
+        queryParameters: {
+          'address': query,
+          'key': apiKey,
+          'region': _defaultRegion,
+          'language': _defaultLanguage,
+        },
+      );
+      if (response.statusCode != 200) return null;
+      final data = response.data as Map<String, dynamic>;
+      if (data['status'] != 'OK') return null;
+      final results = data['results'] as List?;
+      if (results == null || results.isEmpty) return null;
+      final first = results.first as Map<String, dynamic>;
+      final geometry = (first['geometry'] as Map?) ?? const {};
+      final location = (geometry['location'] as Map?) ?? const {};
+      final lat = (location['lat'] as num?)?.toDouble();
+      final lng = (location['lng'] as num?)?.toDouble();
+      if (lat == null || lng == null) return null;
+      final formatted = first['formatted_address']?.toString() ?? query;
+      return PlaceDetails(
+        placeId: first['place_id']?.toString() ?? '',
+        name: formatted,
+        address: formatted,
+        latitude: lat,
+        longitude: lng,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String?> getAddressFromLatLng(double lat, double lng) async {
     try {
       final response = await dio.get(
