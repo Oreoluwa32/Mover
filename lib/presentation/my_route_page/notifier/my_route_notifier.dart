@@ -42,6 +42,9 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
           days: departureDate,
           islive: item['is_live'] == true,
           status: item['status']?.toString() ?? '',
+          departureTime: DateTime.tryParse(
+            item['departure_time']?.toString() ?? '',
+          )?.toLocal(),
         );
       }).toList();
 
@@ -56,6 +59,43 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
           savedrouteItemList: const [],
         ),
       );
+    }
+  }
+
+  /// Rename a scheduled route and/or change its departure time. Returns
+  /// true on success, false on failure (with an error toast surfaced to
+  /// the user).
+  Future<bool> updateScheduledRoute({
+    required String routeId,
+    String? title,
+    DateTime? departureTime,
+  }) async {
+    if (routeId.isEmpty) {
+      return false;
+    }
+    final Map<String, dynamic> fields = {};
+    if (title != null && title.trim().isNotEmpty) {
+      fields['title'] = title.trim();
+    }
+    if (departureTime != null) {
+      fields['departure_time'] = departureTime.toUtc().toIso8601String();
+    }
+    if (fields.isEmpty) {
+      return true;
+    }
+    try {
+      await _mobilityApiService.updateTravelPlan(
+        travelPlanId: routeId,
+        fields: fields,
+      );
+      await fetchScheduledRoutes();
+      Fluttertoast.showToast(msg: 'Route updated');
+      return true;
+    } catch (error) {
+      Fluttertoast.showToast(
+        msg: _mobilityApiService.extractErrorMessage(error),
+      );
+      return false;
     }
   }
 

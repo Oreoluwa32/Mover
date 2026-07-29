@@ -11,7 +11,8 @@ class SavedRouteModel {
       this.address,
       this.time,
       this.days,
-      this.id}) {
+      this.id,
+      this.departureTime}) {
     routetitle = routetitle ?? "";
     liveDot = liveDot ?? false;
     islive = islive ?? false;
@@ -30,4 +31,7 @@ class SavedRouteModel {
   String? time;
   String? days;
   String? id;
+  // Raw departure DateTime kept so the edit sheet can preselect the current
+  // value and preserve the original date when only the time changes.
+  DateTime? departureTime;
 }

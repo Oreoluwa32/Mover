@@ -6,6 +6,7 @@ import '../../widgets/app_bar/appbar_subtitle.dart';
 import '../../widgets/app_bar/custom_app_bar.dart';
 import 'models/saved_route_model.dart';
 import 'notifier/my_route_notifier.dart';
+import 'widgets/edit_route_bottomsheet.dart';
 import 'widgets/savedroute_item_widget.dart';
 
 // ignore for file, must be immutable
@@ -180,11 +181,24 @@ class MyRoutePageState extends ConsumerState<MyRoutePage>
               onDelete: () => ref
                   .read(myRouteNotifier.notifier)
                   .deleteScheduledRoute(model.id ?? ''),
+              onTap: () => _openEditSheet(context, model),
             );
           },
         ),
       );
     }));
+  }
+
+  Future<void> _openEditSheet(
+    BuildContext context,
+    SavedRouteModel route,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EditRouteBottomsheet(route: route),
+    );
   }
 
   // Section Widget

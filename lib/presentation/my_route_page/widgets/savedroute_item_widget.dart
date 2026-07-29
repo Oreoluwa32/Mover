@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/app_export.dart';
 import '../models/saved_route_model.dart';
+
+// Design tokens taken from Figma node 916:4061 so the card matches spec
+// regardless of any drift in the shared theme.
+class _RouteCardTokens {
+  static const Color textPrimary = Color(0xFF414141); // Black/800
+  static const Color textSecondary = Color(0xFF6D6D6D); // Black/500
+  static const Color border = Color(0xFFE7E7E7); // Black/100
+  static const Color liveRed = Color(0xFFE41212); // Red/Primary
+}
 
 class SavedrouteItemWidget extends StatelessWidget {
   SavedrouteItemWidget(
     this.savedrouteItemModelObj, {
     Key? key,
     this.onDelete,
-  })
-      : super(
-          key: key,
-        );
+    this.onTap,
+  }) : super(key: key);
 
-  SavedRouteModel savedrouteItemModelObj;
+  final SavedRouteModel savedrouteItemModelObj;
   final Future<bool> Function()? onDelete;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +54,9 @@ class SavedrouteItemWidget extends StatelessWidget {
             );
           },
         );
-
         if (shouldDelete != true) {
           return false;
         }
-
         return await onDelete!.call();
       },
       background: Container(
@@ -57,140 +64,190 @@ class SavedrouteItemWidget extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16.h),
         alignment: Alignment.centerRight,
         decoration: BoxDecoration(
-          color: const Color(0xFFE41212),
-          borderRadius: BorderRadiusStyle.roundedBorder8,
+          color: _RouteCardTokens.liveRed,
+          borderRadius: BorderRadius.circular(8.h),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(
-              Icons.delete_outline,
-              color: Colors.white,
-              size: 20.h,
-            ),
+            Icon(Icons.delete_outline, color: Colors.white, size: 20.h),
             SizedBox(width: 8.h),
             Text(
               'Delete',
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: TextStyle(
+                fontFamily: 'Mulish',
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
+                fontSize: 14.fSize,
               ),
             ),
           ],
         ),
       ),
-      child: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.symmetric(
-          horizontal: 14.h,
-          vertical: 12.h,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.h),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8.h),
+          child: Container(
+            width: double.maxFinite,
+            padding: EdgeInsets.all(16.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.h),
+              border: Border.all(color: _RouteCardTokens.border, width: 1.h),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTitleRow(),
+                SizedBox(height: 10.h),
+                _buildDetailsRow(),
+              ],
+            ),
+          ),
         ),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary.withValues(alpha: 1),
-          borderRadius: BorderRadiusStyle.roundedBorder8,
-          border: Border.all(color: appTheme.gray20001, width: 1.h),
+      ),
+    );
+  }
+
+  Widget _buildTitleRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            savedrouteItemModelObj.routetitle ?? '',
+            style: TextStyle(
+              fontFamily: 'Mulish',
+              fontWeight: FontWeight.w600,
+              fontSize: 12.fSize,
+              color: _RouteCardTokens.textPrimary,
+              height: 1.2,
+            ),
+          ),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        if (savedrouteItemModelObj.islive ?? false) _buildLiveChip(),
+      ],
+    );
+  }
+
+  Widget _buildLiveChip() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(100.h),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 15,
+            spreadRadius: 0,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 6.h,
+            height: 6.h,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: _RouteCardTokens.liveRed,
+            ),
+          ),
+          SizedBox(width: 4.h),
+          Text(
+            'Live',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w500,
+              fontSize: 10.fSize,
+              color: _RouteCardTokens.liveRed,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailsRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                savedrouteItemModelObj.address ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: 'Mulish',
+                  fontWeight: FontWeight.w400,
+                  fontSize: 10.fSize,
+                  color: _RouteCardTokens.textSecondary,
+                  height: 1.2,
+                ),
+              ),
+              SizedBox(height: 10.h),
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          savedrouteItemModelObj.routetitle!,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: appTheme.gray800,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        ),
-                      if ((savedrouteItemModelObj.islive ?? false) ||
-                          (savedrouteItemModelObj.status?.isNotEmpty ?? false))
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8.h,
-                            vertical: 4.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (savedrouteItemModelObj.islive ?? false)
-                                ? appTheme.lightGreen100
-                                : appTheme.gray100,
-                            borderRadius: BorderRadius.circular(12.h),
-                          ),
-                          child: Text(
-                            (savedrouteItemModelObj.islive ?? false)
-                                ? 'Live'
-                                : savedrouteItemModelObj.status!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: (savedrouteItemModelObj.islive ?? false)
-                                  ? appTheme.lightGreen900
-                                  : appTheme.gray600,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
+                  _buildMeta(
+                    icon: ImageConstant.imgClock,
+                    text: savedrouteItemModelObj.time ?? '',
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    savedrouteItemModelObj.address!,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: appTheme.gray600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8.h),
-                  Row(
-                    children: [
-                      CustomImageView(
-                        imagePath: ImageConstant.imgClock,
-                        height: 16.h,
-                        width: 16.h,
-                        color: appTheme.gray600,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 6.h),
-                        child: Text(
-                          savedrouteItemModelObj.time!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: appTheme.gray600,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 16.h),
-                      CustomImageView(
-                        imagePath: ImageConstant.imgCalendar,
-                        height: 16.h,
-                        width: 16.h,
-                        color: appTheme.gray600,
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 6.h),
-                        child: Text(
-                          savedrouteItemModelObj.days!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: appTheme.gray600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  SizedBox(width: 10.h),
+                  _buildMeta(
+                    icon: ImageConstant.imgCalendar,
+                    text: savedrouteItemModelObj.days ?? '',
                   ),
                 ],
               ),
-            ),
-            CustomImageView(
-              imagePath: ImageConstant.imgChevronRightBlack,
-              height: 20.h,
-              width: 20.h,
-              margin: EdgeInsets.only(left: 8.h),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        SizedBox(width: 8.h),
+        CustomImageView(
+          imagePath: ImageConstant.imgChevronRightBlack,
+          height: 16.h,
+          width: 16.h,
+          color: _RouteCardTokens.textSecondary,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMeta({required String icon, required String text}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CustomImageView(
+          imagePath: icon,
+          height: 12.h,
+          width: 12.h,
+          color: _RouteCardTokens.textSecondary,
+        ),
+        SizedBox(width: 8.h),
+        Text(
+          text,
+          style: TextStyle(
+            fontFamily: 'Mulish',
+            fontWeight: FontWeight.w400,
+            fontSize: 10.fSize,
+            color: _RouteCardTokens.textSecondary,
+            height: 1.2,
+          ),
+        ),
+      ],
     );
   }
 }

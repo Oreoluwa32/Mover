@@ -238,6 +238,22 @@ class MobilityApiService {
     _notifyTaskStateChanged('travel_plan_deleted');
   }
 
+  /// PATCH the given TravelPlan with any of the supported fields. Only the
+  /// fields that are non-null in [fields] are sent, so callers can update a
+  /// single value (e.g. just the title, or just departure_time) without
+  /// having to send the whole plan.
+  Future<Map<String, dynamic>> updateTravelPlan({
+    required String travelPlanId,
+    Map<String, dynamic> fields = const {},
+  }) async {
+    final response = await _dio.patch(
+      '/api/mobility/travel-plans/$travelPlanId/',
+      data: fields,
+    );
+    _notifyTaskStateChanged('travel_plan_updated');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
   Future<Map<String, dynamic>> createRideRequest({
     required String originName,
     double? originLatitude,
