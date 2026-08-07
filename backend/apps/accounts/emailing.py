@@ -9,6 +9,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives, get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,45 @@ def generate_email_verification_code() -> str:
     return f"{random.randint(0, 999999):06d}"
 
 
-def _send_resend_email(
+def _send_smtp_email(
+    *,
+    to_email: str,
+    subject: str,
+    html: str,
+    text: str,
+    error_cls: type[RuntimeError],
+    generic_failure_message: str,
+) -> None:
+    if not settings.EMAIL_HOST:
+        raise error_cls(
+            "SMTP transport selected but EMAIL_HOST is not set."
+        )
+    try:
+        connection = get_connection(
+            backend="django.core.mail.backends.smtp.EmailBackend",
+            host=settings.EMAIL_HOST,
+            port=settings.EMAIL_PORT,
+            username=settings.EMAIL_HOST_USER,
+            password=settings.EMAIL_HOST_PASSWORD,
+            use_tls=settings.EMAIL_USE_TLS,
+            use_ssl=settings.EMAIL_USE_SSL,
+            timeout=settings.EMAIL_TIMEOUT,
+        )
+        message = EmailMultiAlternatives(
+            subject=subject,
+            body=text,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[to_email],
+            connection=connection,
+        )
+        message.attach_alternative(html, "text/html")
+        message.send()
+    except Exception as exc:
+        logger.exception("SMTP email failed.")
+        raise error_cls(generic_failure_message) from exc
+
+
+def _send_email(
     *,
     to_email: str,
     subject: str,
@@ -48,6 +87,17 @@ def _send_resend_email(
     error_cls: type[RuntimeError],
     generic_failure_message: str,
 ) -> None:
+    if settings.MOVR_EMAIL_TRANSPORT == "smtp":
+        _send_smtp_email(
+            to_email=to_email,
+            subject=subject,
+            html=html,
+            text=text,
+            error_cls=error_cls,
+            generic_failure_message=generic_failure_message,
+        )
+        return
+
     if not settings.RESEND_API_KEY or not settings.RESEND_FROM_EMAIL:
         raise error_cls(
             "Resend is not configured. Set RESEND_API_KEY and RESEND_FROM_EMAIL."
@@ -131,7 +181,7 @@ def send_password_reset_email(
         "If you did not request this, you can ignore this email.\n\n"
         "Movr Team"
     )
-    _send_resend_email(
+    _send_email(
         to_email=to_email,
         subject=subject,
         html=html_body,
@@ -171,7 +221,7 @@ def send_email_verification_email(
         "If you did not create a Movr account, you can ignore this email.\n\n"
         "Movr Team"
     )
-    _send_resend_email(
+    _send_email(
         to_email=to_email,
         subject=subject,
         html=html_body,

@@ -303,6 +303,20 @@ MOVR_EMAIL_VERIFICATION_CODE_TTL_MINUTES = _int_env(
 )
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "")
+
+# Email transport selector. "resend" (default) sends via the Resend HTTP API;
+# "smtp" routes through Django's SMTP backend, which is what we use to hand
+# messages to Mailtrap while there is no verified sending domain.
+MOVR_EMAIL_TRANSPORT = os.getenv("MOVR_EMAIL_TRANSPORT", "resend").lower()
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_PORT = _int_env("EMAIL_PORT", 587)
+EMAIL_USE_TLS = _bool_env("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = _bool_env("EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = _int_env("EMAIL_TIMEOUT", 10)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL") or RESEND_FROM_EMAIL or "no-reply@movr.local"
 MONNIFY_API_KEY = os.getenv("MONNIFY_API_KEY", "")
 MONNIFY_SECRET_KEY = os.getenv("MONNIFY_SECRET_KEY", "")
 MONNIFY_CONTRACT_CODE = os.getenv("MONNIFY_CONTRACT_CODE", "")
