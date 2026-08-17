@@ -60,4 +60,5 @@ app.*.map.json
 secrets.json
 android/secrets.properties
 android/key.properties
+android/local.defaults.properties
 ios/Flutter/Secrets.xcconfig
