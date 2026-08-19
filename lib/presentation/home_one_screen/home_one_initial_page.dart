@@ -76,6 +76,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   late Animation<Offset> _sidebarSlideAnimation;
   late Animation<double> _filterButtonRotationAnimation;
   bool _isSidebarVisible = false;
+  String? _selectedTransportModeImagePath;
 
   // Location stream subscription
   StreamSubscription? _locationSubscription;
@@ -273,6 +274,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       _sidebarAnimationController.reverse();
       _filterButtonAnimationController.reverse();
     }
+  }
+
+  void _selectTransportMode(String imagePath) {
+    setState(() {
+      _selectedTransportModeImagePath = imagePath;
+      _isSidebarVisible = false;
+    });
+    _sidebarAnimationController.reverse();
+    _filterButtonAnimationController.reverse();
   }
 
   @override
@@ -1427,20 +1437,23 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   }
 
   Widget _buildTransportModeItem(String imagePath, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomImageView(
-          imagePath: imagePath,
-          height: 18.h,
-          width: 18.h,
-        ),
-        SizedBox(height: 2.h),
-        Text(
-          label,
-          style: CustomTextStyles.interErrorContainer,
-        ),
-      ],
+    return GestureDetector(
+      onTap: () => _selectTransportMode(imagePath),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomImageView(
+            imagePath: imagePath,
+            height: 18.h,
+            width: 18.h,
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            label,
+            style: CustomTextStyles.interErrorContainer,
+          ),
+        ],
+      ),
     );
   }
 
@@ -1642,7 +1655,8 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                 ),
                 child: Center(
                   child: CustomImageView(
-                    imagePath: ImageConstant.imgFilter,
+                    imagePath: _selectedTransportModeImagePath ??
+                        ImageConstant.imgFilter,
                     height: 20.h,
                     width: 20.h,
                     color: _isSidebarVisible ? Colors.white : Color(0xFF6D6D6D),
