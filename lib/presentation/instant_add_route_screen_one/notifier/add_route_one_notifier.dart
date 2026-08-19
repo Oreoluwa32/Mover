@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:location/location.dart';
 import '../../../core/app_export.dart';
 import '../../../core/utils/location_manager.dart';
@@ -132,32 +135,52 @@ class AddRouteOneNotifier extends StateNotifier<AddRouteOneState> {
 
   Future<void> fetchCurrentLocation() async {
     try {
-      bool hasPermission =
+      final hasPermission =
           await LocationManager.checkAndRequestLocationPermission();
       if (!hasPermission) {
+        Fluttertoast.showToast(
+          msg: "Location permission is required. Enable it in Settings.",
+        );
         return;
       }
 
-      Location location = Location();
-      LocationData locationData = await location.getLocation();
+      final location = Location();
+      await location.changeSettings(
+        accuracy: LocationAccuracy.balanced,
+        interval: 1000,
+      );
+      final locationData = await location.getLocation().timeout(
+        const Duration(seconds: 12),
+      );
 
-      if (locationData.latitude != null && locationData.longitude != null) {
-        final placesService = _ref.read(googlePlacesServiceProvider);
-        final address = await placesService.getAddressFromLatLng(
-          locationData.latitude!,
-          locationData.longitude!,
-        );
-
-        if (address != null) {
-          state.locationController?.text = address;
-          _locationAnchorText = address.trim();
-          state = state.copyWith(
-            locationLat: locationData.latitude,
-            locationLng: locationData.longitude,
-          );
-        }
+      final lat = locationData.latitude;
+      final lng = locationData.longitude;
+      if (lat == null || lng == null) {
+        Fluttertoast.showToast(msg: "Couldn't read your location. Try again.");
+        return;
       }
-    } catch (_) {}
+
+      final placesService = _ref.read(googlePlacesServiceProvider);
+      String? address;
+      try {
+        address = await placesService
+            .getAddressFromLatLng(lat, lng)
+            .timeout(const Duration(seconds: 8));
+      } catch (_) {
+        address = null;
+      }
+
+      state.locationController?.text = address ?? "Current Location";
+      _locationAnchorText = (address ?? "Current Location").trim();
+      state = state.copyWith(locationLat: lat, locationLng: lng);
+    } on TimeoutException {
+      Fluttertoast.showToast(
+        msg:
+            "Location timed out. On an emulator, use Extended Controls → Location → Set Location.",
+      );
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Location error: $e");
+    }
   }
 
   /// Ensure the pickup, destination and (optional) stop coordinates match
