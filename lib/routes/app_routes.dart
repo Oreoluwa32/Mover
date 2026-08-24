@@ -72,6 +72,7 @@ import '../presentation/schedule_move_bottomsheet/schedule_move_bottomsheet.dart
 import '../presentation/ride_sharing_details_screen/ride_sharing_details_screen.dart';
 import '../presentation/schedule_move_bottomsheet_one/schedule_move_bottomsheet_one.dart';
 import '../presentation/task_chat_screen/task_chat_screen.dart';
+import '../presentation/debug/rive_marker_preview_screen.dart';
 
 // THis class must be immutable
 class AppRoutes {
@@ -235,9 +236,13 @@ class AppRoutes {
 
   static const String monnifyPaymentScreen = '/monnify_payment_screen';
 
+  static const String riveMarkerPreviewScreen = '/debug/rive-marker';
+
   static const String initialRoute = splashScreenOne;
 
   static Map<String, WidgetBuilder> routes = {
+    riveMarkerPreviewScreen: (context) => const RiveMarkerPreviewScreen(),
+
     splashScreenOne: (context) => SplashScreenOne(),
 
     splashScreenTwo: (context) => SplashScreenTwo(),
