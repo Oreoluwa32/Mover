@@ -5,6 +5,7 @@ from .views import (
     DeliveryRequestViewSet,
     EmergencyAlertViewSet,
     MobilityDashboardView,
+    NearbyMoversView,
     RideRequestViewSet,
     TrackingSessionViewSet,
     TravelMatchViewSet,
@@ -25,5 +26,6 @@ router.register("emergency-alerts", EmergencyAlertViewSet, basename="emergency-a
 
 urlpatterns = [
     path("dashboard/", MobilityDashboardView.as_view()),
+    path("nearby-movers/", NearbyMoversView.as_view(), name="nearby-movers"),
     path("", include(router.urls)),
 ]
