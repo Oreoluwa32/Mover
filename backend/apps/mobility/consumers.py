@@ -62,6 +62,20 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive_json(self, content, **kwargs):
+        # Heartbeat: clients ping ~every 25s so we detect half-open
+        # connections behind NATs or mobile cellular handovers. Answer
+        # with a pong and short-circuit — pings must never write to
+        # TrackingEvent.
+        if content.get("type") == "ping":
+            await self.send_json(
+                {
+                    "type": "pong",
+                    "sent_at": content.get("sent_at"),
+                    "server_time": timezone.now().isoformat(),
+                }
+            )
+            return
+
         event = await self._persist_event(content)
         await self.channel_layer.group_send(
             self.room_group_name,
