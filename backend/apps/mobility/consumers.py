@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from config.jwt_auth import JWT_SUBPROTOCOL
 
+from .geo import record_live_position
 from .models import TrackingEvent, TrackingSession, TravelPlan
 
 
@@ -75,6 +76,25 @@ class TrackingConsumer(AsyncJsonWebsocketConsumer):
                 }
             )
             return
+
+        # Live-position mirror for proximity search. Runs on every
+        # inbound location event and short-circuits when redis is
+        # unavailable so it can never break the tracking pipeline.
+        lat = content.get("latitude")
+        lng = content.get("longitude")
+        if (
+            content.get("event_type", TrackingEvent.EventType.LOCATION)
+            == TrackingEvent.EventType.LOCATION
+            and lat is not None
+            and lng is not None
+        ):
+            try:
+                record_live_position(
+                    str(self.scope["user"].id), float(lat), float(lng)
+                )
+            except Exception:
+                # Never let the mirror break the primary write path.
+                pass
 
         event = await self._persist_event(content)
         await self.channel_layer.group_send(

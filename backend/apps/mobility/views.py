@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from config.api_security import sanitize_string
 from apps.accounts.verification import is_fully_verified_user
+from .geo import cell_for_coord, request_hits_corridor
 from .models import (
     DeliveryRequest,
     EmergencyAlert,
@@ -223,34 +224,84 @@ def _expire_stale_accepted_matches():
         _cancel_match(stale_match)
 
 
+def _corridor_match(queryset, pickup_lat, pickup_lng, drop_lat, drop_lng):
+    """Filter a TravelPlan queryset to those whose H3 corridor contains
+    both the pickup and dropoff cells in order. Returns None when H3
+    matching can't run (missing coords or no corridor data anywhere),
+    so callers can fall back to the legacy name-based filter.
+    """
+    pickup_cell = cell_for_coord(pickup_lat, pickup_lng)
+    drop_cell = cell_for_coord(drop_lat, drop_lng)
+    if not pickup_cell or not drop_cell:
+        return None
+    hits: list = []
+    for plan in queryset:
+        corridor = plan.corridor_h3_cells or []
+        if request_hits_corridor(corridor, pickup_cell, drop_cell):
+            hits.append(plan)
+    return hits
+
+
 def _find_matching_plan_for_ride(instance: RideRequest):
-    queryset = _filter_plans_for_fully_verified_creators(
+    base = _filter_plans_for_fully_verified_creators(
         TravelPlan.objects.filter(
             status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
             plan_type__in=[TravelPlan.PlanType.RIDE, TravelPlan.PlanType.HYBRID],
-            origin_name__icontains=instance.origin_name,
-            destination_name__icontains=instance.destination_name,
             departure_time__date=instance.scheduled_time.date(),
         )
         .exclude(created_by=instance.requester)
         .order_by("departure_time")
     )
-    return queryset.first()
+
+    hits = _corridor_match(
+        base,
+        instance.origin_latitude,
+        instance.origin_longitude,
+        instance.destination_latitude,
+        instance.destination_longitude,
+    )
+    if hits:
+        return hits[0]
+
+    # Fallback: legacy name-based matching for pre-H3 rows and requests
+    # that arrived without coordinates.
+    return (
+        base.filter(
+            origin_name__icontains=instance.origin_name,
+            destination_name__icontains=instance.destination_name,
+        )
+        .first()
+    )
 
 
 def _find_matching_plan_for_delivery(instance: DeliveryRequest):
-    queryset = _filter_plans_for_fully_verified_creators(
+    base = _filter_plans_for_fully_verified_creators(
         TravelPlan.objects.filter(
             status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
             plan_type__in=[TravelPlan.PlanType.DELIVERY, TravelPlan.PlanType.HYBRID],
-            origin_name__icontains=instance.pickup_name,
-            destination_name__icontains=instance.dropoff_name,
             departure_time__date=instance.scheduled_time.date(),
         )
         .exclude(created_by=instance.requester)
         .order_by("departure_time")
     )
-    return queryset.first()
+
+    hits = _corridor_match(
+        base,
+        instance.pickup_latitude,
+        instance.pickup_longitude,
+        instance.dropoff_latitude,
+        instance.dropoff_longitude,
+    )
+    if hits:
+        return hits[0]
+
+    return (
+        base.filter(
+            origin_name__icontains=instance.pickup_name,
+            destination_name__icontains=instance.dropoff_name,
+        )
+        .first()
+    )
 
 
 def _resolve_owner_travel_plan(user, provided_id: str | None, allowed_types: list[str]):
