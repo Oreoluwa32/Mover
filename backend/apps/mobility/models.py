@@ -54,8 +54,44 @@ class TravelPlan(models.Model):
     )
     is_live = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict, blank=True)
+    # Ordered list of H3 resolution-8 cells covering the great-circle path
+    # from origin to destination. Populated by save(); used by the
+    # corridor matcher instead of substring name filters.
+    corridor_h3_cells = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def _compute_corridor_cells(self) -> list[str]:
+        # Import inside the method so the models module still imports
+        # without h3 installed (dev images that skip requirements).
+        from .geo import corridor_cells
+
+        return corridor_cells(
+            origin_lat=(
+                float(self.origin_latitude)
+                if self.origin_latitude is not None
+                else None
+            ),
+            origin_lng=(
+                float(self.origin_longitude)
+                if self.origin_longitude is not None
+                else None
+            ),
+            dest_lat=(
+                float(self.destination_latitude)
+                if self.destination_latitude is not None
+                else None
+            ),
+            dest_lng=(
+                float(self.destination_longitude)
+                if self.destination_longitude is not None
+                else None
+            ),
+        )
+
+    def save(self, *args, **kwargs):
+        self.corridor_h3_cells = self._compute_corridor_cells()
+        super().save(*args, **kwargs)
 
 
 class RideRequest(models.Model):

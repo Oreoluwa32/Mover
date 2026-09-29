@@ -4,9 +4,15 @@ import uuid
 from decimal import Decimal
 
 from django.conf import settings
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+
+class InsufficientFundsError(ValidationError):
+    """Raised when a debit would take a wallet below zero."""
 
 
 class Wallet(models.Model):
@@ -18,15 +24,49 @@ class Wallet(models.Model):
     currency = models.CharField(max_length=8, default="NGN")
     updated_at = models.DateTimeField(auto_now=True)
 
-    def credit(self, amount: Decimal):
-        self.balance += amount
-        self.available_balance += amount
-        self.save(update_fields=["balance", "available_balance", "updated_at"])
+    @staticmethod
+    def _normalise_amount(amount: Decimal) -> Decimal:
+        if not isinstance(amount, Decimal):
+            amount = Decimal(str(amount))
+        if amount <= Decimal("0"):
+            raise ValidationError("Wallet amount must be positive.")
+        return amount
 
-    def debit(self, amount: Decimal):
-        self.balance -= amount
-        self.available_balance -= amount
-        self.save(update_fields=["balance", "available_balance", "updated_at"])
+    def credit(self, amount: Decimal) -> "Wallet":
+        amount = self._normalise_amount(amount)
+        with transaction.atomic():
+            (
+                Wallet.objects.select_for_update()
+                .filter(pk=self.pk)
+                .update(
+                    balance=F("balance") + amount,
+                    available_balance=F("available_balance") + amount,
+                )
+            )
+        self.refresh_from_db(fields=["balance", "available_balance", "updated_at"])
+        return self
+
+    def debit(self, amount: Decimal) -> "Wallet":
+        amount = self._normalise_amount(amount)
+        with transaction.atomic():
+            locked = (
+                Wallet.objects.select_for_update()
+                .filter(pk=self.pk)
+                .values_list("available_balance", flat=True)
+                .first()
+            )
+            if locked is None:
+                raise Wallet.DoesNotExist("Wallet vanished mid-transaction.")
+            if locked < amount:
+                raise InsufficientFundsError(
+                    f"Insufficient wallet balance for debit of {amount}."
+                )
+            Wallet.objects.filter(pk=self.pk).update(
+                balance=F("balance") - amount,
+                available_balance=F("available_balance") - amount,
+            )
+        self.refresh_from_db(fields=["balance", "available_balance", "updated_at"])
+        return self
 
 
 class MonnifyReservedAccount(models.Model):
@@ -101,14 +141,23 @@ class WalletTransaction(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def mark_successful(self):
-        if self.status == self.Status.SUCCESS:
-            return
-        self.status = self.Status.SUCCESS
-        self.save(update_fields=["status", "updated_at"])
-        if self.transaction_type in [self.Type.DEPOSIT, self.Type.ADJUSTMENT]:
-            self.wallet.credit(self.amount)
-        elif self.transaction_type in [self.Type.WITHDRAWAL, self.Type.PAYOUT]:
-            self.wallet.debit(self.amount)
+        with transaction.atomic():
+            locked = (
+                WalletTransaction.objects.select_for_update()
+                .filter(pk=self.pk)
+                .values_list("status", flat=True)
+                .first()
+            )
+            if locked == self.Status.SUCCESS:
+                return
+            WalletTransaction.objects.filter(pk=self.pk).update(
+                status=self.Status.SUCCESS
+            )
+            self.status = self.Status.SUCCESS
+            if self.transaction_type in [self.Type.DEPOSIT, self.Type.ADJUSTMENT]:
+                self.wallet.credit(self.amount)
+            elif self.transaction_type in [self.Type.WITHDRAWAL, self.Type.PAYOUT]:
+                self.wallet.debit(self.amount)
 
     def mark_failed(self):
         self.status = self.Status.FAILED

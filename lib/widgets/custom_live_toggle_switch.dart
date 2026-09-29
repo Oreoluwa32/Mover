@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../core/utils/size_utils.dart';
 
 class CustomLiveToggleSwitch extends StatefulWidget {
   final bool value;
@@ -109,7 +109,7 @@ class _CustomLiveToggleSwitchState extends State<CustomLiveToggleSwitch>
                         child: Text(
                           'OFF',
                           style: TextStyle(
-                            fontSize: 10.sp,
+                            fontSize: 10.fSize,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF6A19D3),
                           ),
@@ -121,7 +121,7 @@ class _CustomLiveToggleSwitchState extends State<CustomLiveToggleSwitch>
                         child: Text(
                           'ON',
                           style: TextStyle(
-                            fontSize: 10.sp,
+                            fontSize: 10.fSize,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

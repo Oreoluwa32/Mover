@@ -78,6 +78,15 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
   bool _isSidebarVisible = false;
   String? _selectedTransportModeImagePath;
 
+  // Nearby-mover markers indexed by mover_id so tick reconciliation is
+  // an O(delta) diff instead of clear-and-readd (same reason we do that
+  // for the user marker above).
+  Map<String, Marker> _nearbyMoverMarkers = <String, Marker>{};
+  Timer? _nearbyMoversTimer;
+  static const Duration _nearbyMoversInterval = Duration(seconds: 25);
+  static const double _nearbyMoversRadiusKm = 3.0;
+  static const int _nearbyMoversLimit = 25;
+
   // Location stream subscription
   StreamSubscription? _locationSubscription;
   StreamSubscription<CompassEvent>? _compassSubscription;
@@ -257,6 +266,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
     _compassSubscription?.cancel();
     _motionSmoothingTimer?.cancel();
     _markerRefreshTimer?.cancel();
+    _nearbyMoversTimer?.cancel();
     unawaited(_realtimeService.dispose());
     super.dispose();
   }
@@ -548,6 +558,119 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
       _lastRenderedMarkerPosition = currentPosition;
       _lastRenderedMarkerHeading = userHeading;
     }
+  }
+
+  /// Kick off the nearby-movers poll. Idempotent: safe to call every
+  /// time a new location arrives; only the first call actually starts
+  /// the periodic timer, later calls just trigger an immediate refresh
+  /// against the newest position.
+  void _startNearbyMoverPolling() {
+    unawaited(_refreshNearbyMovers());
+    if (_nearbyMoversTimer != null) {
+      return;
+    }
+    _nearbyMoversTimer = Timer.periodic(_nearbyMoversInterval, (_) {
+      unawaited(_refreshNearbyMovers());
+    });
+  }
+
+  Future<void> _refreshNearbyMovers() async {
+    final position = currentPosition;
+    if (position == null || !mounted) {
+      return;
+    }
+
+    final movers = await _mobilityApiService.fetchNearbyMovers(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      radiusKm: _nearbyMoversRadiusKm,
+      limit: _nearbyMoversLimit,
+    );
+
+    if (!mounted) return;
+    if (!googleMapController.isCompleted) return;
+
+    final controller = _navigationViewController ??
+        await googleMapController.future;
+    await _reconcileNearbyMoverMarkers(controller, movers);
+  }
+
+  Future<void> _reconcileNearbyMoverMarkers(
+    GoogleNavigationViewController controller,
+    List<Map<String, dynamic>> movers,
+  ) async {
+    if (!mounted) return;
+
+    final fresh = <String, LatLng>{};
+    for (final m in movers) {
+      final id = (m['mover_id'] ?? '').toString();
+      final lat = _asDouble(m['latitude']);
+      final lng = _asDouble(m['longitude']);
+      if (id.isEmpty || lat == null || lng == null) continue;
+      fresh[id] = LatLng(latitude: lat, longitude: lng);
+    }
+
+    final next = <String, Marker>{};
+
+    // Update existing markers in place; collect new-arrival options.
+    final toAdd = <MarkerOptions>[];
+    final toAddIds = <String>[];
+    final toUpdate = <Marker>[];
+    final toUpdateIds = <String>[];
+    for (final entry in fresh.entries) {
+      final existing = _nearbyMoverMarkers[entry.key];
+      final options = MarkerOptions(
+        position: entry.value,
+        anchor: const MarkerAnchor(u: 0.5, v: 0.5),
+        icon: customMarkerIcon,
+      );
+      if (existing == null) {
+        toAddIds.add(entry.key);
+        toAdd.add(options);
+      } else {
+        toUpdate.add(existing.copyWith(options: options));
+        toUpdateIds.add(entry.key);
+      }
+    }
+
+    if (toUpdate.isNotEmpty) {
+      final updated = await controller.updateMarkers(toUpdate);
+      for (var i = 0; i < toUpdateIds.length; i++) {
+        final id = toUpdateIds[i];
+        final marker = i < updated.length ? updated[i] : null;
+        next[id] = marker ?? toUpdate[i];
+      }
+    }
+
+    if (toAdd.isNotEmpty) {
+      final added = await controller.addMarkers(toAdd);
+      for (var i = 0; i < added.length && i < toAddIds.length; i++) {
+        final marker = added[i];
+        if (marker == null) continue;
+        next[toAddIds[i]] = marker;
+      }
+    }
+
+    // Anything present before but not in `fresh` is stale (mover
+    // moved out of range or went offline) - remove it.
+    final stale = <Marker>[];
+    _nearbyMoverMarkers.forEach((id, marker) {
+      if (!fresh.containsKey(id)) {
+        stale.add(marker);
+      }
+    });
+    if (stale.isNotEmpty) {
+      await controller.removeMarkers(stale);
+    }
+
+    if (!mounted) return;
+    _nearbyMoverMarkers = next;
+  }
+
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   bool _shouldRefreshUserMarker() {
@@ -927,6 +1050,7 @@ class HomeOneInitialPageState extends ConsumerState<HomeOneInitialPage>
                   _updateMarkers(controller, force: true);
                 });
               }
+              _startNearbyMoverPolling();
 
               if (_shouldAutoFollowUserLocation()) {
                 _followUserOnMap(newPosition, force: true);

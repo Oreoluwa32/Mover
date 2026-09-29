@@ -134,3 +134,5 @@ whitenoise==6.7.0
     # via -r requirements.in
 zope-interface==8.5
     # via twisted
+h3==4.5.0
+    # via -r requirements.in

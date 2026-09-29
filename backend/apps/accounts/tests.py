@@ -224,7 +224,7 @@ class PIIEncryptionTests(APITestCase):
 class EmailingFunctionTests(APITestCase):
     """Exercise the real email builders (mock only the network sender)."""
 
-    @patch("apps.accounts.emailing._send_resend_email")
+    @patch("apps.accounts.emailing._send_email")
     def test_verification_email_builds_html(self, mock_send):
         send_email_verification_email(
             to_email="user@movr.app",
@@ -236,7 +236,7 @@ class EmailingFunctionTests(APITestCase):
         self.assertIn("1234", html_body)
         self.assertIn("Ada Driver", html_body)
 
-    @patch("apps.accounts.emailing._send_resend_email")
+    @patch("apps.accounts.emailing._send_email")
     def test_password_reset_email_builds_html(self, mock_send):
         send_password_reset_email(
             to_email="user@movr.app",

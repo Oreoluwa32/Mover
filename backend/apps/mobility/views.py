@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
@@ -12,6 +13,7 @@ from rest_framework.views import APIView
 
 from config.api_security import sanitize_string
 from apps.accounts.verification import is_fully_verified_user
+from .geo import cell_for_coord, request_hits_corridor, search_nearby_movers
 from .models import (
     DeliveryRequest,
     EmergencyAlert,
@@ -35,6 +37,7 @@ from .serializers import (
     TrackingSessionSerializer,
     TravelMatchSerializer,
     TravelPlanSerializer,
+    UserSummarySerializer,
 )
 
 REQUEST_EXPIRY_WINDOW = timedelta(hours=3)
@@ -223,34 +226,84 @@ def _expire_stale_accepted_matches():
         _cancel_match(stale_match)
 
 
+def _corridor_match(queryset, pickup_lat, pickup_lng, drop_lat, drop_lng):
+    """Filter a TravelPlan queryset to those whose H3 corridor contains
+    both the pickup and dropoff cells in order. Returns None when H3
+    matching can't run (missing coords or no corridor data anywhere),
+    so callers can fall back to the legacy name-based filter.
+    """
+    pickup_cell = cell_for_coord(pickup_lat, pickup_lng)
+    drop_cell = cell_for_coord(drop_lat, drop_lng)
+    if not pickup_cell or not drop_cell:
+        return None
+    hits: list = []
+    for plan in queryset:
+        corridor = plan.corridor_h3_cells or []
+        if request_hits_corridor(corridor, pickup_cell, drop_cell):
+            hits.append(plan)
+    return hits
+
+
 def _find_matching_plan_for_ride(instance: RideRequest):
-    queryset = _filter_plans_for_fully_verified_creators(
+    base = _filter_plans_for_fully_verified_creators(
         TravelPlan.objects.filter(
             status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
             plan_type__in=[TravelPlan.PlanType.RIDE, TravelPlan.PlanType.HYBRID],
-            origin_name__icontains=instance.origin_name,
-            destination_name__icontains=instance.destination_name,
             departure_time__date=instance.scheduled_time.date(),
         )
         .exclude(created_by=instance.requester)
         .order_by("departure_time")
     )
-    return queryset.first()
+
+    hits = _corridor_match(
+        base,
+        instance.origin_latitude,
+        instance.origin_longitude,
+        instance.destination_latitude,
+        instance.destination_longitude,
+    )
+    if hits:
+        return hits[0]
+
+    # Fallback: legacy name-based matching for pre-H3 rows and requests
+    # that arrived without coordinates.
+    return (
+        base.filter(
+            origin_name__icontains=instance.origin_name,
+            destination_name__icontains=instance.destination_name,
+        )
+        .first()
+    )
 
 
 def _find_matching_plan_for_delivery(instance: DeliveryRequest):
-    queryset = _filter_plans_for_fully_verified_creators(
+    base = _filter_plans_for_fully_verified_creators(
         TravelPlan.objects.filter(
             status__in=[TravelPlan.Status.PUBLISHED, TravelPlan.Status.IN_PROGRESS],
             plan_type__in=[TravelPlan.PlanType.DELIVERY, TravelPlan.PlanType.HYBRID],
-            origin_name__icontains=instance.pickup_name,
-            destination_name__icontains=instance.dropoff_name,
             departure_time__date=instance.scheduled_time.date(),
         )
         .exclude(created_by=instance.requester)
         .order_by("departure_time")
     )
-    return queryset.first()
+
+    hits = _corridor_match(
+        base,
+        instance.pickup_latitude,
+        instance.pickup_longitude,
+        instance.dropoff_latitude,
+        instance.dropoff_longitude,
+    )
+    if hits:
+        return hits[0]
+
+    return (
+        base.filter(
+            origin_name__icontains=instance.pickup_name,
+            destination_name__icontains=instance.dropoff_name,
+        )
+        .first()
+    )
 
 
 def _resolve_owner_travel_plan(user, provided_id: str | None, allowed_types: list[str]):
@@ -1051,6 +1104,136 @@ class MobilityDashboardView(APIView):
                 "live_routes": request.user.travel_plans.filter(is_live=True).count(),
             }
         )
+
+
+class NearbyMoversView(APIView):
+    """Return live movers near a coordinate, ordered by distance.
+
+    Reads the Redis GEO index the tracking consumer keeps up to date
+    (see apps.mobility.geo.record_live_position) so this call answers
+    in single-digit milliseconds without touching Postgres for the
+    proximity search itself. Each hit is joined with the mover's most
+    recent live TravelPlan and profile summary before returning.
+    """
+
+    MAX_RADIUS_KM = 20.0
+    MAX_RESULTS = 100
+    DEFAULT_RADIUS_KM = 3.0
+    DEFAULT_LIMIT = 20
+
+    def get(self, request):
+        lat = self._coerce_float(request.query_params.get("lat"))
+        lng = self._coerce_float(request.query_params.get("lng"))
+        if lat is None or lng is None:
+            return response.Response(
+                {"detail": "lat and lng are required query parameters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not (-90.0 <= lat <= 90.0) or not (-180.0 <= lng <= 180.0):
+            return response.Response(
+                {"detail": "lat and lng are out of range."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        radius = self._coerce_float(request.query_params.get("radius_km")) or (
+            self.DEFAULT_RADIUS_KM
+        )
+        radius = max(0.1, min(self.MAX_RADIUS_KM, radius))
+
+        limit = self._coerce_int(request.query_params.get("limit")) or (
+            self.DEFAULT_LIMIT
+        )
+        limit = max(1, min(self.MAX_RESULTS, limit))
+
+        hits = search_nearby_movers(
+            lat=lat, lng=lng, radius_km=radius, max_results=limit
+        )
+        # search_nearby_movers already excludes the caller's live plan
+        # only via id; here we filter out the caller themselves.
+        caller_id = str(request.user.id)
+        hits = [h for h in hits if h["mover_id"] != caller_id]
+        if not hits:
+            return response.Response(
+                {
+                    "count": 0,
+                    "radius_km": radius,
+                    "origin": {"latitude": lat, "longitude": lng},
+                    "results": [],
+                }
+            )
+
+        User = get_user_model()
+        mover_ids = [h["mover_id"] for h in hits]
+        # Pull the mover objects and their currently-live plan in one
+        # pass so we don't do N + M queries. Only include movers whose
+        # newest plan is actually live — a stale GEO entry from someone
+        # who has since gone offline should not surface.
+        movers = User.objects.filter(id__in=mover_ids).prefetch_related(
+            "travel_plans"
+        )
+        by_id = {str(m.id): m for m in movers}
+
+        live_plan_by_mover: dict[str, TravelPlan] = {}
+        for mover in movers:
+            live_plan = (
+                mover.travel_plans.filter(
+                    is_live=True,
+                    status__in=[
+                        TravelPlan.Status.PUBLISHED,
+                        TravelPlan.Status.IN_PROGRESS,
+                    ],
+                )
+                .order_by("-departure_time")
+                .first()
+            )
+            if live_plan is not None:
+                live_plan_by_mover[str(mover.id)] = live_plan
+
+        results = []
+        for hit in hits:
+            mover_id = hit["mover_id"]
+            mover = by_id.get(mover_id)
+            plan = live_plan_by_mover.get(mover_id)
+            if not mover or not plan:
+                continue
+            results.append(
+                {
+                    "mover_id": mover_id,
+                    "latitude": hit["latitude"],
+                    "longitude": hit["longitude"],
+                    "distance_km": round(hit["distance_km"], 3),
+                    "vehicle_type": plan.vehicle_type,
+                    "travel_plan_id": str(plan.id),
+                    "mover": UserSummarySerializer(mover, context={"request": request}).data,
+                }
+            )
+
+        return response.Response(
+            {
+                "count": len(results),
+                "radius_km": radius,
+                "origin": {"latitude": lat, "longitude": lng},
+                "results": results,
+            }
+        )
+
+    @staticmethod
+    def _coerce_float(raw):
+        if raw is None or raw == "":
+            return None
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _coerce_int(raw):
+        if raw is None or raw == "":
+            return None
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return None
 
 
 class LegacyToggleLiveStatusView(APIView):
