@@ -108,6 +108,43 @@ class MobilityApiService {
     return _extractCollection(response.data);
   }
 
+  /// Fetch live movers within [radiusKm] of the supplied coordinate.
+  ///
+  /// Hits are served from the backend's Redis GEO index (movers:live),
+  /// enriched with each mover's currently-live TravelPlan + profile
+  /// summary, and ordered by distance ascending. The caller is filtered
+  /// out server-side. Failures return an empty list so callers can
+  /// treat the result as "no one nearby" without special handling.
+  Future<List<Map<String, dynamic>>> fetchNearbyMovers({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 3.0,
+    int limit = 25,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/api/mobility/nearby-movers/',
+        queryParameters: {
+          'lat': latitude.toStringAsFixed(6),
+          'lng': longitude.toStringAsFixed(6),
+          'radius_km': radiusKm.toStringAsFixed(3),
+          'limit': limit.toString(),
+        },
+      );
+      final data = response.data;
+      if (data is Map && data['results'] is List) {
+        return List<Map<String, dynamic>>.from(
+          (data['results'] as List).map(
+            (e) => Map<String, dynamic>.from(e as Map),
+          ),
+        );
+      }
+      return const [];
+    } catch (_) {
+      return const [];
+    }
+  }
+
   Future<List<Map<String, dynamic>>> searchAvailableTravelPlans({
     String? origin,
     String? destination,
