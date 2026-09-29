@@ -113,8 +113,19 @@ def request_hits_corridor(
     return pickup_idx <= dropoff_idx
 
 
+_REDIS_CLIENT = None
+_REDIS_URL_CACHED: str | None = None
+
+
 def _get_redis_client():
-    """Return a redis client sourced from CHANNEL_LAYERS, or None."""
+    """Return a cached redis client sourced from CHANNEL_LAYERS.
+
+    A singleton is important for hosted Redis (Upstash, Redis Cloud)
+    where each connection counts against a hard concurrent-connection
+    quota — every GEOADD on a fresh tick would otherwise open a new
+    socket and exhaust the pool.
+    """
+    global _REDIS_CLIENT, _REDIS_URL_CACHED
     try:
         from django.conf import settings
 
@@ -123,12 +134,22 @@ def _get_redis_client():
         if not hosts:
             return None
         host = hosts[0]
+        # Recreate the cached client if the URL changed (settings reload
+        # in tests, or a Render restart with a different secret).
+        url_key = host if isinstance(host, str) else f"{host[0]}:{host[1]}"
+        if _REDIS_CLIENT is not None and _REDIS_URL_CACHED == url_key:
+            return _REDIS_CLIENT
+
         import redis  # type: ignore
 
         if isinstance(host, str):
-            return redis.Redis.from_url(host, decode_responses=True)
-        # tuple form: (host, port)
-        return redis.Redis(host=host[0], port=host[1], decode_responses=True)
+            _REDIS_CLIENT = redis.Redis.from_url(host, decode_responses=True)
+        else:
+            _REDIS_CLIENT = redis.Redis(
+                host=host[0], port=host[1], decode_responses=True
+            )
+        _REDIS_URL_CACHED = url_key
+        return _REDIS_CLIENT
     except Exception:
         return None
 
