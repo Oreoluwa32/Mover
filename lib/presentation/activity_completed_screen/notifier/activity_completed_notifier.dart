@@ -39,8 +39,16 @@ class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
     try {
       final matches = await _mobilityApiService.getMatches();
 
+      // A match is worth surfacing on the Completed tab when it has
+      // finished for the user - either because the ride/delivery
+      // wrapped up successfully or because it was cancelled. Both
+      // land in the same list so the user has one place to see their
+      // past activity; the status field distinguishes them.
       final items = matches
-          .where((match) => match['status']?.toString() == 'completed')
+          .where((match) {
+            final s = match['status']?.toString();
+            return s == 'completed' || s == 'cancelled';
+          })
           .map(_mapCompletedMatch)
           .whereType<CompletedItemModel>()
           .toList();
@@ -74,6 +82,8 @@ class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
       match['travel_plan'] as Map? ?? const <String, dynamic>{},
     );
     final requestType = match['match_type']?.toString();
+    final isCancelled = match['status']?.toString() == 'cancelled';
+    final statusLabel = isCancelled ? 'Cancelled' : 'Completed';
 
     if (requestType == 'ride' && rideRequest.isNotEmpty) {
       final scheduledTime = rideRequest['scheduled_time']?.toString();
@@ -93,9 +103,9 @@ class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
         destinationLongitude: _safeDouble(rideRequest['destination_longitude']),
         date: _formatDateLabel(scheduledTime),
         time: _formatTimeLabel(scheduledTime),
-        status: 'Completed',
+        status: statusLabel,
         moverName: _resolveMoverName(match),
-        rating: 'Trip completed',
+        rating: isCancelled ? 'Trip cancelled' : 'Trip completed',
         price: _resolvePrice(match),
         id: match['id']?.toString(),
         requestId: rideRequest['id']?.toString(),
@@ -123,9 +133,9 @@ class ActivityCompletedNotifier extends StateNotifier<ActivityCompletedState> {
         destinationLongitude: _safeDouble(deliveryRequest['dropoff_longitude']),
         date: _formatDateLabel(scheduledTime),
         time: _formatTimeLabel(scheduledTime),
-        status: 'Completed',
+        status: statusLabel,
         moverName: _resolveMoverName(match),
-        rating: 'Delivery completed',
+        rating: isCancelled ? 'Delivery cancelled' : 'Delivery completed',
         price: _resolvePrice(match),
         id: match['id']?.toString(),
         requestId: deliveryRequest['id']?.toString(),

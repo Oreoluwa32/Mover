@@ -33,6 +33,17 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
         final departureDate =
             metadata['display_date_range']?.toString() ??
             _formatDate(item['departure_time']?.toString());
+        final parsedDeparture = DateTime.tryParse(
+          item['departure_time']?.toString() ?? '',
+        )?.toLocal();
+        // "Live" only makes sense while the plan is inside its active
+        // window. Backend is_live can stay flipped on across days for a
+        // recurring route, but the chip should light up only when the
+        // scheduled trip is happening right now (or about to). Anything
+        // else is a stale indicator - the user's own toggle from a past
+        // trip showing on today's card.
+        final bool inLiveWindow = parsedDeparture != null &&
+            _isWithinActiveWindow(parsedDeparture);
         return SavedRouteModel(
           id: item['id']?.toString(),
           routetitle: item['title']?.toString() ?? 'My route',
@@ -40,11 +51,9 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
               '${item['origin_name']?.toString() ?? ''} -> ${item['destination_name']?.toString() ?? ''}',
           time: departureTime,
           days: departureDate,
-          islive: item['is_live'] == true,
+          islive: item['is_live'] == true && inLiveWindow,
           status: item['status']?.toString() ?? '',
-          departureTime: DateTime.tryParse(
-            item['departure_time']?.toString() ?? '',
-          )?.toLocal(),
+          departureTime: parsedDeparture,
         );
       }).toList();
 
@@ -132,6 +141,17 @@ class MyRouteNotifier extends StateNotifier<MyRouteState> {
     final month = parsed.month.toString().padLeft(2, '0');
     final day = parsed.day.toString().padLeft(2, '0');
     return '$month/$day/${parsed.year}';
+  }
+
+  /// True when the given local departure time is inside the window we
+  /// treat as "currently live" - from 30 minutes before the scheduled
+  /// start until 6 hours after. Outside this window the Live chip is
+  /// suppressed even if the backend still reports is_live true.
+  bool _isWithinActiveWindow(DateTime departure) {
+    final now = DateTime.now();
+    final windowStart = departure.subtract(const Duration(minutes: 30));
+    final windowEnd = departure.add(const Duration(hours: 6));
+    return !now.isBefore(windowStart) && !now.isAfter(windowEnd);
   }
 
   String _formatTime(String? rawDateTime) {
