@@ -90,7 +90,13 @@ class CompletedItemWidget extends StatelessWidget{
                 Spacer(),
                 Text(
                   completedItemModelObj.status!,
-                  style: theme.textTheme.bodySmall,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: completedItemModelObj.status?.toLowerCase() ==
+                            'cancelled'
+                        ? const Color(0xFFE41212)
+                        : null,
+                    fontWeight: FontWeight.w600,
+                  ),
                 )
               ],
             ),
